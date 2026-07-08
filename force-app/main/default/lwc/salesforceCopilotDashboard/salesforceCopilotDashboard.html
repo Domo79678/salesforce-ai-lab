@@ -1,0 +1,54 @@
+<template>
+    <lightning-card>
+        <div class="slds-p-around_large">
+
+            <div class="slds-text-align_center slds-m-bottom_x-large">
+                <h1 class="slds-text-heading_large">Salesforce Copilot</h1>
+                <p class="slds-text-heading_small slds-m-top_small">
+                    Your AI Workspace for Salesforce Administration
+                </p>
+                <p class="slds-m-top_small">
+                    Understand, build, troubleshoot, document, and grow with AI-powered Salesforce guidance.
+                </p>
+            </div>
+
+            <div class="slds-grid slds-wrap slds-gutters">
+
+                <template for:each={capabilities} for:item="capability">
+                    <div key={capability.name} class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3 slds-p-bottom_medium">
+                        <lightning-card title={capability.title} icon-name={capability.icon}>
+                            <div class="slds-p-around_medium">
+                                <p>{capability.description}</p>
+
+                                <p class="slds-m-top_small">
+                                    <strong>Status:</strong> {capability.status}
+                                </p>
+
+                                <div class="slds-m-top_medium">
+                                    <lightning-button
+                                        label="Launch"
+                                        variant="brand"
+                                        data-name={capability.name}
+                                        onclick={handleLaunch}>
+                                    </lightning-button>
+                                </div>
+                            </div>
+                        </lightning-card>
+                    </div>
+                </template>
+
+            </div>
+
+            <template if:true={selectedCapability}>
+                <div class="slds-box slds-m-top_large">
+                    <h2 class="slds-text-heading_medium">{selectedCapabilityTitle}</h2>
+                    <p class="slds-m-top_small">{selectedCapabilityDescription}</p>
+                    <p class="slds-m-top_medium">
+                        This workspace is ready for the next build step.
+                    </p>
+                </div>
+            </template>
+
+        </div>
+    </lightning-card>
+</template>
