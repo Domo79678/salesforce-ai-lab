@@ -2,51 +2,167 @@
     <lightning-card>
         <div class="slds-p-around_large">
 
-            <div class="slds-text-align_center slds-m-bottom_x-large">
-                <h1 class="slds-text-heading_large">Salesforce Copilot</h1>
-                <p class="slds-text-heading_small slds-m-top_small">
-                    Your AI Workspace for Salesforce Administration
-                </p>
-                <p class="slds-m-top_small">
-                    Understand, build, troubleshoot, document, and grow with AI-powered Salesforce guidance.
-                </p>
-            </div>
+            <template if:true={showDashboard}>
+                <div class="slds-text-align_center slds-m-bottom_x-large">
+                    <h1 class="slds-text-heading_large">Salesforce Copilot</h1>
+                    <p class="slds-text-heading_small slds-m-top_small">
+                        Your AI Workspace for Salesforce Administration
+                    </p>
+                    <p class="slds-m-top_small">
+                        Understand, build, troubleshoot, document, and grow with AI-powered Salesforce guidance.
+                    </p>
+                </div>
 
-            <div class="slds-grid slds-wrap slds-gutters">
+                <div class="slds-grid slds-wrap slds-gutters">
+                    <template for:each={capabilities} for:item="capability">
+                        <div key={capability.name}
+                             class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3 slds-p-bottom_medium">
 
-                <template for:each={capabilities} for:item="capability">
-                    <div key={capability.name} class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3 slds-p-bottom_medium">
-                        <lightning-card title={capability.title} icon-name={capability.icon}>
-                            <div class="slds-p-around_medium">
-                                <p>{capability.description}</p>
+                            <lightning-card title={capability.title}>
+                                <div class="slds-p-around_medium">
+                                    <p>{capability.description}</p>
+                                    <p class="slds-m-top_small"><strong>Status:</strong> {capability.status}</p>
 
-                                <p class="slds-m-top_small">
-                                    <strong>Status:</strong> {capability.status}
-                                </p>
-
-                                <div class="slds-m-top_medium">
-                                    <lightning-button
-                                        label="Launch"
-                                        variant="brand"
-                                        data-name={capability.name}
-                                        onclick={handleLaunch}>
-                                    </lightning-button>
+                                    <div class="slds-m-top_medium">
+                                        <lightning-button
+                                            label="Launch"
+                                            variant="brand"
+                                            data-name={capability.name}
+                                            onclick={handleLaunch}>
+                                        </lightning-button>
+                                    </div>
                                 </div>
-                            </div>
-                        </lightning-card>
+                            </lightning-card>
+
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <template if:true={showFlowIntelligence}>
+                <lightning-button
+                    label="← Back to Dashboard"
+                    onclick={backToDashboard}>
+                </lightning-button>
+
+                <div class="slds-m-top_large slds-m-bottom_large">
+                    <h1 class="slds-text-heading_large">Flow Intelligence</h1>
+                    <p class="slds-m-top_small">
+                        Analyze Salesforce Flows, generate documentation, identify risks, and create interview-ready insights.
+                    </p>
+                </div>
+
+                <div class="slds-box slds-m-bottom_large">
+                    <lightning-textarea
+                        label="Flow Description or Flow Name"
+                        value={flowInput}
+                        onchange={handleFlowInputChange}
+                        placeholder="Example: Opportunity Health Monitor">
+                    </lightning-textarea>
+
+                    <div class="slds-m-top_medium">
+                        <lightning-button
+                            label="Analyze Flow"
+                            variant="brand"
+                            onclick={analyzeFlow}>
+                        </lightning-button>
+                    </div>
+
+                    <template if:true={isAnalyzing}>
+                        <div class="slds-m-top_medium">
+                            <lightning-spinner alternative-text="Analyzing Flow"></lightning-spinner>
+                            <p class="slds-m-top_small">Analyzing Flow Intelligence data...</p>
+                        </div>
+                    </template>
+                </div>
+
+                <template if:true={showAnalysis}>
+                    <div class="slds-grid slds-wrap slds-gutters">
+
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-3">
+                            <lightning-card title="Flow Health Score">
+                                <div class="slds-p-around_medium slds-text-align_center">
+                                    <h2 class="slds-text-heading_large">{scoreLabel}</h2>
+                                    <p class="slds-text-heading_small">{analysis.healthStatus}</p>
+                                    <p class="slds-m-top_small"><strong>Confidence:</strong> {analysis.confidence}</p>
+                                </div>
+
+                                <div class="slds-p-around_medium">
+                                    <p><strong>Flow:</strong> {analysis.flowName}</p>
+                                    <p><strong>Type:</strong> {analysis.flowType}</p>
+                                    <p><strong>Object:</strong> {analysis.primaryObject}</p>
+                                    <p><strong>Trigger:</strong> {analysis.trigger}</p>
+                                    <p><strong>Complexity:</strong> {analysis.complexity}</p>
+                                    <p><strong>Risk Level:</strong> {analysis.riskLevel}</p>
+                                    <p><strong>Maintainability:</strong> {analysis.maintainability}</p>
+                                    <p><strong>Documentation:</strong> {analysis.documentationStatus}</p>
+                                    <p><strong>Best Practice Score:</strong> {analysis.bestPracticeScore}</p>
+                                </div>
+                            </lightning-card>
+
+                            <lightning-card title="AI Suggestions" class="slds-m-top_medium">
+                                <div class="slds-p-around_medium">
+                                    <template for:each={analysis.aiSuggestions} for:item="suggestion">
+                                        <div key={suggestion.title} class="slds-box slds-m-bottom_small">
+                                            <p><strong>{suggestion.title}</strong></p>
+                                            <p><strong>Severity:</strong> {suggestion.severity}</p>
+                                            <p><strong>Impact:</strong> {suggestion.impact}</p>
+                                            <p><strong>Estimated Score Gain:</strong> {suggestion.scoreGain}</p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </lightning-card>
+
+                            <lightning-card title="Export Center" class="slds-m-top_medium">
+                                <div class="slds-p-around_medium">
+                                    <lightning-button label="Copy Analysis" onclick={handleExport}></lightning-button>
+                                    <lightning-button class="slds-m-left_x-small" label="Export Markdown" onclick={handleExport}></lightning-button>
+                                    <lightning-button class="slds-m-left_x-small" label="Export PDF" onclick={handleExport}></lightning-button>
+
+                                    <template if:true={exportMessage}>
+                                        <p class="slds-m-top_small">{exportMessage}</p>
+                                    </template>
+                                </div>
+                            </lightning-card>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-3">
+                            <lightning-card title="Executive Summary">
+                                <div class="slds-p-around_medium">{analysis.executiveSummary}</div>
+                            </lightning-card>
+
+                            <lightning-card title="Business Purpose" class="slds-m-top_medium">
+                                <div class="slds-p-around_medium">{analysis.businessPurpose}</div>
+                            </lightning-card>
+
+                            <lightning-card title="Technical Walkthrough" class="slds-m-top_medium">
+                                <div class="slds-p-around_medium">{analysis.technicalWalkthrough}</div>
+                            </lightning-card>
+
+                            <lightning-card title="Risks" class="slds-m-top_medium">
+                                <div class="slds-p-around_medium">{analysis.risks}</div>
+                            </lightning-card>
+
+                            <lightning-card title="Testing Checklist" class="slds-m-top_medium">
+                                <div class="slds-p-around_medium">
+                                    <template for:each={analysis.checklist} for:item="item">
+                                        <p key={item}>☐ {item}</p>
+                                    </template>
+                                </div>
+                            </lightning-card>
+
+                            <lightning-card title="Documentation Notes" class="slds-m-top_medium">
+                                <div class="slds-p-around_medium">{analysis.documentationNotes}</div>
+                            </lightning-card>
+
+                            <lightning-card title="Interview Insight" class="slds-m-top_medium">
+                                <div class="slds-p-around_medium">{analysis.interviewInsight}</div>
+                            </lightning-card>
+                        </div>
+
                     </div>
                 </template>
 
-            </div>
-
-            <template if:true={selectedCapability}>
-                <div class="slds-box slds-m-top_large">
-                    <h2 class="slds-text-heading_medium">{selectedCapabilityTitle}</h2>
-                    <p class="slds-m-top_small">{selectedCapabilityDescription}</p>
-                    <p class="slds-m-top_medium">
-                        This workspace is ready for the next build step.
-                    </p>
-                </div>
             </template>
 
         </div>
