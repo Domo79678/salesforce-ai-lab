@@ -3,47 +3,19 @@ import { LightningElement } from 'lwc';
 export default class SalesforceCopilotDashboard extends LightningElement {
     currentView = 'dashboard';
     flowInput = '';
+    orgInput = '';
     analysis = null;
+    orgAnalysis = null;
     exportMessage = '';
     isAnalyzing = false;
 
     capabilities = [
-        {
-            name: 'flowIntelligence',
-            title: '🧠 Flow Intelligence',
-            description: 'Analyze Salesforce Flows, identify risks, generate testing plans, documentation, and interview insights.',
-            status: 'Available'
-        },
-        {
-            name: 'orgExplorer',
-            title: '🗺️ Org Explorer',
-            description: 'Explore objects, fields, relationships, page layouts, and metadata throughout your Salesforce org.',
-            status: 'Coming Soon'
-        },
-        {
-            name: 'automationAdvisor',
-            title: '⚙️ Automation Advisor',
-            description: 'Recommend the best automation solution using Flows, Approval Processes, Validation Rules, or Apex.',
-            status: 'Coming Soon'
-        },
-        {
-            name: 'documentationGenerator',
-            title: '📄 Documentation Generator',
-            description: 'Generate admin guides, release notes, and testing documentation.',
-            status: 'Coming Soon'
-        },
-        {
-            name: 'aiLearningCoach',
-            title: '🎓 AI Learning Coach',
-            description: 'Interactive Salesforce learning, certification preparation, quizzes, and interview coaching.',
-            status: 'Coming Soon'
-        },
-        {
-            name: 'troubleshootingAssistant',
-            title: '🛠️ Troubleshooting Assistant',
-            description: 'Diagnose Flow failures, validation rules, permission issues, and configuration problems.',
-            status: 'Coming Soon'
-        }
+        { name: 'flowIntelligence', title: '🧠 Flow Intelligence', description: 'Analyze Salesforce Flows, identify risks, generate testing plans, documentation, and interview insights.', status: 'Available' },
+        { name: 'orgExplorer', title: '🗺️ Org Explorer', description: 'Explore objects, fields, relationships, page layouts, and metadata throughout your Salesforce org.', status: 'Available' },
+        { name: 'automationAdvisor', title: '⚙️ Automation Advisor', description: 'Recommend the best automation solution using Flows, Approval Processes, Validation Rules, or Apex.', status: 'Coming Soon' },
+        { name: 'documentationGenerator', title: '📄 Documentation Generator', description: 'Generate admin guides, release notes, and testing documentation.', status: 'Coming Soon' },
+        { name: 'aiLearningCoach', title: '🎓 AI Learning Coach', description: 'Interactive Salesforce learning, certification preparation, quizzes, and interview coaching.', status: 'Coming Soon' },
+        { name: 'troubleshootingAssistant', title: '🛠️ Troubleshooting Assistant', description: 'Diagnose Flow failures, validation rules, permission issues, and configuration problems.', status: 'Coming Soon' }
     ];
 
     get showDashboard() {
@@ -54,8 +26,16 @@ export default class SalesforceCopilotDashboard extends LightningElement {
         return this.currentView === 'flowIntelligence';
     }
 
+    get showOrgExplorer() {
+        return this.currentView === 'orgExplorer';
+    }
+
     get showAnalysis() {
         return this.analysis !== null;
+    }
+
+    get showOrgAnalysis() {
+        return this.orgAnalysis !== null;
     }
 
     get scoreLabel() {
@@ -63,15 +43,23 @@ export default class SalesforceCopilotDashboard extends LightningElement {
     }
 
     handleLaunch(event) {
-        if (event.target.dataset.name === 'flowIntelligence') {
+        const capabilityName = event.target.dataset.name;
+
+        if (capabilityName === 'flowIntelligence') {
             this.currentView = 'flowIntelligence';
+        }
+
+        if (capabilityName === 'orgExplorer') {
+            this.currentView = 'orgExplorer';
         }
     }
 
     backToDashboard() {
         this.currentView = 'dashboard';
         this.flowInput = '';
+        this.orgInput = '';
         this.analysis = null;
+        this.orgAnalysis = null;
         this.exportMessage = '';
         this.isAnalyzing = false;
     }
@@ -80,31 +68,21 @@ export default class SalesforceCopilotDashboard extends LightningElement {
         this.flowInput = event.target.value;
     }
 
+    handleOrgInputChange(event) {
+        this.orgInput = event.target.value;
+    }
+
     analyzeFlow() {
         this.isAnalyzing = true;
         this.analysis = null;
-        this.exportMessage = '';
 
         window.setTimeout(() => {
             const input = this.flowInput || 'Opportunity Health Monitor';
-            const loweredInput = input.toLowerCase();
-
-            let primaryObject = 'Opportunity';
-
-            if (loweredInput.includes('case')) {
-                primaryObject = 'Case';
-            } else if (loweredInput.includes('lead')) {
-                primaryObject = 'Lead';
-            } else if (loweredInput.includes('account')) {
-                primaryObject = 'Account';
-            } else if (loweredInput.includes('contact')) {
-                primaryObject = 'Contact';
-            }
 
             this.analysis = {
                 flowName: input,
                 flowType: 'Record-Triggered Flow',
-                primaryObject,
+                primaryObject: input.toLowerCase().includes('case') ? 'Case' : 'Opportunity',
                 trigger: 'After Save',
                 overallScore: '92',
                 healthStatus: '🟢 Excellent',
@@ -114,59 +92,50 @@ export default class SalesforceCopilotDashboard extends LightningElement {
                 documentationStatus: '🟡 Needs Update',
                 bestPracticeScore: '89%',
                 confidence: '96%',
-
-                executiveSummary:
-                    `The ${input} Flow appears to automate a repeatable Salesforce business process for the ${primaryObject} object. It improves consistency, reduces manual work, and helps users complete follow-up actions more reliably.`,
-
-                businessPurpose:
-                    `This Flow supports operational consistency by reducing the need for users to remember manual steps. For ${primaryObject} records, automation can improve speed, accountability, and data quality.`,
-
-                technicalWalkthrough:
-                    `The Flow likely begins when a ${primaryObject} record is created or updated. It evaluates record conditions, checks whether criteria are met, and performs an action such as creating a related Task, updating a field, or triggering a notification.`,
-
-                risks:
-                    'Primary risks include missing fault paths, duplicate record creation, unclear entry criteria, hardcoded values, and unexpected repeated execution if the record is edited multiple times.',
-
-                documentationNotes:
-                    'Documentation should include the Flow name, object, trigger timing, business purpose, entry conditions, actions performed, owner, testing steps, known risks, and change history.',
-
-                interviewInsight:
-                    'Interview Question: How would you explain a record-triggered Flow to a business user? Strong Answer: I would explain that it automates actions when records are created or updated, reducing manual work and improving process consistency while keeping users focused on higher-value activities.',
-
-                checklist: [
-                    'Test record creation',
-                    'Test record update',
-                    'Test negative criteria',
-                    'Test duplicate prevention',
-                    'Test user permissions',
-                    'Test fault path behavior',
-                    'Test bulk record updates'
-                ],
-
+                executiveSummary: `The ${input} Flow appears to automate a repeatable Salesforce business process and reduce manual effort.`,
+                businessPurpose: 'This Flow improves consistency, accountability, and data quality by automating manual steps.',
+                technicalWalkthrough: 'The Flow likely begins when a record is created or updated, checks criteria, and performs actions such as creating a Task or updating a field.',
+                risks: 'Primary risks include missing fault paths, duplicate creation, unclear criteria, hardcoded values, and repeated execution.',
+                documentationNotes: 'Document the Flow name, object, trigger timing, business purpose, criteria, actions, testing steps, and known risks.',
+                interviewInsight: 'Interview Question: How would you explain this Flow to a business user? Strong Answer: I would explain that it automates repeatable work, reduces manual effort, and improves consistency.',
+                checklist: ['Test record creation', 'Test record update', 'Test negative criteria', 'Test duplicate prevention', 'Test permissions', 'Test bulk updates'],
                 aiSuggestions: [
-                    {
-                        title: 'Add Fault Paths',
-                        severity: 'Medium',
-                        impact: 'Prevents unhandled automation errors.',
-                        scoreGain: '+4'
-                    },
-                    {
-                        title: 'Document Entry Criteria',
-                        severity: 'Low',
-                        impact: 'Helps future admins understand when this Flow runs.',
-                        scoreGain: '+2'
-                    },
-                    {
-                        title: 'Test Duplicate Prevention',
-                        severity: 'Medium',
-                        impact: 'Reduces risk of duplicate Tasks or updates.',
-                        scoreGain: '+3'
-                    }
+                    { title: 'Add Fault Paths', severity: 'Medium', impact: 'Prevents unhandled automation errors.', scoreGain: '+4' },
+                    { title: 'Document Entry Criteria', severity: 'Low', impact: 'Helps future admins maintain the Flow safely.', scoreGain: '+2' },
+                    { title: 'Test Duplicate Prevention', severity: 'Medium', impact: 'Reduces risk of duplicate Tasks or updates.', scoreGain: '+3' }
                 ]
             };
 
             this.isAnalyzing = false;
         }, 900);
+    }
+
+    exploreObject() {
+        const objectName = this.orgInput || 'Opportunity';
+
+        this.orgAnalysis = {
+            objectName,
+            objectType: 'Standard Object',
+            fieldCount: 42,
+            relationships: 8,
+            validationRules: 3,
+            recordTypes: 2,
+            flows: 5,
+            pageLayouts: 3,
+            permissions: 'Needs Review',
+            summary: `${objectName} is a core Salesforce object used to manage business data, automation, reporting, and user processes.`,
+            risks: [
+                'Too many unused fields may reduce usability.',
+                'Validation Rules may block users if not documented.',
+                'Multiple Flows on one object can create automation complexity.'
+            ],
+            recommendations: [
+                'Review unused fields.',
+                'Document key validation rules.',
+                'Map all Flows connected to this object.',
+                'Review permission access for key profiles and permission sets.'
+            ]
+        };
     }
 
     handleExport(event) {
