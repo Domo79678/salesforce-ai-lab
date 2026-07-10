@@ -1,3 +1,549 @@
 <template>
-    
+    <div class="slds-p-around_medium">
+
+        <section class="hero">
+            <div class="hero-title">Automation Advisor</div>
+
+            <div class="hero-subtitle">
+                Describe a Salesforce business requirement and receive a recommended solution,
+                implementation plan, risks, testing guidance, deployment strategy, and interview-ready explanation.
+            </div>
+
+            <div class="slds-m-top_medium">
+                <lightning-badge label="Automation Advisor v1.0"></lightning-badge>
+            </div>
+        </section>
+
+        <lightning-card
+            title="Describe the Business Requirement"
+            icon-name="utility:edit">
+
+            <div class="slds-p-around_medium">
+                <lightning-textarea
+                    label="Business Requirement"
+                    value={requirementInput}
+                    onchange={handleRequirementChange}
+                    placeholder="Example: When an Opportunity is marked Closed Won, create an onboarding Case, notify Finance, and update the Account tier.">
+                </lightning-textarea>
+
+                <p class="slds-text-body_small slds-m-top_x-small">
+                    Include the object, trigger, timing, users, approvals, notifications,
+                    validation needs, integrations, and expected record volume.
+                </p>
+
+                <template if:true={hasError}>
+                    <div
+                        class="slds-notify slds-notify_alert slds-alert_error slds-m-top_medium"
+                        role="alert">
+
+                        <span class="slds-assistive-text">Error</span>
+                        <h2>{errorMessage}</h2>
+                    </div>
+                </template>
+
+                <div class="slds-grid slds-wrap slds-gutters_small slds-m-top_medium">
+                    <div class="slds-col">
+                        <lightning-button
+                            label="Analyze Requirement"
+                            variant="brand"
+                            icon-name="utility:settings"
+                            onclick={analyzeRequirement}>
+                        </lightning-button>
+                    </div>
+
+                    <div class="slds-col">
+                        <lightning-button
+                            label="Clear"
+                            variant="neutral"
+                            icon-name="utility:refresh"
+                            onclick={clearAdvisor}>
+                        </lightning-button>
+                    </div>
+                </div>
+
+                <template if:true={isAnalyzing}>
+                    <div class="slds-is-relative slds-m-top_large slds-p-around_large">
+                        <lightning-spinner
+                            alternative-text="Analyzing business requirement"
+                            size="medium">
+                        </lightning-spinner>
+
+                        <p class="slds-text-align_center slds-m-top_large">
+                            Evaluating automation type, timing, complexity, risks, and implementation needs...
+                        </p>
+                    </div>
+                </template>
+            </div>
+        </lightning-card>
+
+        <template if:true={showRecommendation}>
+
+            <section class="decision-card">
+                <div class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center">
+
+                    <div class="slds-grid slds-grid_vertical-align-center">
+                        <lightning-icon
+                            icon-name={recommendation.solutionIcon}
+                            size="medium"
+                            alternative-text={recommendation.solution}>
+                        </lightning-icon>
+
+                        <div class="slds-m-left_medium">
+                            <p class="slds-text-title_caps">
+                                Recommended Solution
+                            </p>
+
+                            <h2 class="slds-text-heading_large">
+                                {recommendation.solution}
+                            </h2>
+
+                            <p class="slds-m-top_x-small">
+                                {recommendation.summary}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="score">
+                        <div class="score-number">
+                            {recommendation.confidence}
+                        </div>
+
+                        <div class="score-label">
+                            Confidence
+                        </div>
+
+                        <div class="slds-m-top_small">
+                            <lightning-badge
+                                label={recommendation.status}>
+                            </lightning-badge>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section class="metric-grid">
+
+                <article class="metric">
+                    <lightning-icon
+                        icon-name="utility:rating"
+                        size="small"
+                        alternative-text="Complexity">
+                    </lightning-icon>
+
+                    <div class="metric-value">
+                        {recommendation.complexity}
+                    </div>
+
+                    <div class="metric-label">
+                        Complexity
+                    </div>
+                </article>
+
+                <article class="metric">
+                    <lightning-icon
+                        icon-name="utility:clock"
+                        size="small"
+                        alternative-text="Build Time">
+                    </lightning-icon>
+
+                    <div class="metric-value">
+                        {recommendation.estimatedBuildTime}
+                    </div>
+
+                    <div class="metric-label">
+                        Estimated Build Time
+                    </div>
+                </article>
+
+                <article class="metric">
+                    <lightning-icon
+                        icon-name="utility:maintenance_plan"
+                        size="small"
+                        alternative-text="Maintenance">
+                    </lightning-icon>
+
+                    <div class="metric-value">
+                        {recommendation.maintenanceLevel}
+                    </div>
+
+                    <div class="metric-label">
+                        Maintenance Level
+                    </div>
+                </article>
+
+            </section>
+
+            <lightning-card
+                title="Requirement Analysis"
+                icon-name="utility:search"
+                class="slds-m-bottom_large">
+
+                <div class="slds-p-around_medium">
+                    <div class="slds-grid slds-wrap slds-gutters">
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
+                            <p class="slds-text-title_caps">Object</p>
+                            <p>{recommendation.parsedRequirement.object}</p>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
+                            <p class="slds-text-title_caps">Trigger</p>
+                            <p>{recommendation.parsedRequirement.trigger}</p>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
+                            <p class="slds-text-title_caps">Timing</p>
+                            <p>{recommendation.parsedRequirement.timing}</p>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
+                            <p class="slds-text-title_caps">Outcome</p>
+                            <p>{recommendation.parsedRequirement.outcome}</p>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
+                            <p class="slds-text-title_caps">Volume</p>
+                            <p>{recommendation.parsedRequirement.volume}</p>
+                        </div>
+
+                    </div>
+
+                    <div class="slds-m-top_medium">
+                        <p class="slds-text-title_caps">
+                            Recommended Timing
+                        </p>
+
+                        <p>{recommendation.recommendedTiming}</p>
+                    </div>
+                </div>
+            </lightning-card>
+
+            <lightning-card
+                title="Requirement Reviewed"
+                icon-name="utility:note"
+                class="slds-m-bottom_large">
+
+                <div class="slds-p-around_medium">
+                    {recommendation.requirement}
+                </div>
+            </lightning-card>
+
+            <div class="slds-grid slds-wrap slds-gutters">
+
+                <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 slds-p-bottom_medium">
+                    <lightning-card
+                        title="Why This Fits"
+                        icon-name="utility:success">
+
+                        <div class="slds-p-around_medium">
+                            <template
+                                for:each={recommendation.whyThisFits}
+                                for:item="reason">
+
+                                <div
+                                    key={reason}
+                                    class="recommendation">
+
+                                    <div class="slds-grid slds-grid_vertical-align-start">
+                                        <lightning-icon
+                                            icon-name="utility:success"
+                                            size="xx-small"
+                                            alternative-text="Reason">
+                                        </lightning-icon>
+
+                                        <p class="slds-m-left_small">
+                                            {reason}
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </lightning-card>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 slds-p-bottom_medium">
+                    <lightning-card
+                        title="Suggested Architecture"
+                        icon-name="utility:steps">
+
+                        <div class="slds-p-around_medium">
+                            <ol class="slds-list_ordered">
+                                <template
+                                    for:each={recommendation.architectureSteps}
+                                    for:item="step">
+
+                                    <li
+                                        key={step}
+                                        class="slds-m-bottom_small">
+
+                                        {step}
+                                    </li>
+                                </template>
+                            </ol>
+                        </div>
+                    </lightning-card>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 slds-p-bottom_medium">
+                    <lightning-card
+                        title="Risks and Watchouts"
+                        icon-name="utility:warning">
+
+                        <div class="slds-p-around_medium">
+                            <template
+                                for:each={recommendation.risks}
+                                for:item="risk">
+
+                                <div
+                                    key={risk}
+                                    class="recommendation">
+
+                                    <div class="slds-grid slds-grid_vertical-align-start">
+                                        <lightning-icon
+                                            icon-name="utility:warning"
+                                            size="xx-small"
+                                            alternative-text="Risk">
+                                        </lightning-icon>
+
+                                        <p class="slds-m-left_small">
+                                            {risk}
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </lightning-card>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 slds-p-bottom_medium">
+                    <lightning-card
+                        title="Testing Checklist"
+                        icon-name="utility:checklist">
+
+                        <div class="slds-p-around_medium">
+                            <template
+                                for:each={recommendation.testCases}
+                                for:item="testCase">
+
+                                <div
+                                    key={testCase}
+                                    class="recommendation">
+
+                                    <div class="slds-grid slds-grid_vertical-align-start">
+                                        <span>☐</span>
+
+                                        <p class="slds-m-left_small">
+                                            {testCase}
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </lightning-card>
+                </div>
+
+            </div>
+
+            <lightning-card
+                title="User Story"
+                icon-name="utility:user"
+                class="slds-m-bottom_large">
+
+                <div class="slds-p-around_medium">
+                    <div class="action-box">
+                        <p>{recommendation.userStory}</p>
+                    </div>
+                </div>
+            </lightning-card>
+
+            <div class="slds-grid slds-wrap slds-gutters">
+
+                <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 slds-p-bottom_medium">
+                    <lightning-card
+                        title="Acceptance Criteria"
+                        icon-name="utility:check">
+
+                        <div class="slds-p-around_medium">
+                            <template
+                                for:each={recommendation.acceptanceCriteria}
+                                for:item="criterion">
+
+                                <div
+                                    key={criterion}
+                                    class="recommendation">
+
+                                    <div class="slds-grid slds-grid_vertical-align-start">
+                                        <span>☐</span>
+
+                                        <p class="slds-m-left_small">
+                                            {criterion}
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </lightning-card>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 slds-p-bottom_medium">
+                    <lightning-card
+                        title="Build Checklist"
+                        icon-name="utility:builder">
+
+                        <div class="slds-p-around_medium">
+                            <template
+                                for:each={recommendation.buildChecklist}
+                                for:item="item">
+
+                                <div
+                                    key={item}
+                                    class="recommendation">
+
+                                    <div class="slds-grid slds-grid_vertical-align-start">
+                                        <span>☐</span>
+
+                                        <p class="slds-m-left_small">
+                                            {item}
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </lightning-card>
+                </div>
+
+            </div>
+
+            <div class="slds-grid slds-wrap slds-gutters">
+
+                <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 slds-p-bottom_medium">
+                    <lightning-card
+                        title="Deployment Checklist"
+                        icon-name="utility:package">
+
+                        <div class="slds-p-around_medium">
+                            <template
+                                for:each={recommendation.deploymentChecklist}
+                                for:item="item">
+
+                                <div
+                                    key={item}
+                                    class="recommendation">
+
+                                    <div class="slds-grid slds-grid_vertical-align-start">
+                                        <span>☐</span>
+
+                                        <p class="slds-m-left_small">
+                                            {item}
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </lightning-card>
+                </div>
+
+                <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 slds-p-bottom_medium">
+                    <lightning-card
+                        title="Rollback Plan"
+                        icon-name="utility:undo">
+
+                        <div class="slds-p-around_medium">
+                            <template
+                                for:each={recommendation.rollbackPlan}
+                                for:item="item">
+
+                                <div
+                                    key={item}
+                                    class="recommendation">
+
+                                    <div class="slds-grid slds-grid_vertical-align-start">
+                                        <span>☐</span>
+
+                                        <p class="slds-m-left_small">
+                                            {item}
+                                        </p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </lightning-card>
+                </div>
+
+            </div>
+
+            <lightning-card
+                title="Alternative Options"
+                icon-name="utility:choice"
+                class="slds-m-bottom_large">
+
+                <div class="slds-p-around_medium">
+                    <div class="slds-grid slds-wrap slds-gutters">
+
+                        <template
+                            for:each={recommendation.alternatives}
+                            for:item="alternative">
+
+                            <div
+                                key={alternative.name}
+                                class="slds-col slds-size_1-of-1 slds-large-size_1-of-2 slds-p-bottom_medium">
+
+                                <article class="decision-card">
+                                    <div class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-start">
+                                        <h3 class="slds-text-heading_small">
+                                            {alternative.name}
+                                        </h3>
+
+                                        <lightning-badge
+                                            label={alternative.recommendation}>
+                                        </lightning-badge>
+                                    </div>
+
+                                    <p class="slds-m-top_small">
+                                        {alternative.reason}
+                                    </p>
+                                </article>
+
+                            </div>
+                        </template>
+
+                    </div>
+                </div>
+            </lightning-card>
+
+            <lightning-card
+                title="Interview-Ready Explanation"
+                icon-name="utility:education"
+                class="slds-m-bottom_large">
+
+                <div class="slds-p-around_medium">
+                    <div class="action-box">
+                        <p>{recommendation.interviewAnswer}</p>
+                    </div>
+                </div>
+            </lightning-card>
+
+            <lightning-card
+                title="Export Center"
+                icon-name="utility:download">
+
+                <div class="slds-p-around_medium">
+                    <lightning-button
+                        label="Copy Recommendation"
+                        icon-name="utility:copy"
+                        variant="brand"
+                        onclick={copyRecommendation}>
+                    </lightning-button>
+
+                    <template if:true={hasCopyMessage}>
+                        <p class="slds-m-top_small">
+                            {copyMessage}
+                        </p>
+                    </template>
+                </div>
+            </lightning-card>
+
+        </template>
+    </div>
 </template>

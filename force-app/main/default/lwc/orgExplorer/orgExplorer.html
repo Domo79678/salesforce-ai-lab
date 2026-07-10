@@ -61,17 +61,20 @@
                     <lightning-card title="Field Explorer" class="slds-m-top_medium">
                         <div class="slds-p-around_medium">
                             <template for:each={orgAnalysis.fields} for:item="field">
-                                <div key={field.apiName} class="slds-box slds-m-bottom_small">
-                                    <p><strong>{field.label}</strong></p>
-                                    <p><strong>API Name:</strong> {field.apiName}</p>
-                                    <p><strong>Type:</strong> {field.type}</p>
-                                    <p><strong>Required:</strong> {field.required}</p>
-                                    <p><strong>Custom:</strong> {field.custom}</p>
-                                    <p><strong>Createable:</strong> {field.createable}</p>
-                                    <p><strong>Updateable:</strong> {field.updateable}</p>
-                                    <p><strong>Calculated:</strong> {field.calculated}</p>
-                                    <p><strong>Unique:</strong> {field.unique}</p>
-                                    <p><strong>External ID:</strong> {field.externalId}</p>
+                                <div key={field.apiName} class="field-card">
+                                    <p class="field-title">{field.label}</p>
+                                    <p class="field-api">API Name: {field.apiName}</p>
+
+                                    <div class="badge-row">
+                                        <span class="field-badge">Type: {field.type}</span>
+                                        <span class="field-badge">Required: {field.required}</span>
+                                        <span class="field-badge">Custom: {field.custom}</span>
+                                        <span class="field-badge">Createable: {field.createable}</span>
+                                        <span class="field-badge">Updateable: {field.updateable}</span>
+                                        <span class="field-badge">Calculated: {field.calculated}</span>
+                                        <span class="field-badge">Unique: {field.unique}</span>
+                                        <span class="field-badge">External ID: {field.externalId}</span>
+                                    </div>
                                 </div>
                             </template>
                         </div>

@@ -1,0 +1,229 @@
+:host {
+    display: block;
+}
+
+/* HERO */
+
+.hero {
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    border-radius: 1rem;
+    color: #ffffff;
+    background:
+        linear-gradient(
+            135deg,
+            #032d60 0%,
+            #0b5cab 55%,
+            #1b96ff 100%
+        );
+    box-shadow: 0 8px 24px rgba(3, 45, 96, 0.18);
+}
+
+.hero-title {
+    font-size: 2.25rem;
+    line-height: 1.2;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.hero-subtitle {
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #ffffff;
+}
+
+.hero p {
+    max-width: 48rem;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+/* GENERAL CARD TREATMENT */
+
+lightning-card {
+    display: block;
+}
+
+.module-card {
+    display: block;
+    height: 100%;
+    min-height: 19rem;
+    border-radius: 0.75rem;
+    transition:
+        transform 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.module-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(3, 45, 96, 0.14);
+}
+
+.module-description {
+    min-height: 4.5rem;
+    color: #3e4e63;
+    line-height: 1.5;
+}
+
+/* STATUS BADGES */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    line-height: 1.2;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-available {
+    color: #194e31;
+    background: #cdefc4;
+    border: 1px solid #91db8b;
+}
+
+.status-next {
+    color: #5c3b00;
+    background: #f9e3b6;
+    border: 1px solid #e4b95f;
+}
+
+.status-planned {
+    color: #444444;
+    background: #ecebea;
+    border: 1px solid #c9c7c5;
+}
+
+/* KPI AREA */
+
+.kpi-card {
+    display: block;
+    height: 100%;
+    min-height: 9rem;
+    border-radius: 0.75rem;
+    transition:
+        transform 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(3, 45, 96, 0.12);
+}
+
+.kpi-value {
+    margin-top: 0.35rem;
+    font-size: 1.65rem;
+    line-height: 1.2;
+    font-weight: 700;
+    color: #032d60;
+}
+
+.kpi-detail {
+    margin-top: 0.35rem;
+    color: #5f6a7d;
+    line-height: 1.4;
+}
+
+/* SECTIONS */
+
+.section-heading {
+    margin-bottom: 1rem;
+}
+
+.section-heading h2 {
+    color: #032d60;
+    font-weight: 700;
+}
+
+.quick-action-button {
+    display: block;
+    width: 100%;
+}
+
+.activity-item {
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ecebea;
+}
+
+.activity-item:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    border-bottom: 0;
+}
+
+.roadmap-group {
+    padding: 0.85rem;
+    margin-bottom: 0.85rem;
+    border-radius: 0.6rem;
+    background: #f8f9fb;
+    border: 1px solid #ecebea;
+}
+
+.roadmap-group:last-child {
+    margin-bottom: 0;
+}
+
+/* MODULE WORKSPACE */
+
+.workspace-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.workspace-container {
+    padding-top: 0.5rem;
+}
+
+/* ACCESSIBILITY */
+
+.module-card:focus-within,
+.kpi-card:focus-within {
+    outline: 2px solid #1b96ff;
+    outline-offset: 2px;
+}
+
+/* RESPONSIVE */
+
+@media screen and (max-width: 64rem) {
+    .hero {
+        padding: 2rem;
+    }
+
+    .hero-title {
+        font-size: 1.9rem;
+    }
+
+    .module-card {
+        min-height: auto;
+    }
+
+    .module-description {
+        min-height: auto;
+    }
+}
+
+@media screen and (max-width: 48rem) {
+    .hero {
+        padding: 1.5rem;
+        text-align: left;
+    }
+
+    .hero-title {
+        font-size: 1.65rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+
+    .status-badge {
+        margin-top: 0.5rem;
+    }
+}

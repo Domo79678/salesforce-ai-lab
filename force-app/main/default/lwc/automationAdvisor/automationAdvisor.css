@@ -1,0 +1,134 @@
+:host {
+    display: block;
+    background: #f6f8fb;
+}
+
+.hero {
+    background: linear-gradient(135deg,#0b5cab,#16325c);
+    color: white;
+    padding: 2rem;
+    border-radius: 14px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 24px rgba(0,0,0,.12);
+}
+
+.hero-title{
+    font-size:2rem;
+    font-weight:700;
+}
+
+.hero-subtitle{
+    margin-top:.5rem;
+    opacity:.92;
+}
+
+.workspace{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1.5rem;
+}
+
+.workspace lightning-card{
+    border-radius:12px;
+}
+
+.score{
+    text-align:center;
+    padding:1rem;
+}
+
+.score-number{
+    font-size:3rem;
+    font-weight:700;
+    color:#0176d3;
+}
+
+.score-label{
+    color:#54698d;
+}
+
+.section-title{
+    font-size:1.2rem;
+    font-weight:700;
+    color:#16325c;
+    margin-bottom:.75rem;
+}
+
+.recommendation{
+    background:white;
+    border-left:5px solid #0176d3;
+    padding:1rem;
+    margin-bottom:1rem;
+    border-radius:10px;
+    transition:.25s;
+}
+
+.recommendation:hover{
+    transform:translateY(-3px);
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+
+.badge-high{
+    background:#d92d20;
+    color:white;
+    padding:.2rem .65rem;
+    border-radius:999px;
+}
+
+.badge-medium{
+    background:#f79009;
+    color:white;
+    padding:.2rem .65rem;
+    border-radius:999px;
+}
+
+.badge-low{
+    background:#12b76a;
+    color:white;
+    padding:.2rem .65rem;
+    border-radius:999px;
+}
+
+.decision-card{
+    background:white;
+    border-radius:12px;
+    padding:1rem;
+    margin-top:1rem;
+    border:1px solid #dde3ea;
+}
+
+.metric-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1rem;
+    margin-bottom:1.5rem;
+}
+
+.metric{
+    background:white;
+    border-radius:12px;
+    padding:1rem;
+    text-align:center;
+    border:1px solid #dde3ea;
+}
+
+.metric-value{
+    font-size:2rem;
+    font-weight:700;
+    color:#0176d3;
+}
+
+.metric-label{
+    color:#54698d;
+}
+
+.action-box{
+    background:#eef4ff;
+    border-radius:10px;
+    padding:1rem;
+    margin-top:1rem;
+}
+
+lightning-button{
+    margin-top:.75rem;
+}

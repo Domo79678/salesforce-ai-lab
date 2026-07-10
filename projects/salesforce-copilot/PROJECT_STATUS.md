@@ -2,26 +2,24 @@
 
 ## Current Version
 
-Version 0.3 (Development)
+Version 0.9 — Modular LWC Architecture
 
 ---
 
 # Current Sprint
 
-## Sprint 2 – Flow Intelligence
+## Sprint 4 – Modular Architecture + Field Explorer
 
 **Sprint Goal**
 
-Build the first working AI capability inside Salesforce Copilot.
-
-This sprint focuses on creating a dedicated Flow Intelligence workspace where Salesforce Administrators can analyze Flows, understand business logic, generate documentation, and prepare for interviews.
+Refactor Salesforce Copilot into a scalable Lightning Web Component application and continue building Org Explorer into a real metadata exploration tool.
 
 ---
 
 # Overall Progress
 
 | Area | Status |
-|-------|--------|
+|---|---|
 | Salesforce DX | ✅ Complete |
 | GitHub Repository | ✅ Complete |
 | VS Code | ✅ Complete |
@@ -29,87 +27,76 @@ This sprint focuses on creating a dedicated Flow Intelligence workspace where Sa
 | Lightning Web Components | ✅ Complete |
 | Lightning App Page | ✅ Complete |
 | Navigation | ✅ Complete |
-| Agentforce Setup | ✅ Complete |
-| Dashboard | ✅ Complete |
-| Flow Intelligence | 🚧 In Progress |
-| Org Explorer | ⏳ Planned |
+| Dashboard Shell | ✅ Complete |
+| Flow Intelligence Module | ✅ Complete |
+| Org Explorer Module | ✅ Complete |
+| Apex Metadata Controller | ✅ Complete |
+| Field Explorer | 🚧 In Progress |
 | Automation Advisor | ⏳ Planned |
 | Documentation Generator | ⏳ Planned |
 | AI Learning Coach | ⏳ Planned |
 | Troubleshooting Assistant | ⏳ Planned |
+| Agentforce Integration | ⏳ Future Enhancement |
 
 ---
 
-# Sprint 2 Tasks
+# Completed Milestones
 
-- Build Flow Intelligence workspace
-- Create Flow input experience
-- Build Results panel
-- Build Executive Summary section
-- Build Business Purpose section
-- Build Risks section
-- Build Testing Guide
-- Build Interview Insight
-- Prepare for Agentforce integration
+## v0.6 – Flow Intelligence
 
----
+- Built Flow Intelligence workspace
+- Added Flow input panel
+- Added Health Score
+- Added AI Suggestions
+- Added Testing Checklist
+- Added Documentation Notes
+- Added Interview Insight
+- Added Export Center placeholder
 
-# Portfolio Status
+## v0.7 – Org Explorer UI
 
-| Item | Status |
-|------|--------|
-| GitHub | ✅ |
-| Architecture | ✅ |
-| Dashboard | ✅ |
-| Lightning App | ✅ |
-| Agentforce | ✅ |
-| Loom Demo | ⏳ |
-| Portfolio Website | ⏳ |
-| Resume Updates | ⏳ |
-| STAR Stories | ⏳ |
+- Built Org Explorer workspace
+- Added object search experience
+- Added Object Health card
+- Added Relationship Map
+- Added Automation Inventory placeholder
+- Added Risk and AI Recommendation panels
 
----
+## v0.8 – Live Metadata Integration
 
-# Resume Skills Demonstrated
+- Created `OrgExplorerController.cls`
+- Used Salesforce Schema Describe API
+- Connected LWC to Apex
+- Pulled real object field counts
+- Pulled real child relationship counts
+- Returned CRUD/queryable metadata
+- Tested Opportunity, Account, Contact, and Case
 
-- Salesforce Administration
-- Lightning Web Components
-- Salesforce DX
-- Git
-- GitHub
-- Agentforce
-- Prompt Engineering
-- Product Design
-- AI Solution Architecture
+## v0.9 – Modular LWC Refactor
 
----
-
-# Current MVP
-
-Salesforce Copilot Dashboard
-
-↓
-
-Flow Intelligence
-
-↓
-
-Analyze Flow
-
-↓
-
-Generate:
-
-- Executive Summary
-- Business Purpose
-- Technical Walkthrough
-- Risks
-- Recommendations
-- Testing Guide
-- Interview Insights
+- Created separate LWCs:
+  - `flowIntelligence`
+  - `orgExplorer`
+  - `automationAdvisor`
+  - `documentationGenerator`
+  - `troubleshootingAssistant`
+  - `aiLearningCoach`
+- Refactored `salesforceCopilotDashboard` into a shell component
+- Moved Flow Intelligence logic into its own component
+- Moved Org Explorer logic into its own component
+- Kept Salesforce Copilot as the main app container
+- Improved long-term architecture for future CRM Copilot expansion
 
 ---
 
-# Next Major Milestone
+# Current Architecture
 
-Flow Intelligence Version 1 Demo
+```text
+salesforceCopilotDashboard
+│
+├── flowIntelligence
+├── orgExplorer
+├── automationAdvisor
+├── documentationGenerator
+├── troubleshootingAssistant
+└── aiLearningCoach

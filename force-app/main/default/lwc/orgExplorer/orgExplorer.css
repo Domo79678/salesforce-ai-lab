@@ -1,0 +1,33 @@
+.field-card {
+    border: 1px solid #dddbda;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: #ffffff;
+}
+
+.field-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.25rem;
+}
+
+.field-api {
+    color: #5f6a7d;
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+}
+
+.badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.field-badge {
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.75rem;
+    background: #f3f3f3;
+    border: 1px solid #dddbda;
+}
