@@ -7,18 +7,25 @@
                 <section class="hero">
                     <div class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center">
                         <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-3">
-                            <div class="hero-title">Salesforce Copilot</div>
+                            <div class="hero-title">
+                                Salesforce Copilot
+                            </div>
 
                             <div class="hero-subtitle">
-                                Your AI Workspace for Salesforce Administration
+                                Your Intelligent Workspace for Salesforce Administration
                             </div>
 
                             <p class="slds-m-top_small">
-                                Understand, build, troubleshoot, document, and grow with AI-powered Salesforce guidance.
+                                Understand, build, troubleshoot, document,
+                                and grow using rules-based guidance,
+                                live Salesforce metadata, and an optional
+                                future AI enhancement layer.
                             </p>
 
                             <div class="slds-m-top_medium">
-                                <lightning-badge label="Version 1.0 Preview"></lightning-badge>
+                                <lightning-badge
+                                    label="Version 1.0 Preview">
+                                </lightning-badge>
 
                                 <lightning-badge
                                     class="slds-m-left_x-small"
@@ -27,7 +34,7 @@
 
                                 <lightning-badge
                                     class="slds-m-left_x-small"
-                                    label="3 Live Modules">
+                                    label="4 Live Modules">
                                 </lightning-badge>
                             </div>
                         </div>
@@ -50,10 +57,17 @@
                                 <div class="slds-p-around_medium">
                                     <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
                                         <div>
-                                            <p class="slds-text-title_caps">Live Modules</p>
-                                            <h2 class="kpi-value">3</h2>
+                                            <p class="slds-text-title_caps">
+                                                Live Modules
+                                            </p>
+
+                                            <h2 class="kpi-value">
+                                                4
+                                            </h2>
+
                                             <p class="kpi-detail">
-                                                Flow Intelligence, Org Explorer, and Automation Advisor
+                                                Flow Intelligence, Org Explorer,
+                                                Automation Advisor, and Troubleshooting Assistant
                                             </p>
                                         </div>
 
@@ -72,10 +86,16 @@
                                 <div class="slds-p-around_medium">
                                     <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
                                         <div>
-                                            <p class="slds-text-title_caps">Metadata Status</p>
-                                            <h2 class="kpi-value">Connected</h2>
+                                            <p class="slds-text-title_caps">
+                                                Metadata Status
+                                            </p>
+
+                                            <h2 class="kpi-value">
+                                                Connected
+                                            </h2>
+
                                             <p class="kpi-detail">
-                                                Live Apex Describe integration
+                                                Org Context Service v1.1
                                             </p>
                                         </div>
 
@@ -94,10 +114,16 @@
                                 <div class="slds-p-around_medium">
                                     <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
                                         <div>
-                                            <p class="slds-text-title_caps">Architecture</p>
-                                            <h2 class="kpi-value">Modular</h2>
+                                            <p class="slds-text-title_caps">
+                                                Architecture
+                                            </p>
+
+                                            <h2 class="kpi-value">
+                                                Modular
+                                            </h2>
+
                                             <p class="kpi-detail">
-                                                Independent reusable LWCs
+                                                Independent reusable LWCs and shared services
                                             </p>
                                         </div>
 
@@ -116,8 +142,14 @@
                                 <div class="slds-p-around_medium">
                                     <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
                                         <div>
-                                            <p class="slds-text-title_caps">Next Release</p>
-                                            <h2 class="kpi-value">Documentation</h2>
+                                            <p class="slds-text-title_caps">
+                                                Next Release
+                                            </p>
+
+                                            <h2 class="kpi-value">
+                                                Documentation
+                                            </h2>
+
                                             <p class="kpi-detail">
                                                 Documentation Generator is next
                                             </p>
@@ -138,7 +170,9 @@
 
                 <section class="slds-m-bottom_large">
                     <div class="section-heading">
-                        <h2 class="slds-text-heading_medium">Quick Actions</h2>
+                        <h2 class="slds-text-heading_medium">
+                            Quick Actions
+                        </h2>
 
                         <p class="slds-text-body_small">
                             Jump directly into the tools you use most.
@@ -182,10 +216,11 @@
 
                         <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-4 slds-p-bottom_small">
                             <lightning-button
-                                label="Generate Documentation"
-                                icon-name="utility:knowledge_base"
+                                label="Troubleshoot an Issue"
+                                icon-name="utility:warning"
                                 variant="neutral"
-                                disabled
+                                data-destination="troubleshootingAssistant"
+                                onclick={handleQuickAction}
                                 class="quick-action-button">
                             </lightning-button>
                         </div>
@@ -195,7 +230,9 @@
 
                 <section class="slds-m-bottom_large">
                     <div class="section-heading">
-                        <h2 class="slds-text-heading_medium">Copilot Modules</h2>
+                        <h2 class="slds-text-heading_medium">
+                            Copilot Modules
+                        </h2>
 
                         <p class="slds-text-body_small">
                             Explore live tools and preview the upcoming product roadmap.
@@ -203,7 +240,10 @@
                     </div>
 
                     <div class="slds-grid slds-wrap slds-gutters">
-                        <template for:each={capabilities} for:item="capability">
+                        <template
+                            for:each={capabilities}
+                            for:item="capability">
+
                             <div
                                 key={capability.name}
                                 class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3 slds-p-bottom_medium">
@@ -264,7 +304,6 @@
 
                                     </div>
                                 </lightning-card>
-
                             </div>
                         </template>
                     </div>
@@ -278,7 +317,10 @@
                             icon-name="utility:clock">
 
                             <div class="slds-p-around_medium">
-                                <template for:each={recentActivity} for:item="activity">
+                                <template
+                                    for:each={recentActivity}
+                                    for:item="activity">
+
                                     <div
                                         key={activity.id}
                                         class="activity-item slds-grid slds-grid_vertical-align-start">
@@ -298,7 +340,6 @@
                                                 {activity.detail}
                                             </p>
                                         </div>
-
                                     </div>
                                 </template>
                             </div>
@@ -313,27 +354,36 @@
                             <div class="slds-p-around_medium">
 
                                 <div class="roadmap-group">
-                                    <p class="slds-text-title_bold">Completed</p>
-                                    <p>✓ Flow Intelligence</p>
-                                    <p>✓ Org Explorer</p>
-                                    <p>✓ Live Metadata Integration</p>
+                                    <p class="slds-text-title_bold">
+                                        Completed
+                                    </p>
+
+                                    <p>✓ Flow Intelligence MVP</p>
+                                    <p>✓ Org Explorer MVP</p>
+                                    <p>✓ Automation Advisor v1.0</p>
+                                    <p>✓ Org Context Service v1.1</p>
                                     <p>✓ Modular LWC Architecture</p>
-                                    <p>✓ Automation Advisor v0.1</p>
                                 </div>
 
                                 <div class="roadmap-group">
-                                    <p class="slds-text-title_bold">In Progress</p>
-                                    <p>• Advisor testing</p>
+                                    <p class="slds-text-title_bold">
+                                        In Progress
+                                    </p>
+
+                                    <p>• Troubleshooting Assistant testing</p>
                                     <p>• Dashboard regression testing</p>
-                                    <p>• Version 1.0 preparation</p>
+                                    <p>• Version 1.0 portfolio preparation</p>
                                 </div>
 
                                 <div class="roadmap-group">
-                                    <p class="slds-text-title_bold">Coming Next</p>
+                                    <p class="slds-text-title_bold">
+                                        Coming Next
+                                    </p>
+
                                     <p>• Documentation Generator</p>
-                                    <p>• Troubleshooting Assistant</p>
                                     <p>• AI Learning Coach</p>
-                                    <p>• Global Copilot Chat</p>
+                                    <p>• Global Copilot Router</p>
+                                    <p>• Optional AI enhancement layer</p>
                                 </div>
 
                             </div>
@@ -353,7 +403,8 @@
                 </div>
 
                 <div class="workspace-container">
-                    <c-flow-intelligence></c-flow-intelligence>
+                    <c-flow-intelligence>
+                    </c-flow-intelligence>
                 </div>
             </template>
 
@@ -367,7 +418,8 @@
                 </div>
 
                 <div class="workspace-container">
-                    <c-org-explorer></c-org-explorer>
+                    <c-org-explorer>
+                    </c-org-explorer>
                 </div>
             </template>
 
@@ -381,7 +433,23 @@
                 </div>
 
                 <div class="workspace-container">
-                    <c-automation-advisor></c-automation-advisor>
+                    <c-automation-advisor>
+                    </c-automation-advisor>
+                </div>
+            </template>
+
+            <template if:true={showTroubleshootingAssistant}>
+                <div class="workspace-header">
+                    <lightning-button
+                        label="Back to Dashboard"
+                        icon-name="utility:back"
+                        onclick={backToDashboard}>
+                    </lightning-button>
+                </div>
+
+                <div class="workspace-container">
+                    <c-troubleshooting-assistant>
+                    </c-troubleshooting-assistant>
                 </div>
             </template>
 

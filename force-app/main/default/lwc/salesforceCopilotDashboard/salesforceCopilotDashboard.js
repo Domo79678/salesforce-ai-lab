@@ -35,12 +35,12 @@ export default class SalesforceCopilotDashboard extends LightningElement {
             title: 'Automation Advisor',
             iconName: 'utility:settings',
             description:
-                'Recommend the best Salesforce automation solution using Flow, Validation Rules, Approval Processes, or Apex.',
+                'Recommend the best Salesforce automation solution using Flow, Validation Rules, Approval Processes, configuration, or Apex.',
             status: 'Available',
             statusClass: 'status-badge status-available',
-            progress: 45,
-            progressLabel: '45% complete',
-            phase: 'Rules-Based Advisor v0.1',
+            progress: 100,
+            progressLabel: '100% complete',
+            phase: 'Rules-Based Advisor v1.0',
             disabled: false
         },
         {
@@ -53,7 +53,7 @@ export default class SalesforceCopilotDashboard extends LightningElement {
             statusClass: 'status-badge status-planned',
             progress: 5,
             progressLabel: '5% complete',
-            phase: 'Phase 2',
+            phase: 'Next Module',
             disabled: true
         },
         {
@@ -61,13 +61,13 @@ export default class SalesforceCopilotDashboard extends LightningElement {
             title: 'Troubleshooting Assistant',
             iconName: 'utility:warning',
             description:
-                'Diagnose Flow failures, validation rules, permissions, automation conflicts, and configuration problems.',
-            status: 'Planned',
-            statusClass: 'status-badge status-planned',
-            progress: 5,
-            progressLabel: '5% complete',
-            phase: 'Phase 3',
-            disabled: true
+                'Diagnose Flow failures, save errors, permissions, integrations, duplicate rules, Apex problems, and configuration issues.',
+            status: 'MVP Testing',
+            statusClass: 'status-badge status-available',
+            progress: 90,
+            progressLabel: '90% complete',
+            phase: 'Rules-Based Assistant v1.0',
+            disabled: false
         },
         {
             name: 'aiLearningCoach',
@@ -79,7 +79,7 @@ export default class SalesforceCopilotDashboard extends LightningElement {
             statusClass: 'status-badge status-planned',
             progress: 5,
             progressLabel: '5% complete',
-            phase: 'Phase 4',
+            phase: 'Upcoming Module',
             disabled: true
         }
     ];
@@ -88,30 +88,30 @@ export default class SalesforceCopilotDashboard extends LightningElement {
         {
             id: 'activity-1',
             iconName: 'utility:success',
-            title: 'Automation Advisor workspace built',
+            title: 'Org Context Service v1.1 completed',
             detail:
-                'The first rules-based recommendation engine now evaluates Salesforce business requirements.'
+                'Salesforce Copilot now retrieves live organization, object, field, relationship, record-type, and access metadata.'
         },
         {
             id: 'activity-2',
             iconName: 'utility:success',
-            title: 'Modular architecture deployed',
+            title: 'Automation Advisor v1.0 completed',
             detail:
-                'Flow Intelligence, Org Explorer, and Automation Advisor operate as separate LWCs.'
+                'The rules-based recommendation engine evaluates business requirements and produces architecture, testing, deployment, and interview guidance.'
         },
         {
             id: 'activity-3',
-            iconName: 'utility:database',
-            title: 'Live metadata connected',
+            iconName: 'utility:warning',
+            title: 'Troubleshooting Assistant MVP built',
             detail:
-                'Org Explorer retrieves real object and field metadata through Apex.'
+                'The new diagnostic engine classifies Salesforce problems and generates investigation paths, fix checklists, tests, and escalation guidance.'
         },
         {
             id: 'activity-4',
-            iconName: 'utility:field_sales',
-            title: 'Field Explorer improved',
+            iconName: 'utility:connected_apps',
+            title: 'Modular architecture expanded',
             detail:
-                'Field metadata displays in a polished, readable card layout.'
+                'Flow Intelligence, Org Explorer, Automation Advisor, and Troubleshooting Assistant operate as independent reusable LWCs.'
         }
     ];
 
@@ -131,10 +131,23 @@ export default class SalesforceCopilotDashboard extends LightningElement {
         return this.currentView === 'automationAdvisor';
     }
 
+    get showTroubleshootingAssistant() {
+        return this.currentView === 'troubleshootingAssistant';
+    }
+
     handleLaunch(event) {
-        const capabilityName = event.currentTarget.dataset.name;
+        const capabilityName =
+            event.currentTarget.dataset.name;
 
         if (!capabilityName) {
+            return;
+        }
+
+        const capability = this.capabilities.find(
+            (item) => item.name === capabilityName
+        );
+
+        if (!capability || capability.disabled) {
             return;
         }
 
@@ -142,7 +155,8 @@ export default class SalesforceCopilotDashboard extends LightningElement {
     }
 
     handleQuickAction(event) {
-        const destination = event.currentTarget.dataset.destination;
+        const destination =
+            event.currentTarget.dataset.destination;
 
         if (!destination) {
             return;

@@ -1,3 +1,569 @@
 <template>
-    
+    <lightning-card
+        title="Troubleshooting Assistant"
+        icon-name="utility:warning">
+
+        <div class="assistant-container">
+
+            <section class="hero-panel">
+                <div class="hero-content">
+                    <div>
+                        <p class="eyebrow">
+                            Salesforce Copilot
+                        </p>
+
+                        <h1 class="hero-title">
+                            Troubleshooting Assistant
+                        </h1>
+
+                        <p class="hero-description">
+                            Describe a Salesforce problem and receive
+                            a structured diagnosis, likely causes,
+                            investigation steps, testing guidance,
+                            and an interview-ready explanation.
+                        </p>
+                    </div>
+
+                    <span class="version-badge">
+                        MVP v1.0
+                    </span>
+                </div>
+            </section>
+
+            <template if:true={errorMessage}>
+                <div
+                    class="message-panel error-message"
+                    role="alert">
+
+                    <lightning-icon
+                        icon-name="utility:error"
+                        size="x-small"
+                        alternative-text="Error">
+                    </lightning-icon>
+
+                    <span>{errorMessage}</span>
+                </div>
+            </template>
+
+            <template if:true={successMessage}>
+                <div
+                    class="message-panel success-message"
+                    role="status">
+
+                    <lightning-icon
+                        icon-name="utility:success"
+                        size="x-small"
+                        alternative-text="Success">
+                    </lightning-icon>
+
+                    <span>{successMessage}</span>
+                </div>
+            </template>
+
+            <section class="input-panel">
+                <div class="section-heading">
+                    <div>
+                        <h2 class="section-title">
+                            Describe the Issue
+                        </h2>
+
+                        <p class="section-description">
+                            Include the affected feature, object,
+                            error message, impacted users, and what
+                            you expected to happen.
+                        </p>
+                    </div>
+                </div>
+
+                <lightning-textarea
+                    label="Salesforce Issue"
+                    value={issueInput}
+                    onchange={handleIssueChange}
+                    placeholder="Example: My record-triggered Flow fails when it tries to create a Task for multiple users.">
+                </lightning-textarea>
+
+                <div class="action-row">
+                    <lightning-button
+                        label="Use Sample Issue"
+                        icon-name="utility:preview"
+                        onclick={handleUseSample}
+                        disabled={isAnalyzing}>
+                    </lightning-button>
+
+                    <lightning-button
+                        label="Clear"
+                        icon-name="utility:clear"
+                        onclick={handleClear}
+                        disabled={clearButtonDisabled}>
+                    </lightning-button>
+
+                    <lightning-button
+                        label="Analyze Issue"
+                        variant="brand"
+                        icon-name="utility:search"
+                        onclick={handleAnalyze}
+                        disabled={analyzeButtonDisabled}>
+                    </lightning-button>
+                </div>
+
+                <template if:true={isAnalyzing}>
+                    <div class="spinner-container">
+                        <lightning-spinner
+                            alternative-text="Analyzing Salesforce issue"
+                            size="small">
+                        </lightning-spinner>
+
+                        <p class="spinner-label">
+                            Analyzing the issue and selecting a
+                            troubleshooting path...
+                        </p>
+                    </div>
+                </template>
+            </section>
+
+            <template if:true={hasGuide}>
+
+                <section class="diagnosis-overview">
+                    <div class="diagnosis-header">
+                        <div>
+                            <p class="eyebrow">
+                                Diagnostic Result
+                            </p>
+
+                            <h2 class="diagnosis-title">
+                                {guide.title}
+                            </h2>
+
+                            <p class="diagnosis-summary">
+                                {guide.summary}
+                            </p>
+                        </div>
+
+                        <div class="diagnosis-badges">
+                            <span class="status-badge">
+                                {guide.priority}
+                            </span>
+
+                            <span class="confidence-badge">
+                                {confidenceDisplay}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="summary-grid">
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Issue Type
+                            </span>
+
+                            <strong class="summary-value">
+                                {guide.issueType}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Object
+                            </span>
+
+                            <strong class="summary-value">
+                                {guide.object}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Symptom
+                            </span>
+
+                            <strong class="summary-value">
+                                {guide.symptom}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Severity
+                            </span>
+
+                            <strong class="summary-value">
+                                {guide.severity}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Priority
+                            </span>
+
+                            <strong class="summary-value">
+                                {guide.priority}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Estimated Resolution
+                            </span>
+
+                            <strong class="summary-value">
+                                {guide.estimatedResolution}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Confidence
+                            </span>
+
+                            <strong class="summary-value">
+                                {confidenceDisplay}
+                            </strong>
+
+                            <span class="summary-detail">
+                                {guide.confidenceLabel}
+                            </span>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Timing
+                            </span>
+
+                            <strong class="summary-value">
+                                {guide.timing}
+                            </strong>
+                        </article>
+                    </div>
+                </section>
+
+                <section class="analysis-panel">
+                    <h2 class="section-title">
+                        Issue Analysis
+                    </h2>
+
+                    <div class="detail-grid">
+                        <p>
+                            <strong>Detected Feature:</strong>
+                            {featureLabel}
+                        </p>
+
+                        <p>
+                            <strong>Matched Rule:</strong>
+                            {guide.matchedRule}
+                        </p>
+
+                        <p>
+                            <strong>Clarification Required:</strong>
+                            {clarificationRequiredLabel}
+                        </p>
+
+                        <p>
+                            <strong>Multiple Users Affected:</strong>
+                            {multipleUsersLabel}
+                        </p>
+
+                        <p>
+                            <strong>Production Impact:</strong>
+                            {productionImpactLabel}
+                        </p>
+                    </div>
+                </section>
+
+                <template if:true={hasRuleReasons}>
+                    <section class="content-panel">
+                        <div class="panel-header">
+                            <lightning-icon
+                                icon-name="utility:strategy"
+                                size="small"
+                                alternative-text="Diagnosis reasoning">
+                            </lightning-icon>
+
+                            <h2 class="section-title">
+                                Why This Diagnosis Was Selected
+                            </h2>
+                        </div>
+
+                        <ul class="bullet-list">
+                            <template
+                                for:each={guide.ruleReasons}
+                                for:item="reason">
+
+                                <li key={reason}>
+                                    {reason}
+                                </li>
+                            </template>
+                        </ul>
+                    </section>
+                </template>
+
+                <div class="results-grid">
+
+                    <template if:true={hasLikelyCauses}>
+                        <section class="content-panel">
+                            <div class="panel-header">
+                                <lightning-icon
+                                    icon-name="utility:warning"
+                                    size="small"
+                                    alternative-text="Likely causes">
+                                </lightning-icon>
+
+                                <h2 class="section-title">
+                                    Most Likely Causes
+                                </h2>
+                            </div>
+
+                            <ol class="numbered-list">
+                                <template
+                                    for:each={guide.likelyCauses}
+                                    for:item="cause">
+
+                                    <li key={cause}>
+                                        {cause}
+                                    </li>
+                                </template>
+                            </ol>
+                        </section>
+                    </template>
+
+                    <template if:true={hasInvestigationSteps}>
+                        <section class="content-panel">
+                            <div class="panel-header">
+                                <lightning-icon
+                                    icon-name="utility:search"
+                                    size="small"
+                                    alternative-text="Investigation steps">
+                                </lightning-icon>
+
+                                <h2 class="section-title">
+                                    Recommended Investigation Order
+                                </h2>
+                            </div>
+
+                            <ol class="numbered-list">
+                                <template
+                                    for:each={guide.investigationSteps}
+                                    for:item="step">
+
+                                    <li key={step}>
+                                        {step}
+                                    </li>
+                                </template>
+                            </ol>
+                        </section>
+                    </template>
+
+                    <template if:true={hasFixChecklist}>
+                        <section class="content-panel">
+                            <div class="panel-header">
+                                <lightning-icon
+                                    icon-name="utility:check"
+                                    size="small"
+                                    alternative-text="Fix checklist">
+                                </lightning-icon>
+
+                                <h2 class="section-title">
+                                    Fix Checklist
+                                </h2>
+                            </div>
+
+                            <ul class="checklist">
+                                <template
+                                    for:each={guide.fixChecklist}
+                                    for:item="item">
+
+                                    <li key={item}>
+                                        <span class="checkbox-symbol">
+                                            ☐
+                                        </span>
+
+                                        <span>{item}</span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </section>
+                    </template>
+
+                    <template if:true={hasTestCases}>
+                        <section class="content-panel">
+                            <div class="panel-header">
+                                <lightning-icon
+                                    icon-name="utility:bug"
+                                    size="small"
+                                    alternative-text="Testing checklist">
+                                </lightning-icon>
+
+                                <h2 class="section-title">
+                                    Testing Checklist
+                                </h2>
+                            </div>
+
+                            <ul class="checklist">
+                                <template
+                                    for:each={guide.testCases}
+                                    for:item="testCase">
+
+                                    <li key={testCase}>
+                                        <span class="checkbox-symbol">
+                                            ☐
+                                        </span>
+
+                                        <span>{testCase}</span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </section>
+                    </template>
+
+                    <template if:true={hasRecommendedContext}>
+                        <section class="content-panel">
+                            <div class="panel-header">
+                                <lightning-icon
+                                    icon-name="utility:knowledge_base"
+                                    size="small"
+                                    alternative-text="Information to gather">
+                                </lightning-icon>
+
+                                <h2 class="section-title">
+                                    Information to Gather
+                                </h2>
+                            </div>
+
+                            <ul class="checklist">
+                                <template
+                                    for:each={guide.recommendedContext}
+                                    for:item="contextItem">
+
+                                    <li key={contextItem}>
+                                        <span class="checkbox-symbol">
+                                            ☐
+                                        </span>
+
+                                        <span>{contextItem}</span>
+                                    </li>
+                                </template>
+                            </ul>
+                        </section>
+                    </template>
+
+                    <template if:true={hasPreventionRecommendations}>
+                        <section class="content-panel">
+                            <div class="panel-header">
+                                <lightning-icon
+                                    icon-name="utility:shield"
+                                    size="small"
+                                    alternative-text="Prevention recommendations">
+                                </lightning-icon>
+
+                                <h2 class="section-title">
+                                    Prevention Recommendations
+                                </h2>
+                            </div>
+
+                            <ul class="bullet-list">
+                                <template
+                                    for:each={guide.preventionRecommendations}
+                                    for:item="recommendation">
+
+                                    <li key={recommendation}>
+                                        {recommendation}
+                                    </li>
+                                </template>
+                            </ul>
+                        </section>
+                    </template>
+
+                    <template if:true={hasEscalationCriteria}>
+                        <section class="content-panel">
+                            <div class="panel-header">
+                                <lightning-icon
+                                    icon-name="utility:priority"
+                                    size="small"
+                                    alternative-text="Escalation criteria">
+                                </lightning-icon>
+
+                                <h2 class="section-title">
+                                    Escalation Criteria
+                                </h2>
+                            </div>
+
+                            <ul class="bullet-list">
+                                <template
+                                    for:each={guide.escalationCriteria}
+                                    for:item="criterion">
+
+                                    <li key={criterion}>
+                                        {criterion}
+                                    </li>
+                                </template>
+                            </ul>
+                        </section>
+                    </template>
+
+                </div>
+
+                <section class="content-panel">
+                    <div class="panel-header">
+                        <lightning-icon
+                            icon-name="utility:note"
+                            size="small"
+                            alternative-text="Admin notes">
+                        </lightning-icon>
+
+                        <h2 class="section-title">
+                            Admin Notes
+                        </h2>
+                    </div>
+
+                    <p>{guide.adminNotes}</p>
+                </section>
+
+                <section class="interview-panel">
+                    <div class="panel-header">
+                        <lightning-icon
+                            icon-name="utility:education"
+                            size="small"
+                            alternative-text="Interview explanation">
+                        </lightning-icon>
+
+                        <h2 class="section-title">
+                            Interview-Ready Explanation
+                        </h2>
+                    </div>
+
+                    <p>{guide.interviewAnswer}</p>
+                </section>
+
+                <section class="export-panel">
+                    <div>
+                        <h2 class="section-title">
+                            Export Troubleshooting Guide
+                        </h2>
+
+                        <p class="section-description">
+                            Copy the full diagnosis, investigation
+                            order, fix plan, tests, and interview
+                            explanation.
+                        </p>
+                    </div>
+
+                    <lightning-button
+                        label="Copy Troubleshooting Guide"
+                        variant="brand"
+                        icon-name="utility:copy"
+                        onclick={handleCopyGuide}
+                        disabled={copyButtonDisabled}>
+                    </lightning-button>
+
+                    <template if:true={copyMessage}>
+                        <p class="copy-message">
+                            {copyMessage}
+                        </p>
+                    </template>
+                </section>
+
+            </template>
+
+        </div>
+    </lightning-card>
 </template>

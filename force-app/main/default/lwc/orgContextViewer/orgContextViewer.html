@@ -1,0 +1,392 @@
+<template>
+    <lightning-card
+        title="Org Context Service Test"
+        icon-name="utility:database">
+
+        <div class="viewer-container">
+
+            <section class="intro-panel">
+                <h2 class="section-title">
+                    Live Salesforce Metadata Diagnostic
+                </h2>
+
+                <p class="section-description">
+                    This developer component verifies that
+                    Salesforce Copilot can retrieve live
+                    organization, object, field, relationship,
+                    and record-type metadata.
+                </p>
+
+                <span class="version-badge">
+                    Org Context Service v1.1
+                </span>
+            </section>
+
+            <template if:true={errorMessage}>
+                <div
+                    class="message-panel error-message"
+                    role="alert">
+
+                    <lightning-icon
+                        icon-name="utility:error"
+                        size="x-small"
+                        alternative-text="Error">
+                    </lightning-icon>
+
+                    <span>{errorMessage}</span>
+                </div>
+            </template>
+
+            <template if:true={successMessage}>
+                <div
+                    class="message-panel success-message"
+                    role="status">
+
+                    <lightning-icon
+                        icon-name="utility:success"
+                        size="x-small"
+                        alternative-text="Success">
+                    </lightning-icon>
+
+                    <span>{successMessage}</span>
+                </div>
+            </template>
+
+            <section class="test-panel">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">
+                            Organization Summary
+                        </h2>
+
+                        <p class="section-description">
+                            Retrieves live organization and
+                            current-user information.
+                        </p>
+                    </div>
+
+                    <lightning-button
+                        label="Refresh Summary"
+                        icon-name="utility:refresh"
+                        onclick={handleRefreshSummary}
+                        disabled={summaryButtonDisabled}>
+                    </lightning-button>
+                </div>
+
+                <template if:true={isLoadingSummary}>
+                    <div class="spinner-container">
+                        <lightning-spinner
+                            alternative-text="Loading organization summary"
+                            size="small">
+                        </lightning-spinner>
+                    </div>
+                </template>
+
+                <template if:true={hasOrgSummary}>
+                    <div class="summary-grid">
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Organization
+                            </span>
+
+                            <strong class="summary-value">
+                                {orgSummary.organizationName}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Current User
+                            </span>
+
+                            <strong class="summary-value">
+                                {orgSummary.userName}
+                            </strong>
+
+                            <span class="summary-detail">
+                                {orgSummary.userEmail}
+                            </span>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Total Objects
+                            </span>
+
+                            <strong class="metric-value">
+                                {totalObjectLabel}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Standard Objects
+                            </span>
+
+                            <strong class="metric-value">
+                                {standardObjectLabel}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Custom Objects
+                            </span>
+
+                            <strong class="metric-value">
+                                {customObjectLabel}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Queryable Objects
+                            </span>
+
+                            <strong class="metric-value">
+                                {queryableObjectLabel}
+                            </strong>
+                        </article>
+
+                        <article class="summary-card">
+                            <span class="summary-label">
+                                Accessible Objects
+                            </span>
+
+                            <strong class="metric-value">
+                                {accessibleObjectLabel}
+                            </strong>
+                        </article>
+                    </div>
+
+                    <div class="technical-details">
+                        <p>
+                            <strong>Organization ID:</strong>
+                            {orgSummary.organizationId}
+                        </p>
+
+                        <p>
+                            <strong>API Version:</strong>
+                            {orgSummary.apiVersion}
+                        </p>
+
+                        <p>
+                            <strong>Service Version:</strong>
+                            {orgSummary.serviceVersion}
+                        </p>
+
+                        <p>
+                            <strong>Locale:</strong>
+                            {orgSummary.locale}
+                        </p>
+
+                        <p>
+                            <strong>Time Zone:</strong>
+                            {orgSummary.timeZone}
+                        </p>
+                    </div>
+                </template>
+            </section>
+
+            <section class="test-panel">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">
+                            Object Inventory
+                        </h2>
+
+                        <p class="section-description">
+                            Loads a filtered and limited list of
+                            accessible, queryable Salesforce objects.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="object-search-row">
+                    <lightning-input
+                        type="search"
+                        label="Search Objects"
+                        value={objectSearchTerm}
+                        onchange={handleObjectSearchChange}
+                        placeholder="Example: Opportunity">
+                    </lightning-input>
+
+                    <lightning-combobox
+                        label="Maximum Results"
+                        value={objectResultLimit}
+                        options={resultLimitOptions}
+                        onchange={handleResultLimitChange}>
+                    </lightning-combobox>
+
+                    <lightning-button
+                        class="inspect-button"
+                        label="Load Objects"
+                        variant="brand"
+                        icon-name="utility:download"
+                        onclick={handleLoadObjects}
+                        disabled={objectsButtonDisabled}>
+                    </lightning-button>
+                </div>
+
+                <template if:true={isLoadingObjects}>
+                    <div class="spinner-container">
+                        <lightning-spinner
+                            alternative-text="Loading Salesforce objects"
+                            size="small">
+                        </lightning-spinner>
+                    </div>
+                </template>
+
+                <template if:true={hasObjects}>
+                    <div class="result-banner">
+                        <lightning-icon
+                            icon-name="utility:success"
+                            size="x-small"
+                            alternative-text="Success">
+                        </lightning-icon>
+
+                        <strong>{objectCountLabel}</strong>
+                    </div>
+                </template>
+            </section>
+
+            <section class="test-panel">
+                <h2 class="section-title">
+                    Inspect an Object
+                </h2>
+
+                <p class="section-description">
+                    Enter an object API name such as
+                    Opportunity, Account, Case, or a custom
+                    object ending in __c.
+                </p>
+
+                <div class="object-search-row">
+                    <lightning-input
+                        type="text"
+                        label="Object API Name"
+                        value={objectApiName}
+                        onchange={handleObjectNameChange}>
+                    </lightning-input>
+
+                    <lightning-button
+                        class="inspect-button"
+                        label="Inspect Object"
+                        variant="brand"
+                        icon-name="utility:search"
+                        onclick={handleInspectObject}
+                        disabled={inspectButtonDisabled}>
+                    </lightning-button>
+                </div>
+
+                <template if:true={isLoadingObjectContext}>
+                    <div class="spinner-container">
+                        <lightning-spinner
+                            alternative-text="Loading object context"
+                            size="small">
+                        </lightning-spinner>
+                    </div>
+                </template>
+
+                <template if:true={hasObjectContext}>
+                    <div class="object-result">
+                        <div class="object-result-header">
+                            <div>
+                                <span class="summary-label">
+                                    Object
+                                </span>
+
+                                <h3 class="object-title">
+                                    {objectContext.label}
+                                </h3>
+
+                                <p class="object-api-name">
+                                    {objectContext.apiName}
+                                </p>
+                            </div>
+
+                            <span class="live-badge">
+                                Live Metadata
+                            </span>
+                        </div>
+
+                        <div class="object-metrics">
+                            <article class="metric-card">
+                                <strong class="metric-value">
+                                    {objectContext.fieldCount}
+                                </strong>
+
+                                <span class="summary-label">
+                                    Fields
+                                </span>
+                            </article>
+
+                            <article class="metric-card">
+                                <strong class="metric-value">
+                                    {objectContext.relationshipCount}
+                                </strong>
+
+                                <span class="summary-label">
+                                    Relationships
+                                </span>
+                            </article>
+
+                            <article class="metric-card">
+                                <strong class="metric-value">
+                                    {objectContext.recordTypeCount}
+                                </strong>
+
+                                <span class="summary-label">
+                                    Record Types
+                                </span>
+                            </article>
+                        </div>
+
+                        <div class="capability-grid">
+                            <p>
+                                <strong>Accessible:</strong>
+                                {objectContext.accessible}
+                            </p>
+
+                            <p>
+                                <strong>Queryable:</strong>
+                                {objectContext.queryable}
+                            </p>
+
+                            <p>
+                                <strong>Searchable:</strong>
+                                {objectContext.searchable}
+                            </p>
+
+                            <p>
+                                <strong>Createable:</strong>
+                                {objectContext.createable}
+                            </p>
+
+                            <p>
+                                <strong>Updateable:</strong>
+                                {objectContext.updateable}
+                            </p>
+
+                            <p>
+                                <strong>Deletable:</strong>
+                                {objectContext.deletable}
+                            </p>
+
+                            <p>
+                                <strong>Custom:</strong>
+                                {objectContext.custom}
+                            </p>
+
+                            <p>
+                                <strong>Key Prefix:</strong>
+                                {objectContext.keyPrefix}
+                            </p>
+                        </div>
+                    </div>
+                </template>
+            </section>
+
+        </div>
+    </lightning-card>
+</template>
