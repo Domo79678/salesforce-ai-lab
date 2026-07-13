@@ -17,9 +17,9 @@
 
                             <p class="slds-m-top_small">
                                 Understand, build, troubleshoot, document,
-                                and grow using rules-based guidance,
-                                live Salesforce metadata, and an optional
-                                future AI enhancement layer.
+                                evaluate org health, and prepare Salesforce
+                                changes using rules-based guidance, live
+                                metadata, and a shared knowledge layer.
                             </p>
 
                             <div class="slds-m-top_medium">
@@ -29,12 +29,12 @@
 
                                 <lightning-badge
                                     class="slds-m-left_x-small"
-                                    label="Live Metadata Connected">
+                                    label="Org Knowledge Layer Active">
                                 </lightning-badge>
 
                                 <lightning-badge
                                     class="slds-m-left_x-small"
-                                    label="4 Live Modules">
+                                    label="5 Live Modules">
                                 </lightning-badge>
                             </div>
                         </div>
@@ -62,12 +62,13 @@
                                             </p>
 
                                             <h2 class="kpi-value">
-                                                4
+                                                5
                                             </h2>
 
                                             <p class="kpi-detail">
                                                 Flow Intelligence, Org Explorer,
-                                                Automation Advisor, and Troubleshooting Assistant
+                                                Org Health, Automation Advisor,
+                                                and Troubleshooting Assistant
                                             </p>
                                         </div>
 
@@ -75,6 +76,35 @@
                                             icon-name="utility:apps"
                                             size="medium"
                                             alternative-text="Modules">
+                                        </lightning-icon>
+                                    </div>
+                                </div>
+                            </lightning-card>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-4 slds-p-bottom_medium">
+                            <lightning-card class="kpi-card">
+                                <div class="slds-p-around_medium">
+                                    <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
+                                        <div>
+                                            <p class="slds-text-title_caps">
+                                                Knowledge Layer
+                                            </p>
+
+                                            <h2 class="kpi-value">
+                                                Active
+                                            </h2>
+
+                                            <p class="kpi-detail">
+                                                Shared rules, scoring,
+                                                recommendations, and deployment analysis
+                                            </p>
+                                        </div>
+
+                                        <lightning-icon
+                                            icon-name="utility:knowledge_base"
+                                            size="medium"
+                                            alternative-text="Knowledge Layer">
                                         </lightning-icon>
                                     </div>
                                 </div>
@@ -115,50 +145,23 @@
                                     <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
                                         <div>
                                             <p class="slds-text-title_caps">
-                                                Architecture
+                                                Next Milestone
                                             </p>
 
                                             <h2 class="kpi-value">
-                                                Modular
+                                                Live Org Health
                                             </h2>
 
                                             <p class="kpi-detail">
-                                                Independent reusable LWCs and shared services
+                                                Replace starter health data
+                                                with live metadata
                                             </p>
                                         </div>
 
                                         <lightning-icon
-                                            icon-name="utility:connected_apps"
+                                            icon-name="utility:shield"
                                             size="medium"
-                                            alternative-text="Architecture">
-                                        </lightning-icon>
-                                    </div>
-                                </div>
-                            </lightning-card>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-4 slds-p-bottom_medium">
-                            <lightning-card class="kpi-card">
-                                <div class="slds-p-around_medium">
-                                    <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
-                                        <div>
-                                            <p class="slds-text-title_caps">
-                                                Next Release
-                                            </p>
-
-                                            <h2 class="kpi-value">
-                                                Documentation
-                                            </h2>
-
-                                            <p class="kpi-detail">
-                                                Documentation Generator is next
-                                            </p>
-                                        </div>
-
-                                        <lightning-icon
-                                            icon-name="utility:knowledge_base"
-                                            size="medium"
-                                            alternative-text="Next Release">
+                                            alternative-text="Next Milestone">
                                         </lightning-icon>
                                     </div>
                                 </div>
@@ -181,7 +184,7 @@
 
                     <div class="slds-grid slds-wrap slds-gutters">
 
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-4 slds-p-bottom_small">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
                             <lightning-button
                                 label="Analyze a Flow"
                                 icon-name="utility:flow"
@@ -192,7 +195,7 @@
                             </lightning-button>
                         </div>
 
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-4 slds-p-bottom_small">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
                             <lightning-button
                                 label="Explore the Org"
                                 icon-name="utility:connected_apps"
@@ -203,7 +206,18 @@
                             </lightning-button>
                         </div>
 
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-4 slds-p-bottom_small">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
+                            <lightning-button
+                                label="Review Org Health"
+                                icon-name="utility:shield"
+                                variant="neutral"
+                                data-destination="orgHealthDashboard"
+                                onclick={handleQuickAction}
+                                class="quick-action-button">
+                            </lightning-button>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
                             <lightning-button
                                 label="Automation Advisor"
                                 icon-name="utility:settings"
@@ -214,7 +228,7 @@
                             </lightning-button>
                         </div>
 
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-4 slds-p-bottom_small">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
                             <lightning-button
                                 label="Troubleshoot an Issue"
                                 icon-name="utility:warning"
@@ -362,6 +376,8 @@
                                     <p>✓ Org Explorer MVP</p>
                                     <p>✓ Automation Advisor v1.0</p>
                                     <p>✓ Org Context Service v1.1</p>
+                                    <p>✓ Org Knowledge Layer v1.0</p>
+                                    <p>✓ Org Health Dashboard MVP</p>
                                     <p>✓ Modular LWC Architecture</p>
                                 </div>
 
@@ -370,6 +386,7 @@
                                         In Progress
                                     </p>
 
+                                    <p>• Live Org Health metadata integration</p>
                                     <p>• Troubleshooting Assistant testing</p>
                                     <p>• Dashboard regression testing</p>
                                     <p>• Version 1.0 portfolio preparation</p>
@@ -380,6 +397,8 @@
                                         Coming Next
                                     </p>
 
+                                    <p>• Explain This workspace</p>
+                                    <p>• Change Impact Analyzer</p>
                                     <p>• Documentation Generator</p>
                                     <p>• AI Learning Coach</p>
                                     <p>• Global Copilot Router</p>
@@ -420,6 +439,21 @@
                 <div class="workspace-container">
                     <c-org-explorer>
                     </c-org-explorer>
+                </div>
+            </template>
+
+            <template if:true={showOrgHealthDashboard}>
+                <div class="workspace-header">
+                    <lightning-button
+                        label="Back to Dashboard"
+                        icon-name="utility:back"
+                        onclick={backToDashboard}>
+                    </lightning-button>
+                </div>
+
+                <div class="workspace-container">
+                    <c-org-health-dashboard>
+                    </c-org-health-dashboard>
                 </div>
             </template>
 

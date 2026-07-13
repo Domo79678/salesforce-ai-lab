@@ -31,6 +31,19 @@ export default class SalesforceCopilotDashboard extends LightningElement {
             disabled: false
         },
         {
+            name: 'orgHealthDashboard',
+            title: 'Org Health',
+            iconName: 'utility:shield',
+            description:
+                'Evaluate Salesforce automation, security, metadata, documentation, testing, performance, and deployment readiness.',
+            status: 'Available',
+            statusClass: 'status-badge status-available',
+            progress: 80,
+            progressLabel: '80% complete',
+            phase: 'Knowledge Layer MVP',
+            disabled: false
+        },
+        {
             name: 'automationAdvisor',
             title: 'Automation Advisor',
             iconName: 'utility:settings',
@@ -41,6 +54,19 @@ export default class SalesforceCopilotDashboard extends LightningElement {
             progress: 100,
             progressLabel: '100% complete',
             phase: 'Rules-Based Advisor v1.0',
+            disabled: false
+        },
+        {
+            name: 'troubleshootingAssistant',
+            title: 'Troubleshooting Assistant',
+            iconName: 'utility:warning',
+            description:
+                'Diagnose Flow failures, save errors, permissions, integrations, duplicate rules, Apex problems, and configuration issues.',
+            status: 'MVP Testing',
+            statusClass: 'status-badge status-available',
+            progress: 90,
+            progressLabel: '90% complete',
+            phase: 'Rules-Based Assistant v1.0',
             disabled: false
         },
         {
@@ -55,19 +81,6 @@ export default class SalesforceCopilotDashboard extends LightningElement {
             progressLabel: '5% complete',
             phase: 'Next Module',
             disabled: true
-        },
-        {
-            name: 'troubleshootingAssistant',
-            title: 'Troubleshooting Assistant',
-            iconName: 'utility:warning',
-            description:
-                'Diagnose Flow failures, save errors, permissions, integrations, duplicate rules, Apex problems, and configuration issues.',
-            status: 'MVP Testing',
-            statusClass: 'status-badge status-available',
-            progress: 90,
-            progressLabel: '90% complete',
-            phase: 'Rules-Based Assistant v1.0',
-            disabled: false
         },
         {
             name: 'aiLearningCoach',
@@ -87,31 +100,38 @@ export default class SalesforceCopilotDashboard extends LightningElement {
     recentActivity = [
         {
             id: 'activity-1',
-            iconName: 'utility:success',
-            title: 'Org Context Service v1.1 completed',
+            iconName: 'utility:shield',
+            title: 'Org Health Dashboard deployed',
             detail:
-                'Salesforce Copilot now retrieves live organization, object, field, relationship, record-type, and access metadata.'
+                'Salesforce Copilot now displays Org Health scoring, category risks, findings, recommendations, Daily Admin Brief content, and Deployment Readiness.'
         },
         {
             id: 'activity-2',
+            iconName: 'utility:success',
+            title: 'Org Knowledge Layer v1.0 deployed',
+            detail:
+                'Shared models, utilities, rules, scoring, and orchestration services now power reusable Salesforce intelligence.'
+        },
+        {
+            id: 'activity-3',
+            iconName: 'utility:success',
+            title: 'Org Context Service v1.1 completed',
+            detail:
+                'Salesforce Copilot retrieves live organization, object, field, relationship, record-type, and access metadata.'
+        },
+        {
+            id: 'activity-4',
             iconName: 'utility:success',
             title: 'Automation Advisor v1.0 completed',
             detail:
                 'The rules-based recommendation engine evaluates business requirements and produces architecture, testing, deployment, and interview guidance.'
         },
         {
-            id: 'activity-3',
+            id: 'activity-5',
             iconName: 'utility:warning',
             title: 'Troubleshooting Assistant MVP built',
             detail:
-                'The new diagnostic engine classifies Salesforce problems and generates investigation paths, fix checklists, tests, and escalation guidance.'
-        },
-        {
-            id: 'activity-4',
-            iconName: 'utility:connected_apps',
-            title: 'Modular architecture expanded',
-            detail:
-                'Flow Intelligence, Org Explorer, Automation Advisor, and Troubleshooting Assistant operate as independent reusable LWCs.'
+                'The diagnostic engine classifies Salesforce problems and generates investigation paths, fix checklists, tests, and escalation guidance.'
         }
     ];
 
@@ -125,6 +145,10 @@ export default class SalesforceCopilotDashboard extends LightningElement {
 
     get showOrgExplorer() {
         return this.currentView === 'orgExplorer';
+    }
+
+    get showOrgHealthDashboard() {
+        return this.currentView === 'orgHealthDashboard';
     }
 
     get showAutomationAdvisor() {
@@ -159,6 +183,14 @@ export default class SalesforceCopilotDashboard extends LightningElement {
             event.currentTarget.dataset.destination;
 
         if (!destination) {
+            return;
+        }
+
+        const capability = this.capabilities.find(
+            (item) => item.name === destination
+        );
+
+        if (!capability || capability.disabled) {
             return;
         }
 
