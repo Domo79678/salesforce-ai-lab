@@ -1,24 +1,5 @@
-/*
- * orgHealthDashboard.js
- *
- * Presentation workspace for Salesforce Copilot Org Health.
- *
- * This component:
- * - sends a metadata snapshot to orgKnowledgeService
- * - displays the overall Org Health score
- * - displays Deployment Readiness
- * - displays health-category scores
- * - displays findings and recommendations
- * - provides a foundation for live metadata integration
- *
- * Current data source:
- * Starter metadata snapshot for validating the dashboard.
- *
- * Next data source:
- * Live Salesforce metadata from Apex and Org Context Service.
- */
-
 import { LightningElement } from 'lwc';
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import orgKnowledgeService from 'c/orgKnowledgeService';
 
 export default class OrgHealthDashboard extends LightningElement {
@@ -29,7 +10,7 @@ export default class OrgHealthDashboard extends LightningElement {
     dataSourceLabel = 'Starter Metadata Snapshot';
 
     connectedCallback() {
-        this.runOrgHealthAnalysis();
+        this.runOrgHealthAnalysis(false);
     }
 
     get hasAnalysis() {
@@ -120,54 +101,45 @@ export default class OrgHealthDashboard extends LightningElement {
             ?.deploymentReadiness
             ?.rollbackRequired
             ? 'Required'
-            : 'Not currently required';
+            : 'Not required';
     }
 
     get summaryCards() {
         const metrics =
             this.analysisResult
-                ?.dashboardMetrics ||
-            {};
+                ?.dashboardMetrics || {};
 
         return [
             {
-                id: 'critical-findings',
-                label: 'Critical Findings',
-                value:
-                    metrics.criticalFindings ?? 0,
-                iconName:
-                    'utility:error',
+                id: 'critical',
+                label: 'Critical',
+                value: metrics.criticalFindings ?? 0,
+                iconName: 'utility:error',
                 cardClass:
                     'metric-card metric-card-critical'
             },
             {
-                id: 'high-findings',
-                label: 'High-Risk Findings',
-                value:
-                    metrics.highFindings ?? 0,
-                iconName:
-                    'utility:warning',
+                id: 'high',
+                label: 'High Risk',
+                value: metrics.highFindings ?? 0,
+                iconName: 'utility:warning',
                 cardClass:
                     'metric-card metric-card-high'
             },
             {
-                id: 'blocking-findings',
-                label: 'Deployment Blockers',
-                value:
-                    metrics.blockingFindings ?? 0,
-                iconName:
-                    'utility:block_visitor',
+                id: 'blocking',
+                label: 'Blockers',
+                value: metrics.blockingFindings ?? 0,
+                iconName: 'utility:block_visitor',
                 cardClass:
                     'metric-card metric-card-blocking'
             },
             {
                 id: 'recommendations',
-                label: 'Recommendations',
+                label: 'Actions',
                 value:
-                    metrics.totalRecommendations ??
-                    0,
-                iconName:
-                    'utility:light_bulb',
+                    metrics.totalRecommendations ?? 0,
+                iconName: 'utility:light_bulb',
                 cardClass:
                     'metric-card metric-card-recommendation'
             }
@@ -177,8 +149,8 @@ export default class OrgHealthDashboard extends LightningElement {
     get categoryRows() {
         const categories =
             this.analysisResult
-                ?.categoryResults ||
-            [];
+                ?.health
+                ?.categories || [];
 
         return categories.map(
             (category) => ({
@@ -213,38 +185,43 @@ export default class OrgHealthDashboard extends LightningElement {
         );
     }
 
+    get hasCategories() {
+        return this.categoryRows.length > 0;
+    }
+
     get topFindings() {
         const findings =
             this.analysisResult
                 ?.dashboardMetrics
-                ?.topFindings ||
-            [];
+                ?.topFindings || [];
 
-        return findings.map(
-            (finding) => ({
-                ...finding,
+        return findings
+            .slice(0, 4)
+            .map(
+                (finding) => ({
+                    ...finding,
 
-                displayId:
-                    this.createStableId(
-                        finding.id ||
-                        finding.title
-                    ),
+                    displayId:
+                        this.createStableId(
+                            finding.id ||
+                            finding.title
+                        ),
 
-                severityClass:
-                    this.getSeverityClass(
-                        finding.severity
-                    ),
+                    severityClass:
+                        this.getSeverityClass(
+                            finding.severity
+                        ),
 
-                scoreImpactLabel:
-                    finding.scoreImpact
-                        ? `-${finding.scoreImpact} points`
-                        : 'No score deduction',
+                    scoreImpactLabel:
+                        finding.scoreImpact
+                            ? `-${finding.scoreImpact} points`
+                            : 'No deduction',
 
-                entityLabel:
-                    finding.entityApiName ||
-                    'Organization'
-            })
-        );
+                    entityLabel:
+                        finding.entityApiName ||
+                        'Organization'
+                })
+            );
     }
 
     get hasTopFindings() {
@@ -255,124 +232,92 @@ export default class OrgHealthDashboard extends LightningElement {
         const recommendations =
             this.analysisResult
                 ?.dashboardMetrics
-                ?.topRecommendations ||
-            [];
+                ?.topRecommendations || [];
 
-        return recommendations.map(
-            (recommendation, index) => ({
-                ...recommendation,
+        return recommendations
+            .slice(0, 4)
+            .map(
+                (recommendation, index) => ({
+                    ...recommendation,
 
-                displayId:
-                    this.createStableId(
-                        recommendation.id ||
-                        recommendation.title
-                    ),
+                    displayId:
+                        this.createStableId(
+                            recommendation.id ||
+                            recommendation.title
+                        ),
 
-                rank:
-                    index + 1,
+                    rank:
+                        index + 1,
 
-                priorityClass:
-                    this.getPriorityClass(
-                        recommendation.priority
-                    ),
+                    priorityClass:
+                        this.getPriorityClass(
+                            recommendation.priority
+                        ),
 
-                actionText:
-                    recommendation.action ||
-                    recommendation.description
-            })
-        );
+                    actionText:
+                        recommendation.action ||
+                        recommendation.description
+                })
+            );
     }
 
     get hasRecommendations() {
-        return (
-            this.topRecommendations.length > 0
-        );
+        return this.topRecommendations.length > 0;
     }
 
     get requiredTests() {
         const tests =
             this.analysisResult
                 ?.deploymentReadiness
-                ?.requiredTests ||
-            [];
+                ?.requiredTests || [];
 
-        return tests.map(
-            (test, index) => ({
-                id:
-                    `required-test-${index + 1}`,
-                label:
-                    test
-            })
-        );
-    }
-
-    get deploymentWarnings() {
-        const warnings =
-            this.analysisResult
-                ?.deploymentReadiness
-                ?.warnings ||
-            [];
-
-        return warnings.map(
-            (warning) => ({
-                ...warning,
-
-                displayId:
-                    this.createStableId(
-                        warning.id ||
-                        warning.title
-                    ),
-
-                severityClass:
-                    this.getSeverityClass(
-                        warning.severity
-                    )
-            })
-        );
-    }
-
-    get hasDeploymentWarnings() {
-        return (
-            this.deploymentWarnings.length > 0
-        );
+        return tests
+            .slice(0, 6)
+            .map(
+                (test, index) => ({
+                    id:
+                        `required-test-${index + 1}`,
+                    label:
+                        test
+                })
+            );
     }
 
     get metadataCountCards() {
         const counts =
             this.analysisResult
-                ?.metadataCounts ||
-            {};
+                ?.metadataCounts || {};
 
         return [
             {
-                id: 'metadata-objects',
+                id: 'objects',
                 label: 'Objects',
                 value: counts.objects ?? 0
             },
             {
-                id: 'metadata-fields',
+                id: 'fields',
                 label: 'Fields',
                 value: counts.fields ?? 0
             },
             {
-                id: 'metadata-flows',
+                id: 'flows',
                 label: 'Flows',
                 value: counts.flows ?? 0
             },
             {
-                id: 'metadata-validation-rules',
+                id: 'validation-rules',
                 label: 'Validation Rules',
                 value:
                     counts.validationRules ?? 0
             },
             {
-                id: 'metadata-permission-sets',
+                id: 'permission-sets',
                 label: 'Permission Sets',
                 value:
                     counts.permissionSets ?? 0
             },
             {
-                id: 'metadata-apex-classes',
+                id: 'apex',
                 label: 'Apex Classes',
                 value:
                     counts.apexClasses ?? 0
@@ -393,8 +338,7 @@ export default class OrgHealthDashboard extends LightningElement {
         return (
             this.analysisResult
                 ?.dashboardMetrics
-                ?.lowestCategoryScore ??
-            100
+                ?.lowestCategoryScore ?? 100
         );
     }
 
@@ -429,72 +373,106 @@ export default class OrgHealthDashboard extends LightningElement {
         return (
             this.analysisResult
                 ?.dailyBrief
-                ?.priorities ||
-            []
-        ).map(
-            (priority) => ({
-                ...priority,
-
-                displayId:
-                    `daily-priority-${priority.rank}`
-            })
-        );
+                ?.priorities || []
+        )
+            .slice(0, 3)
+            .map(
+                (priority) => ({
+                    ...priority,
+                    displayId:
+                        `daily-priority-${priority.rank}`
+                })
+            );
     }
 
-    runOrgHealthAnalysis() {
-        this.isLoading = true;
-        this.errorMessage = '';
-
-        try {
-            const starterSnapshot =
-                this.buildStarterSnapshot();
-
-            const result =
-                orgKnowledgeService.analyzeOrg(
-                    starterSnapshot,
-                    {
-                        analysisMode:
-                            'health'
-                    }
-                );
-
-            if (!result.success) {
-                throw new Error(
-                    result.errors?.[0]?.message ||
-                    'The Org Knowledge Service could not complete the analysis.'
-                );
-            }
-
-            this.analysisResult =
-                result;
-
-            this.lastRefreshedAt =
-                new Intl.DateTimeFormat(
-                    'en-US',
-                    {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit'
-                    }
-                ).format(
-                    new Date()
-                );
-        } catch (error) {
-            this.analysisResult = null;
-
-            this.errorMessage =
-                error?.body?.message ||
-                error?.message ||
-                'An unexpected Org Health error occurred.';
-        } finally {
-            this.isLoading = false;
-        }
+    get refreshButtonLabel() {
+        return this.isLoading
+            ? 'Refreshing'
+            : 'Refresh Analysis';
     }
 
     handleRefresh() {
-        this.runOrgHealthAnalysis();
+        this.runOrgHealthAnalysis(true);
+    }
+
+    runOrgHealthAnalysis(showToast = false) {
+        if (this.isLoading) {
+            return;
+        }
+
+        this.isLoading = true;
+        this.errorMessage = '';
+
+        window.setTimeout(() => {
+            try {
+                const result =
+                    orgKnowledgeService.analyzeOrg(
+                        this.buildStarterSnapshot(),
+                        {
+                            analysisMode:
+                                'health'
+                        }
+                    );
+
+                if (!result.success) {
+                    throw new Error(
+                        result.errors?.[0]?.message ||
+                        'The Org Knowledge Service could not complete the analysis.'
+                    );
+                }
+
+                this.analysisResult =
+                    result;
+
+                this.lastRefreshedAt =
+                    new Intl.DateTimeFormat(
+                        'en-US',
+                        {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        }
+                    ).format(
+                        new Date()
+                    );
+
+                if (showToast) {
+                    this.dispatchEvent(
+                        new ShowToastEvent({
+                            title:
+                                'Analysis refreshed',
+                            message:
+                                'The starter metadata snapshot was analyzed successfully.',
+                            variant:
+                                'success'
+                        })
+                    );
+                }
+            } catch (error) {
+                this.analysisResult = null;
+
+                this.errorMessage =
+                    error?.body?.message ||
+                    error?.message ||
+                    'An unexpected Org Health error occurred.';
+
+                this.dispatchEvent(
+                    new ShowToastEvent({
+                        title:
+                            'Analysis failed',
+                        message:
+                            this.errorMessage,
+                        variant:
+                            'error'
+                    })
+                );
+            } finally {
+                this.isLoading = false;
+            }
+        }, 350);
     }
 
     buildStarterSnapshot() {
@@ -502,22 +480,16 @@ export default class OrgHealthDashboard extends LightningElement {
             organization: {
                 id:
                     'starter-org',
-
                 name:
                     'Salesforce AI Lab',
-
                 userName:
                     'Salesforce Copilot Administrator',
-
                 apiVersion:
                     '66.0',
-
                 locale:
                     'en_US',
-
                 timeZone:
                     'America/Chicago',
-
                 isSandbox:
                     false
             },
@@ -526,260 +498,164 @@ export default class OrgHealthDashboard extends LightningElement {
                 {
                     apiName:
                         'Account',
-
                     label:
                         'Account',
-
                     labelPlural:
                         'Accounts',
-
                     custom:
                         false,
-
                     accessible:
                         true,
-
                     queryable:
                         true,
-
                     searchable:
                         true,
-
                     createable:
                         true,
-
                     updateable:
                         true,
-
                     deletable:
                         true,
-
                     description:
                         'Stores organizations and business relationships.',
 
-                    fields:
-                        [
-                            {
-                                apiName:
-                                    'Name',
-
-                                label:
-                                    'Account Name',
-
-                                dataType:
-                                    'String',
-
-                                required:
-                                    true,
-
-                                accessible:
-                                    true,
-
-                                createable:
-                                    true,
-
-                                updateable:
-                                    true,
-
-                                description:
-                                    'The official account name.',
-
-                                inlineHelpText:
-                                    'Enter the organization name.'
-                            },
-
-                            {
-                                apiName:
-                                    'Customer_Health__c',
-
-                                label:
-                                    'Customer Health',
-
-                                dataType:
-                                    'Picklist',
-
-                                custom:
-                                    true,
-
-                                accessible:
-                                    true,
-
-                                createable:
-                                    true,
-
-                                updateable:
-                                    true,
-
-                                usageCount:
-                                    4,
-
-                                description:
-                                    'Tracks the current health of the customer relationship.',
-
-                                inlineHelpText:
-                                    'Select the current customer-health status.'
-                            },
-
-                            {
-                                apiName:
-                                    'Legacy_Status__c',
-
-                                label:
-                                    'Legacy Status',
-
-                                dataType:
-                                    'Picklist',
-
-                                custom:
-                                    true,
-
-                                accessible:
-                                    true,
-
-                                createable:
-                                    true,
-
-                                updateable:
-                                    true,
-
-                                usageCount:
-                                    0,
-
-                                description:
-                                    'Legacy status retained for historical review.',
-
-                                inlineHelpText:
-                                    'Do not use for new business processes.'
-                            }
-                        ],
+                    fields: [
+                        {
+                            apiName:
+                                'Name',
+                            label:
+                                'Account Name',
+                            dataType:
+                                'String',
+                            required:
+                                true,
+                            accessible:
+                                true,
+                            createable:
+                                true,
+                            updateable:
+                                true,
+                            description:
+                                'The official account name.',
+                            inlineHelpText:
+                                'Enter the organization name.'
+                        },
+                        {
+                            apiName:
+                                'Customer_Health__c',
+                            label:
+                                'Customer Health',
+                            dataType:
+                                'Picklist',
+                            custom:
+                                true,
+                            accessible:
+                                true,
+                            createable:
+                                true,
+                            updateable:
+                                true,
+                            usageCount:
+                                4,
+                            description:
+                                'Tracks customer health.',
+                            inlineHelpText:
+                                'Select the current status.'
+                        },
+                        {
+                            apiName:
+                                'Legacy_Status__c',
+                            label:
+                                'Legacy Status',
+                            dataType:
+                                'Picklist',
+                            custom:
+                                true,
+                            accessible:
+                                true,
+                            createable:
+                                true,
+                            updateable:
+                                true,
+                            usageCount:
+                                0,
+                            description:
+                                'Legacy historical status.',
+                            inlineHelpText:
+                                'Do not use for new processes.'
+                        }
+                    ],
 
                     relationships: [],
-
                     recordTypes: []
                 },
 
                 {
                     apiName:
                         'Opportunity',
-
                     label:
                         'Opportunity',
-
                     labelPlural:
                         'Opportunities',
-
                     custom:
                         false,
-
                     accessible:
                         true,
-
                     queryable:
                         true,
-
                     searchable:
                         true,
-
                     createable:
                         true,
-
                     updateable:
                         true,
-
                     deletable:
                         true,
-
                     description:
-                        'Tracks potential revenue and sales activity.',
+                        'Tracks potential revenue.',
 
                     fields: [
                         {
                             apiName:
                                 'Name',
-
                             label:
                                 'Opportunity Name',
-
                             dataType:
                                 'String',
-
                             required:
                                 true,
-
                             accessible:
                                 true,
-
                             createable:
                                 true,
-
                             updateable:
                                 true,
-
                             description:
                                 'The opportunity name.',
-
                             inlineHelpText:
-                                'Enter a recognizable opportunity name.'
+                                'Enter an opportunity name.'
                         },
-
                         {
                             apiName:
                                 'Amount',
-
                             label:
                                 'Amount',
-
                             dataType:
                                 'Currency',
-
                             accessible:
                                 true,
-
                             createable:
                                 true,
-
                             updateable:
                                 true,
-
                             description:
-                                'The expected opportunity value.',
-
+                                'Expected opportunity value.',
                             inlineHelpText:
-                                'Enter the expected total revenue.'
-                        },
-
-                        {
-                            apiName:
-                                'StageName',
-
-                            label:
-                                'Stage',
-
-                            dataType:
-                                'Picklist',
-
-                            required:
-                                true,
-
-                            accessible:
-                                true,
-
-                            createable:
-                                true,
-
-                            updateable:
-                                true,
-
-                            description:
-                                'The current sales stage.',
-
-                            inlineHelpText:
-                                'Select the current stage.'
+                                'Enter expected revenue.'
                         }
                     ],
 
                     relationships: [],
-
                     recordTypes: []
                 }
             ],
@@ -788,122 +664,84 @@ export default class OrgHealthDashboard extends LightningElement {
                 {
                     apiName:
                         'Opportunity_Health_Monitor',
-
                     label:
                         'Opportunity Health Monitor',
-
                     status:
                         'Active',
-
                     flowType:
                         'Record-Triggered Flow',
-
                     apiVersion:
                         66,
-
                     description:
-                        'Updates opportunity health and creates follow-up work.',
-
+                        'Updates opportunity health.',
                     dmlCount:
                         2,
-
                     hasFaultPaths:
                         false,
-
                     elementCount:
                         18,
-
                     decisionCount:
                         3,
-
                     loopCount:
                         0,
-
                     hasEntryConditions:
                         true,
-
                     hasDmlInsideLoop:
                         false
                 },
-
                 {
                     apiName:
                         'Account_Risk_Notification',
-
                     label:
                         'Account Risk Notification',
-
                     status:
                         'Active',
-
                     flowType:
                         'Record-Triggered Flow',
-
                     apiVersion:
                         66,
-
                     description:
-                        'Notifies account owners when customer risk increases.',
-
+                        'Notifies account owners.',
                     dmlCount:
                         1,
-
                     hasFaultPaths:
                         false,
-
                     elementCount:
                         12,
-
                     decisionCount:
                         2,
-
                     loopCount:
                         0,
-
                     hasEntryConditions:
                         true,
-
                     hasDmlInsideLoop:
                         false
                 },
-
                 {
                     apiName:
                         'Weekly_Pipeline_Review',
-
                     label:
                         'Weekly Pipeline Review',
-
                     status:
                         'Active',
-
                     flowType:
                         'Scheduled Flow',
-
                     apiVersion:
                         66,
-
                     description:
-                        'Creates pipeline-review tasks each week.',
-
+                        'Creates weekly review tasks.',
                     dmlCount:
                         1,
-
                     hasFaultPaths:
                         true,
-
                     elementCount:
                         10,
-
                     decisionCount:
                         1,
-
                     loopCount:
                         1,
-
                     hasEntryConditions:
                         true,
-
                     hasDmlInsideLoop:
                         false
                 }
@@ -919,22 +757,13 @@ export default class OrgHealthDashboard extends LightningElement {
                         index
                     ) => ({
                         apiName:
-                            `Validation_Rule_${
-                                index + 1
-                            }`,
-
+                            `Validation_Rule_${index + 1}`,
                         label:
-                            `Validation Rule ${
-                                index + 1
-                            }`,
-
+                            `Validation Rule ${index + 1}`,
                         active:
                             true,
-
                         description:
-                            `Protects business requirement ${
-                                index + 1
-                            }.`
+                            `Protects business requirement ${index + 1}.`
                     })
                 ),
 
@@ -942,32 +771,24 @@ export default class OrgHealthDashboard extends LightningElement {
                 {
                     apiName:
                         'Account_Duplicate_Rule',
-
                     label:
                         'Account Duplicate Rule',
-
                     active:
                         false
                 },
-
                 {
                     apiName:
                         'Contact_Duplicate_Rule',
-
                     label:
                         'Contact Duplicate Rule',
-
                     active:
                         false
                 },
-
                 {
                     apiName:
                         'Lead_Duplicate_Rule',
-
                     label:
                         'Lead Duplicate Rule',
-
                     active:
                         false
                 }
@@ -977,10 +798,8 @@ export default class OrgHealthDashboard extends LightningElement {
                 {
                     apiName:
                         'Account_Matching_Rule',
-
                     label:
                         'Account Matching Rule',
-
                     active:
                         true
                 }
@@ -990,22 +809,16 @@ export default class OrgHealthDashboard extends LightningElement {
                 {
                     apiName:
                         'Salesforce_Copilot_Admin',
-
                     label:
                         'Salesforce Copilot Admin',
-
                     assignmentCount:
                         0,
-
                     description:
-                        'Grants access to Salesforce Copilot administration features.',
-
+                        'Grants Copilot administration access.',
                     modifyAllData:
                         false,
-
                     viewAllData:
                         false,
-
                     manageUsers:
                         false
                 }
@@ -1017,48 +830,36 @@ export default class OrgHealthDashboard extends LightningElement {
                 {
                     apiName:
                         'OrgExplorerController',
-
                     label:
                         'Org Explorer Controller',
-
                     hasTestClass:
                         false,
-
                     description:
-                        'Retrieves object and field metadata for Org Explorer.'
+                        'Retrieves metadata for Org Explorer.'
                 }
             ],
 
             reports: [],
-
             dashboards: [],
 
             deployments: [
                 {
                     id:
                         'starter-deployment',
-
                     apiName:
                         'Org Knowledge Layer Deployment',
-
                     label:
                         'Org Knowledge Layer Deployment',
-
                     status:
                         'Succeeded',
-
                     success:
                         true,
-
                     testsRequired:
                         false,
-
                     testsRun:
                         false,
-
                     rollbackRequired:
                         false,
-
                     hasRollbackPlan:
                         false
                 }
@@ -1070,25 +871,14 @@ export default class OrgHealthDashboard extends LightningElement {
                 {
                     id:
                         'change-1',
-
                     title:
                         'Org Knowledge Layer deployed'
                 },
-
                 {
                     id:
                         'change-2',
-
                     title:
                         'Org Health rules created'
-                },
-
-                {
-                    id:
-                        'change-3',
-
-                    title:
-                        'Deployment Readiness scoring created'
                 }
             ],
 
@@ -1097,43 +887,30 @@ export default class OrgHealthDashboard extends LightningElement {
     }
 
     getStatusClass(status = '') {
-        const normalizedStatus =
+        const normalized =
             String(status)
                 .trim()
                 .toLowerCase();
 
         if (
-            normalizedStatus ===
-                'healthy' ||
-            normalizedStatus ===
-                'excellent' ||
-            normalizedStatus ===
-                'ready'
+            normalized === 'healthy' ||
+            normalized === 'excellent' ||
+            normalized === 'ready'
         ) {
             return 'status-badge status-success';
         }
 
         if (
-            normalizedStatus.includes(
-                'warning'
-            ) ||
-            normalizedStatus.includes(
-                'attention'
-            )
+            normalized.includes('warning') ||
+            normalized.includes('attention')
         ) {
             return 'status-badge status-warning';
         }
 
         if (
-            normalizedStatus.includes(
-                'risk'
-            ) ||
-            normalizedStatus.includes(
-                'not ready'
-            ) ||
-            normalizedStatus.includes(
-                'critical'
-            )
+            normalized.includes('risk') ||
+            normalized.includes('not ready') ||
+            normalized.includes('critical')
         ) {
             return 'status-badge status-danger';
         }
@@ -1142,21 +919,19 @@ export default class OrgHealthDashboard extends LightningElement {
     }
 
     getSeverityClass(severity = '') {
-        const normalizedSeverity =
-            String(severity)
-                .trim()
-                .toLowerCase();
-
-        return `severity-badge severity-${normalizedSeverity}`;
+        return `severity-badge severity-${String(
+            severity
+        )
+            .trim()
+            .toLowerCase()}`;
     }
 
     getPriorityClass(priority = '') {
-        const normalizedPriority =
-            String(priority)
-                .trim()
-                .toLowerCase();
-
-        return `priority-badge priority-${normalizedPriority}`;
+        return `priority-badge priority-${String(
+            priority
+        )
+            .trim()
+            .toLowerCase()}`;
     }
 
     getProgressClass(score = 0) {

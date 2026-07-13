@@ -1,92 +1,75 @@
 <template>
     <section class="org-health-shell">
+
         <header class="workspace-header">
-            <div class="header-copy">
-                <div class="eyebrow">
+            <div>
+                <span class="eyebrow">
                     Salesforce Copilot
-                </div>
+                </span>
 
                 <h1>
                     Org Health
                 </h1>
 
                 <p>
-                    Evaluate automation, security,
-                    data quality, documentation,
-                    testing, performance, and
-                    deployment readiness from one
-                    shared intelligence layer.
+                    Monitor risks, recommendations,
+                    category health, and deployment
+                    readiness.
                 </p>
 
                 <div class="source-row">
-                    <span class="source-label">
-                        Data Source
-                    </span>
-
                     <span class="source-value">
                         {dataSourceLabel}
                     </span>
 
                     <template if:true={lastRefreshedAt}>
                         <span class="refresh-label">
-                            Last refreshed:
-                            {lastRefreshedAt}
+                            Updated {lastRefreshedAt}
                         </span>
                     </template>
                 </div>
             </div>
 
-            <div class="header-actions">
-                <lightning-button
-                    label="Refresh Analysis"
-                    icon-name="utility:refresh"
-                    variant="brand"
-                    onclick={handleRefresh}
-                    disabled={isLoading}>
-                </lightning-button>
-            </div>
+            <lightning-button
+                label={refreshButtonLabel}
+                icon-name="utility:refresh"
+                variant="brand"
+                onclick={handleRefresh}
+                disabled={isLoading}>
+            </lightning-button>
         </header>
 
         <template if:true={isLoading}>
-            <div class="loading-panel">
+            <div class="loading-strip">
                 <lightning-spinner
-                    alternative-text="Analyzing org health"
-                    size="medium">
+                    alternative-text="Refreshing analysis"
+                    size="small">
                 </lightning-spinner>
 
-                <p>
-                    Evaluating Salesforce metadata...
-                </p>
+                <span>
+                    Re-evaluating metadata...
+                </span>
             </div>
         </template>
 
         <template if:true={hasError}>
-            <div
-                class="error-panel"
-                role="alert">
+            <div class="error-panel">
                 <lightning-icon
                     icon-name="utility:error"
-                    size="small"
-                    alternative-text="Error">
+                    size="small">
                 </lightning-icon>
 
-                <div>
-                    <h2>
-                        Org Health analysis could not
-                        be completed
-                    </h2>
-
-                    <p>
-                        {errorMessage}
-                    </p>
-                </div>
+                <span>
+                    {errorMessage}
+                </span>
             </div>
         </template>
 
         <template if:true={hasAnalysis}>
+
             <section class="score-grid">
-                <article class="score-card primary-score-card">
-                    <div class="score-card-header">
+                <article class="score-card health-score-card">
+                    <div class="score-card-heading">
                         <div>
                             <span class="card-kicker">
                                 Overall Score
@@ -99,44 +82,35 @@
 
                         <lightning-icon
                             icon-name="utility:shield"
-                            size="medium"
-                            alternative-text="Org Health">
+                            size="small">
                         </lightning-icon>
                     </div>
 
-                    <div class="large-score">
-                        {healthScoreLabel}
+                    <div class="score-line">
+                        <strong>
+                            {healthScoreLabel}
+                        </strong>
+
+                        <span class={healthStatusClass}>
+                            {healthStatus}
+                        </span>
                     </div>
 
-                    <span class={healthStatusClass}>
-                        {healthStatus}
-                    </span>
+                    <div class="score-detail">
+                        <span>
+                            Lowest category
+                        </span>
 
-                    <div class="score-context">
-                        <div>
-                            <span>
-                                Lowest Category
-                            </span>
-
-                            <strong>
-                                {lowestCategory}
-                            </strong>
-                        </div>
-
-                        <div>
-                            <span>
-                                Category Score
-                            </span>
-
-                            <strong>
-                                {lowestCategoryScore}/100
-                            </strong>
-                        </div>
+                        <strong>
+                            {lowestCategory}
+                            ·
+                            {lowestCategoryScore}/100
+                        </strong>
                     </div>
                 </article>
 
-                <article class="score-card deployment-score-card">
-                    <div class="score-card-header">
+                <article class="score-card readiness-score-card">
+                    <div class="score-card-heading">
                         <div>
                             <span class="card-kicker">
                                 Release Confidence
@@ -149,23 +123,24 @@
 
                         <lightning-icon
                             icon-name="utility:package"
-                            size="medium"
-                            alternative-text="Deployment Readiness">
+                            size="small">
                         </lightning-icon>
                     </div>
 
-                    <div class="large-score">
-                        {deploymentScoreLabel}
+                    <div class="score-line">
+                        <strong>
+                            {deploymentScoreLabel}
+                        </strong>
+
+                        <span class={deploymentStatusClass}>
+                            {deploymentStatus}
+                        </span>
                     </div>
 
-                    <span class={deploymentStatusClass}>
-                        {deploymentStatus}
-                    </span>
-
-                    <div class="score-context">
+                    <div class="score-detail split-detail">
                         <div>
                             <span>
-                                Risk Level
+                                Risk
                             </span>
 
                             <strong>
@@ -175,7 +150,7 @@
 
                         <div>
                             <span>
-                                Rollback Plan
+                                Rollback
                             </span>
 
                             <strong>
@@ -190,23 +165,22 @@
                 <template
                     for:each={summaryCards}
                     for:item="card">
+
                     <article
                         key={card.id}
                         class={card.cardClass}>
-                        <div class="metric-icon">
-                            <lightning-icon
-                                icon-name={card.iconName}
-                                size="small"
-                                alternative-text={card.label}>
-                            </lightning-icon>
-                        </div>
+
+                        <lightning-icon
+                            icon-name={card.iconName}
+                            size="x-small">
+                        </lightning-icon>
 
                         <div>
-                            <span class="metric-label">
+                            <span>
                                 {card.label}
                             </span>
 
-                            <strong class="metric-value">
+                            <strong>
                                 {card.value}
                             </strong>
                         </div>
@@ -214,8 +188,9 @@
                 </template>
             </section>
 
-            <section class="content-grid">
-                <article class="panel category-panel">
+            <section class="primary-grid">
+
+                <article class="panel">
                     <div class="panel-header">
                         <div>
                             <span class="card-kicker">
@@ -229,7 +204,7 @@
 
                         <div class="risk-summary">
                             <span>
-                                Highest Risk
+                                Highest risk
                             </span>
 
                             <strong>
@@ -240,47 +215,57 @@
                         </div>
                     </div>
 
-                    <div class="category-list">
-                        <template
-                            for:each={categoryRows}
-                            for:item="category">
-                            <div
-                                key={category.id}
-                                class="category-row">
-                                <div class="category-heading">
-                                    <div>
-                                        <strong>
-                                            {category.category}
-                                        </strong>
+                    <template if:true={hasCategories}>
+                        <div class="category-list">
+                            <template
+                                for:each={categoryRows}
+                                for:item="category">
 
-                                        <span>
-                                            {category.findingLabel}
-                                        </span>
+                                <div
+                                    key={category.id}
+                                    class="category-row">
+
+                                    <div class="category-heading">
+                                        <div>
+                                            <strong>
+                                                {category.category}
+                                            </strong>
+
+                                            <span>
+                                                {category.findingLabel}
+                                            </span>
+                                        </div>
+
+                                        <div class="category-score">
+                                            <span class={category.statusClass}>
+                                                {category.status}
+                                            </span>
+
+                                            <strong>
+                                                {category.scoreLabel}
+                                            </strong>
+                                        </div>
                                     </div>
 
-                                    <div class="category-score-area">
-                                        <span class={category.statusClass}>
-                                            {category.status}
-                                        </span>
-
-                                        <strong>
-                                            {category.scoreLabel}
-                                        </strong>
+                                    <div class="progress-track">
+                                        <div
+                                            class={category.progressClass}
+                                            style={category.scoreStyle}>
+                                        </div>
                                     </div>
                                 </div>
+                            </template>
+                        </div>
+                    </template>
 
-                                <div class="progress-track">
-                                    <div
-                                        class={category.progressClass}
-                                        style={category.scoreStyle}>
-                                    </div>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
+                    <template if:false={hasCategories}>
+                        <div class="empty-state">
+                            Category scores are not available.
+                        </div>
+                    </template>
                 </article>
 
-                <article class="panel daily-brief-panel">
+                <article class="panel brief-panel">
                     <div class="panel-header">
                         <div>
                             <span class="card-kicker">
@@ -288,29 +273,30 @@
                             </span>
 
                             <h2>
-                                Daily Admin Brief
+                                Daily Brief
                             </h2>
                         </div>
 
                         <lightning-icon
                             icon-name="utility:announcement"
-                            size="small"
-                            alternative-text="Daily Admin Brief">
+                            size="small">
                         </lightning-icon>
                     </div>
 
-                    <p class="brief-headline">
+                    <div class="brief-headline">
                         {dailyBriefHeadline}
-                    </p>
+                    </div>
 
                     <div class="priority-list">
                         <template
                             for:each={dailyPriorities}
                             for:item="priority">
+
                             <div
                                 key={priority.displayId}
                                 class="daily-priority">
-                                <span class="priority-number">
+
+                                <span>
                                     {priority.rank}
                                 </span>
 
@@ -329,7 +315,8 @@
                 </article>
             </section>
 
-            <section class="content-grid">
+            <section class="secondary-grid">
+
                 <article class="panel">
                     <div class="panel-header">
                         <div>
@@ -344,23 +331,23 @@
                     </div>
 
                     <template if:true={hasTopFindings}>
-                        <div class="finding-list">
+                        <div class="compact-list">
                             <template
                                 for:each={topFindings}
                                 for:item="finding">
-                                <article
+
+                                <div
                                     key={finding.displayId}
                                     class="finding-item">
-                                    <div class="finding-heading">
-                                        <div>
-                                            <span class={finding.severityClass}>
-                                                {finding.severity}
-                                            </span>
 
-                                            <strong>
-                                                {finding.title}
-                                            </strong>
-                                        </div>
+                                    <div class="item-heading">
+                                        <span class={finding.severityClass}>
+                                            {finding.severity}
+                                        </span>
+
+                                        <strong>
+                                            {finding.title}
+                                        </strong>
 
                                         <span class="score-impact">
                                             {finding.scoreImpactLabel}
@@ -371,24 +358,19 @@
                                         {finding.summary}
                                     </p>
 
-                                    <div class="finding-footer">
-                                        <span>
-                                            {finding.category}
-                                        </span>
-
-                                        <span>
-                                            {finding.entityLabel}
-                                        </span>
-                                    </div>
-                                </article>
+                                    <span class="item-meta">
+                                        {finding.category}
+                                        ·
+                                        {finding.entityLabel}
+                                    </span>
+                                </div>
                             </template>
                         </div>
                     </template>
 
                     <template if:false={hasTopFindings}>
                         <div class="empty-state">
-                            No current findings require
-                            attention.
+                            No findings require attention.
                         </div>
                     </template>
                 </article>
@@ -407,19 +389,21 @@
                     </div>
 
                     <template if:true={hasRecommendations}>
-                        <div class="recommendation-list">
+                        <div class="compact-list">
                             <template
                                 for:each={topRecommendations}
                                 for:item="recommendation">
-                                <article
+
+                                <div
                                     key={recommendation.displayId}
                                     class="recommendation-item">
-                                    <div class="recommendation-rank">
-                                        {recommendation.rank}
-                                    </div>
 
-                                    <div class="recommendation-copy">
-                                        <div class="recommendation-heading">
+                                    <span class="rank">
+                                        {recommendation.rank}
+                                    </span>
+
+                                    <div>
+                                        <div class="item-heading">
                                             <strong>
                                                 {recommendation.title}
                                             </strong>
@@ -432,26 +416,22 @@
                                         <p>
                                             {recommendation.actionText}
                                         </p>
-
-                                        <span class="recommendation-category">
-                                            {recommendation.category}
-                                        </span>
                                     </div>
-                                </article>
+                                </div>
                             </template>
                         </div>
                     </template>
 
                     <template if:false={hasRecommendations}>
                         <div class="empty-state">
-                            No recommendations were
-                            generated.
+                            No actions were generated.
                         </div>
                     </template>
                 </article>
             </section>
 
-            <section class="content-grid">
+            <section class="bottom-grid">
+
                 <article class="panel">
                     <div class="panel-header">
                         <div>
@@ -465,33 +445,22 @@
                         </div>
                     </div>
 
-                    <div class="approval-message">
-                        <lightning-icon
-                            icon-name="utility:info"
-                            size="small"
-                            alternative-text="Deployment guidance">
-                        </lightning-icon>
-
-                        <p>
-                            {approvalRecommendation}
-                        </p>
+                    <div class="guidance-message">
+                        {approvalRecommendation}
                     </div>
 
-                    <h3 class="section-subheading">
-                        Required Tests
-                    </h3>
-
-                    <div class="checklist">
+                    <div class="test-list">
                         <template
                             for:each={requiredTests}
                             for:item="test">
+
                             <div
                                 key={test.id}
-                                class="checklist-item">
+                                class="test-item">
+
                                 <lightning-icon
                                     icon-name="utility:check"
-                                    size="xx-small"
-                                    alternative-text="Required test">
+                                    size="xx-small">
                                 </lightning-icon>
 
                                 <span>
@@ -500,36 +469,6 @@
                             </div>
                         </template>
                     </div>
-
-                    <template if:true={hasDeploymentWarnings}>
-                        <h3 class="section-subheading warning-heading">
-                            Deployment Warnings
-                        </h3>
-
-                        <div class="warning-list">
-                            <template
-                                for:each={deploymentWarnings}
-                                for:item="warning">
-                                <div
-                                    key={warning.displayId}
-                                    class="warning-item">
-                                    <span class={warning.severityClass}>
-                                        {warning.severity}
-                                    </span>
-
-                                    <div>
-                                        <strong>
-                                            {warning.title}
-                                        </strong>
-
-                                        <p>
-                                            {warning.summary}
-                                        </p>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </template>
                 </article>
 
                 <article class="panel">
@@ -549,9 +488,11 @@
                         <template
                             for:each={metadataCountCards}
                             for:item="count">
+
                             <div
                                 key={count.id}
                                 class="metadata-count">
+
                                 <strong>
                                     {count.value}
                                 </strong>
@@ -563,28 +504,10 @@
                         </template>
                     </div>
 
-                    <div class="data-source-notice">
-                        <lightning-icon
-                            icon-name="utility:database"
-                            size="small"
-                            alternative-text="Data source">
-                        </lightning-icon>
-
-                        <div>
-                            <strong>
-                                Starter snapshot currently
-                                active
-                            </strong>
-
-                            <p>
-                                This dashboard is now using
-                                the real Org Knowledge rules
-                                and scoring engine. The next
-                                integration will replace the
-                                starter snapshot with live
-                                Salesforce metadata.
-                            </p>
-                        </div>
+                    <div class="snapshot-notice">
+                        This MVP currently analyzes a
+                        starter snapshot. Live metadata
+                        integration is the next milestone.
                     </div>
                 </article>
             </section>
