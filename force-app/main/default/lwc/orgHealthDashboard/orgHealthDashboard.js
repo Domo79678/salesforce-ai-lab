@@ -1,13 +1,26 @@
 import { LightningElement } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import orgKnowledgeService from 'c/orgKnowledgeService';
+
+import orgKnowledgeService
+    from 'c/orgKnowledgeService';
+
+import {
+    buildLiveOrgSnapshot,
+    LIVE_COVERAGE_STATUS
+} from 'c/orgContextService';
 
 export default class OrgHealthDashboard extends LightningElement {
     analysisResult = null;
     errorMessage = '';
     isLoading = false;
     lastRefreshedAt = '';
-    dataSourceLabel = 'Starter Metadata Snapshot';
+
+    dataSourceLabel =
+        LIVE_COVERAGE_STATUS.UNAVAILABLE;
+
+    coverageStatus = 'unavailable';
+    coverage = null;
+    snapshotWarnings = [];
 
     connectedCallback() {
         this.runOrgHealthAnalysis(false);
@@ -22,6 +35,50 @@ export default class OrgHealthDashboard extends LightningElement {
 
     get hasError() {
         return Boolean(this.errorMessage);
+    }
+
+    get isLiveData() {
+        return (
+            this.coverageStatus === 'complete' ||
+            this.coverageStatus === 'partial'
+        );
+    }
+
+    get isPartialCoverage() {
+        return this.coverageStatus === 'partial';
+    }
+
+    get hasSnapshotWarnings() {
+        return this.snapshotWarnings.length > 0;
+    }
+
+    get snapshotWarningRows() {
+        return this.snapshotWarnings.map(
+            (warning, index) => ({
+                id:
+                    `snapshot-warning-${index + 1}`,
+
+                message:
+                    warning.message ||
+                    'A live metadata category could not be retrieved.'
+            })
+        );
+    }
+
+    get coverageSummaryLabel() {
+        if (!this.coverage) {
+            return '';
+        }
+
+        const selectedObjectCount =
+            this.coverage
+                .selectedObjectCount ?? 0;
+
+        const inventoryObjectCount =
+            this.coverage
+                .inventoryObjectCount ?? 0;
+
+        return `${selectedObjectCount} business objects analyzed from an inventory of ${inventoryObjectCount} accessible objects.`;
     }
 
     get healthScore() {
@@ -113,24 +170,30 @@ export default class OrgHealthDashboard extends LightningElement {
             {
                 id: 'critical',
                 label: 'Critical',
-                value: metrics.criticalFindings ?? 0,
-                iconName: 'utility:error',
+                value:
+                    metrics.criticalFindings ?? 0,
+                iconName:
+                    'utility:error',
                 cardClass:
                     'metric-card metric-card-critical'
             },
             {
                 id: 'high',
                 label: 'High Risk',
-                value: metrics.highFindings ?? 0,
-                iconName: 'utility:warning',
+                value:
+                    metrics.highFindings ?? 0,
+                iconName:
+                    'utility:warning',
                 cardClass:
                     'metric-card metric-card-high'
             },
             {
                 id: 'blocking',
                 label: 'Blockers',
-                value: metrics.blockingFindings ?? 0,
-                iconName: 'utility:block_visitor',
+                value:
+                    metrics.blockingFindings ?? 0,
+                iconName:
+                    'utility:block_visitor',
                 cardClass:
                     'metric-card metric-card-blocking'
             },
@@ -139,7 +202,8 @@ export default class OrgHealthDashboard extends LightningElement {
                 label: 'Actions',
                 value:
                     metrics.totalRecommendations ?? 0,
-                iconName: 'utility:light_bulb',
+                iconName:
+                    'utility:light_bulb',
                 cardClass:
                     'metric-card metric-card-recommendation'
             }
@@ -277,6 +341,7 @@ export default class OrgHealthDashboard extends LightningElement {
                 (test, index) => ({
                     id:
                         `required-test-${index + 1}`,
+
                     label:
                         test
                 })
@@ -291,18 +356,21 @@ export default class OrgHealthDashboard extends LightningElement {
         return [
             {
                 id: 'objects',
-                label: 'Objects',
-                value: counts.objects ?? 0
+                label: 'Objects Analyzed',
+                value:
+                    counts.objects ?? 0
             },
             {
                 id: 'fields',
-                label: 'Fields',
-                value: counts.fields ?? 0
+                label: 'Fields Analyzed',
+                value:
+                    counts.fields ?? 0
             },
             {
                 id: 'flows',
                 label: 'Flows',
-                value: counts.flows ?? 0
+                value:
+                    counts.flows ?? 0
             },
             {
                 id: 'validation-rules',
@@ -379,6 +447,7 @@ export default class OrgHealthDashboard extends LightningElement {
             .map(
                 (priority) => ({
                     ...priority,
+
                     displayId:
                         `daily-priority-${priority.rank}`
                 })
@@ -395,495 +464,154 @@ export default class OrgHealthDashboard extends LightningElement {
         this.runOrgHealthAnalysis(true);
     }
 
-    runOrgHealthAnalysis(showToast = false) {
+    async runOrgHealthAnalysis(
+        showToast = false
+    ) {
         if (this.isLoading) {
             return;
         }
 
         this.isLoading = true;
         this.errorMessage = '';
+        this.snapshotWarnings = [];
 
-        window.setTimeout(() => {
-            try {
-                const result =
-                    orgKnowledgeService.analyzeOrg(
-                        this.buildStarterSnapshot(),
-                        {
-                            analysisMode:
-                                'health'
-                        }
-                    );
+        try {
+            const liveSnapshot =
+                await buildLiveOrgSnapshot({
+                    objectApiNames: [
+                        'Account',
+                        'Contact',
+                        'Lead',
+                        'Opportunity',
+                        'Case',
+                        'User'
+                    ],
 
-                if (!result.success) {
-                    throw new Error(
-                        result.errors?.[0]?.message ||
-                        'The Org Knowledge Service could not complete the analysis.'
-                    );
-                }
+                    inventoryLimit:
+                        200,
 
-                this.analysisResult =
-                    result;
+                    includeInventory:
+                        true
+                });
 
-                this.lastRefreshedAt =
-                    new Intl.DateTimeFormat(
-                        'en-US',
-                        {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            second: '2-digit'
-                        }
-                    ).format(
-                        new Date()
-                    );
+            if (!liveSnapshot.success) {
+                throw new Error(
+                    liveSnapshot.errors?.[0]
+                        ?.message ||
+                    'Live Salesforce metadata could not be retrieved.'
+                );
+            }
 
-                if (showToast) {
-                    this.dispatchEvent(
-                        new ShowToastEvent({
-                            title:
-                                'Analysis refreshed',
-                            message:
-                                'The starter metadata snapshot was analyzed successfully.',
-                            variant:
-                                'success'
-                        })
-                    );
-                }
-            } catch (error) {
-                this.analysisResult = null;
+            const result =
+                orgKnowledgeService.analyzeOrg(
+                    liveSnapshot,
+                    {
+                        analysisMode:
+                            'health'
+                    }
+                );
 
-                this.errorMessage =
-                    error?.body?.message ||
-                    error?.message ||
-                    'An unexpected Org Health error occurred.';
+            if (!result.success) {
+                throw new Error(
+                    result.errors?.[0]
+                        ?.message ||
+                    'The Org Knowledge Service could not complete the live analysis.'
+                );
+            }
 
+            this.analysisResult =
+                result;
+
+            this.coverage =
+                liveSnapshot.coverage;
+
+            this.coverageStatus =
+                liveSnapshot.coverageStatus;
+
+            this.dataSourceLabel =
+                liveSnapshot.coverageLabel;
+
+            this.snapshotWarnings = [
+                ...(
+                    liveSnapshot.warnings ||
+                    []
+                )
+            ];
+
+            this.lastRefreshedAt =
+                new Intl.DateTimeFormat(
+                    'en-US',
+                    {
+                        month:
+                            'short',
+
+                        day:
+                            'numeric',
+
+                        year:
+                            'numeric',
+
+                        hour:
+                            'numeric',
+
+                        minute:
+                            '2-digit',
+
+                        second:
+                            '2-digit'
+                    }
+                ).format(
+                    new Date()
+                );
+
+            if (showToast) {
                 this.dispatchEvent(
                     new ShowToastEvent({
                         title:
-                            'Analysis failed',
+                            'Live analysis refreshed',
+
                         message:
-                            this.errorMessage,
+                            'Current Salesforce organization and object metadata were analyzed successfully.',
+
                         variant:
-                            'error'
+                            'success'
                     })
                 );
-            } finally {
-                this.isLoading = false;
             }
-        }, 350);
-    }
+        } catch (error) {
+            this.analysisResult =
+                null;
 
-    buildStarterSnapshot() {
-        return {
-            organization: {
-                id:
-                    'starter-org',
-                name:
-                    'Salesforce AI Lab',
-                userName:
-                    'Salesforce Copilot Administrator',
-                apiVersion:
-                    '66.0',
-                locale:
-                    'en_US',
-                timeZone:
-                    'America/Chicago',
-                isSandbox:
-                    false
-            },
+            this.coverage =
+                null;
 
-            objects: [
-                {
-                    apiName:
-                        'Account',
-                    label:
-                        'Account',
-                    labelPlural:
-                        'Accounts',
-                    custom:
-                        false,
-                    accessible:
-                        true,
-                    queryable:
-                        true,
-                    searchable:
-                        true,
-                    createable:
-                        true,
-                    updateable:
-                        true,
-                    deletable:
-                        true,
-                    description:
-                        'Stores organizations and business relationships.',
+            this.coverageStatus =
+                'unavailable';
 
-                    fields: [
-                        {
-                            apiName:
-                                'Name',
-                            label:
-                                'Account Name',
-                            dataType:
-                                'String',
-                            required:
-                                true,
-                            accessible:
-                                true,
-                            createable:
-                                true,
-                            updateable:
-                                true,
-                            description:
-                                'The official account name.',
-                            inlineHelpText:
-                                'Enter the organization name.'
-                        },
-                        {
-                            apiName:
-                                'Customer_Health__c',
-                            label:
-                                'Customer Health',
-                            dataType:
-                                'Picklist',
-                            custom:
-                                true,
-                            accessible:
-                                true,
-                            createable:
-                                true,
-                            updateable:
-                                true,
-                            usageCount:
-                                4,
-                            description:
-                                'Tracks customer health.',
-                            inlineHelpText:
-                                'Select the current status.'
-                        },
-                        {
-                            apiName:
-                                'Legacy_Status__c',
-                            label:
-                                'Legacy Status',
-                            dataType:
-                                'Picklist',
-                            custom:
-                                true,
-                            accessible:
-                                true,
-                            createable:
-                                true,
-                            updateable:
-                                true,
-                            usageCount:
-                                0,
-                            description:
-                                'Legacy historical status.',
-                            inlineHelpText:
-                                'Do not use for new processes.'
-                        }
-                    ],
+            this.dataSourceLabel =
+                LIVE_COVERAGE_STATUS
+                    .UNAVAILABLE;
 
-                    relationships: [],
-                    recordTypes: []
-                },
+            this.errorMessage =
+                error?.body?.message ||
+                error?.message ||
+                'An unexpected live Org Health error occurred.';
 
-                {
-                    apiName:
-                        'Opportunity',
-                    label:
-                        'Opportunity',
-                    labelPlural:
-                        'Opportunities',
-                    custom:
-                        false,
-                    accessible:
-                        true,
-                    queryable:
-                        true,
-                    searchable:
-                        true,
-                    createable:
-                        true,
-                    updateable:
-                        true,
-                    deletable:
-                        true,
-                    description:
-                        'Tracks potential revenue.',
-
-                    fields: [
-                        {
-                            apiName:
-                                'Name',
-                            label:
-                                'Opportunity Name',
-                            dataType:
-                                'String',
-                            required:
-                                true,
-                            accessible:
-                                true,
-                            createable:
-                                true,
-                            updateable:
-                                true,
-                            description:
-                                'The opportunity name.',
-                            inlineHelpText:
-                                'Enter an opportunity name.'
-                        },
-                        {
-                            apiName:
-                                'Amount',
-                            label:
-                                'Amount',
-                            dataType:
-                                'Currency',
-                            accessible:
-                                true,
-                            createable:
-                                true,
-                            updateable:
-                                true,
-                            description:
-                                'Expected opportunity value.',
-                            inlineHelpText:
-                                'Enter expected revenue.'
-                        }
-                    ],
-
-                    relationships: [],
-                    recordTypes: []
-                }
-            ],
-
-            flows: [
-                {
-                    apiName:
-                        'Opportunity_Health_Monitor',
-                    label:
-                        'Opportunity Health Monitor',
-                    status:
-                        'Active',
-                    flowType:
-                        'Record-Triggered Flow',
-                    apiVersion:
-                        66,
-                    description:
-                        'Updates opportunity health.',
-                    dmlCount:
-                        2,
-                    hasFaultPaths:
-                        false,
-                    elementCount:
-                        18,
-                    decisionCount:
-                        3,
-                    loopCount:
-                        0,
-                    hasEntryConditions:
-                        true,
-                    hasDmlInsideLoop:
-                        false
-                },
-                {
-                    apiName:
-                        'Account_Risk_Notification',
-                    label:
-                        'Account Risk Notification',
-                    status:
-                        'Active',
-                    flowType:
-                        'Record-Triggered Flow',
-                    apiVersion:
-                        66,
-                    description:
-                        'Notifies account owners.',
-                    dmlCount:
-                        1,
-                    hasFaultPaths:
-                        false,
-                    elementCount:
-                        12,
-                    decisionCount:
-                        2,
-                    loopCount:
-                        0,
-                    hasEntryConditions:
-                        true,
-                    hasDmlInsideLoop:
-                        false
-                },
-                {
-                    apiName:
-                        'Weekly_Pipeline_Review',
-                    label:
-                        'Weekly Pipeline Review',
-                    status:
-                        'Active',
-                    flowType:
-                        'Scheduled Flow',
-                    apiVersion:
-                        66,
-                    description:
-                        'Creates weekly review tasks.',
-                    dmlCount:
-                        1,
-                    hasFaultPaths:
-                        true,
-                    elementCount:
-                        10,
-                    decisionCount:
-                        1,
-                    loopCount:
-                        1,
-                    hasEntryConditions:
-                        true,
-                    hasDmlInsideLoop:
-                        false
-                }
-            ],
-
-            validationRules:
-                Array.from(
-                    {
-                        length: 14
-                    },
-                    (
-                        unusedValue,
-                        index
-                    ) => ({
-                        apiName:
-                            `Validation_Rule_${index + 1}`,
-                        label:
-                            `Validation Rule ${index + 1}`,
-                        active:
-                            true,
-                        description:
-                            `Protects business requirement ${index + 1}.`
-                    })
-                ),
-
-            duplicateRules: [
-                {
-                    apiName:
-                        'Account_Duplicate_Rule',
-                    label:
-                        'Account Duplicate Rule',
-                    active:
-                        false
-                },
-                {
-                    apiName:
-                        'Contact_Duplicate_Rule',
-                    label:
-                        'Contact Duplicate Rule',
-                    active:
-                        false
-                },
-                {
-                    apiName:
-                        'Lead_Duplicate_Rule',
-                    label:
-                        'Lead Duplicate Rule',
-                    active:
-                        false
-                }
-            ],
-
-            matchingRules: [
-                {
-                    apiName:
-                        'Account_Matching_Rule',
-                    label:
-                        'Account Matching Rule',
-                    active:
-                        true
-                }
-            ],
-
-            permissionSets: [
-                {
-                    apiName:
-                        'Salesforce_Copilot_Admin',
-                    label:
-                        'Salesforce Copilot Admin',
-                    assignmentCount:
-                        0,
-                    description:
-                        'Grants Copilot administration access.',
-                    modifyAllData:
-                        false,
-                    viewAllData:
-                        false,
-                    manageUsers:
-                        false
-                }
-            ],
-
-            profiles: [],
-
-            apexClasses: [
-                {
-                    apiName:
-                        'OrgExplorerController',
-                    label:
-                        'Org Explorer Controller',
-                    hasTestClass:
-                        false,
-                    description:
-                        'Retrieves metadata for Org Explorer.'
-                }
-            ],
-
-            reports: [],
-            dashboards: [],
-
-            deployments: [
-                {
-                    id:
-                        'starter-deployment',
-                    apiName:
-                        'Org Knowledge Layer Deployment',
-                    label:
-                        'Org Knowledge Layer Deployment',
-                    status:
-                        'Succeeded',
-                    success:
-                        true,
-                    testsRequired:
-                        false,
-                    testsRun:
-                        false,
-                    rollbackRequired:
-                        false,
-                    hasRollbackPlan:
-                        false
-                }
-            ],
-
-            metadataItems: [],
-
-            recentChanges: [
-                {
-                    id:
-                        'change-1',
+            this.dispatchEvent(
+                new ShowToastEvent({
                     title:
-                        'Org Knowledge Layer deployed'
-                },
-                {
-                    id:
-                        'change-2',
-                    title:
-                        'Org Health rules created'
-                }
-            ],
+                        'Live analysis failed',
 
-            failedDeployments: []
-        };
+                    message:
+                        this.errorMessage,
+
+                    variant:
+                        'error'
+                })
+            );
+        } finally {
+            this.isLoading = false;
+        }
     }
 
     getStatusClass(status = '') {

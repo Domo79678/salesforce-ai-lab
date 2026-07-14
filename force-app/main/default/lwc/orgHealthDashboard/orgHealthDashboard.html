@@ -14,7 +14,8 @@
                 <p>
                     Monitor risks, recommendations,
                     category health, and deployment
-                    readiness.
+                    readiness using current Salesforce
+                    metadata.
                 </p>
 
                 <div class="source-row">
@@ -42,12 +43,13 @@
         <template if:true={isLoading}>
             <div class="loading-strip">
                 <lightning-spinner
-                    alternative-text="Refreshing analysis"
+                    alternative-text="Refreshing live analysis"
                     size="small">
                 </lightning-spinner>
 
                 <span>
-                    Re-evaluating metadata...
+                    Retrieving and evaluating live
+                    Salesforce metadata...
                 </span>
             </div>
         </template>
@@ -56,7 +58,8 @@
             <div class="error-panel">
                 <lightning-icon
                     icon-name="utility:error"
-                    size="small">
+                    size="small"
+                    alternative-text="Error">
                 </lightning-icon>
 
                 <span>
@@ -72,7 +75,7 @@
                     <div class="score-card-heading">
                         <div>
                             <span class="card-kicker">
-                                Overall Score
+                                Partial Live Score
                             </span>
 
                             <h2>
@@ -82,7 +85,8 @@
 
                         <lightning-icon
                             icon-name="utility:shield"
-                            size="small">
+                            size="small"
+                            alternative-text="Org Health">
                         </lightning-icon>
                     </div>
 
@@ -113,7 +117,7 @@
                     <div class="score-card-heading">
                         <div>
                             <span class="card-kicker">
-                                Release Confidence
+                                Partial Release Confidence
                             </span>
 
                             <h2>
@@ -123,7 +127,8 @@
 
                         <lightning-icon
                             icon-name="utility:package"
-                            size="small">
+                            size="small"
+                            alternative-text="Deployment Readiness">
                         </lightning-icon>
                     </div>
 
@@ -172,7 +177,8 @@
 
                         <lightning-icon
                             icon-name={card.iconName}
-                            size="x-small">
+                            size="x-small"
+                            alternative-text={card.label}>
                         </lightning-icon>
 
                         <div>
@@ -279,7 +285,8 @@
 
                         <lightning-icon
                             icon-name="utility:announcement"
-                            size="small">
+                            size="small"
+                            alternative-text="Daily Brief">
                         </lightning-icon>
                     </div>
 
@@ -370,7 +377,9 @@
 
                     <template if:false={hasTopFindings}>
                         <div class="empty-state">
-                            No findings require attention.
+                            No findings require attention
+                            within the metadata currently
+                            connected.
                         </div>
                     </template>
                 </article>
@@ -424,7 +433,8 @@
 
                     <template if:false={hasRecommendations}>
                         <div class="empty-state">
-                            No actions were generated.
+                            No actions were generated from
+                            the currently connected metadata.
                         </div>
                     </template>
                 </article>
@@ -460,7 +470,8 @@
 
                                 <lightning-icon
                                     icon-name="utility:check"
-                                    size="xx-small">
+                                    size="xx-small"
+                                    alternative-text="Required Test">
                                 </lightning-icon>
 
                                 <span>
@@ -505,10 +516,50 @@
                     </div>
 
                     <div class="snapshot-notice">
-                        This MVP currently analyzes a
-                        starter snapshot. Live metadata
-                        integration is the next milestone.
+                        <strong>
+                            {dataSourceLabel}
+                        </strong>
+
+                        <template if:true={isLiveData}>
+                            <p>
+                                {coverageSummaryLabel}
+                            </p>
+                        </template>
+
+                        <template if:true={isPartialCoverage}>
+                            <p>
+                                Organization, object, field,
+                                relationship, record-type,
+                                and access metadata are live.
+                                Setup metadata categories are
+                                being connected next.
+                            </p>
+                        </template>
                     </div>
+
+                    <template if:true={hasSnapshotWarnings}>
+                        <div class="coverage-warning-list">
+                            <template
+                                for:each={snapshotWarningRows}
+                                for:item="warning">
+
+                                <div
+                                    key={warning.id}
+                                    class="coverage-warning">
+
+                                    <lightning-icon
+                                        icon-name="utility:warning"
+                                        size="xx-small"
+                                        alternative-text="Coverage warning">
+                                    </lightning-icon>
+
+                                    <span>
+                                        {warning.message}
+                                    </span>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
                 </article>
             </section>
         </template>

@@ -595,3 +595,34 @@
         margin-left: 0;
     }
 }
+.snapshot-notice strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #032d60;
+    font-size: 0.72rem;
+}
+
+.snapshot-notice p {
+    margin: 0.25rem 0 0;
+    color: #444;
+    font-size: 0.66rem;
+    line-height: 1.45;
+}
+
+.coverage-warning-list {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+}
+
+.coverage-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    padding: 0.55rem;
+    border-radius: 0.45rem;
+    background: #fff7e6;
+    color: #5f3e00;
+    font-size: 0.64rem;
+    line-height: 1.4;
+}

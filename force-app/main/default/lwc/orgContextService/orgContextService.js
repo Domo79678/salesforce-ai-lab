@@ -1,11 +1,28 @@
 /*
  * orgContextService.js
  *
- * Shared JavaScript service for Salesforce Copilot.
+ * Shared live-metadata service for Salesforce Copilot.
  *
- * Wraps OrgContextController Apex methods so every Copilot
- * module can retrieve live Salesforce org metadata through
- * one consistent interface.
+ * This service wraps OrgContextController Apex methods and
+ * builds a reusable live Org Knowledge snapshot.
+ *
+ * Live coverage in Version 1.2:
+ * - organization information
+ * - current user information
+ * - object inventory
+ * - selected object capabilities
+ * - fields
+ * - relationships
+ * - record types
+ *
+ * Planned setup-metadata coverage:
+ * - Flows
+ * - Validation Rules
+ * - Duplicate Rules
+ * - Matching Rules
+ * - Permission Sets
+ * - Apex classes
+ * - Apex coverage
  */
 
 import getOrgSummaryApex
@@ -26,14 +43,41 @@ import getRecordTypesApex
 const DEFAULT_OBJECT_LIMIT = 100;
 const MAXIMUM_OBJECT_LIMIT = 200;
 
+const DEFAULT_HEALTH_OBJECTS = Object.freeze([
+    'Account',
+    'Contact',
+    'Lead',
+    'Opportunity',
+    'Case',
+    'User'
+]);
+
 const DEFAULT_ERROR_MESSAGE =
     'The Org Context Service could not retrieve Salesforce metadata.';
 
+export const ORG_CONTEXT_SERVICE_VERSION =
+    '1.2';
+
+export const LIVE_COVERAGE_STATUS =
+    Object.freeze({
+        COMPLETE:
+            'Live Salesforce Metadata',
+
+        PARTIAL:
+            'Live Salesforce Metadata — Partial Coverage',
+
+        UNAVAILABLE:
+            'Live Salesforce Metadata Unavailable'
+    });
+
 export async function getOrgSummary() {
     try {
-        const summary = await getOrgSummaryApex();
+        const summary =
+            await getOrgSummaryApex();
 
-        return normalizeOrgSummary(summary);
+        return normalizeOrgSummary(
+            summary
+        );
     } catch (error) {
         throw createServiceError(
             'Unable to retrieve the Salesforce org summary.',
@@ -47,19 +91,27 @@ export async function getObjects(
     maxResults = DEFAULT_OBJECT_LIMIT
 ) {
     const normalizedLimit =
-        normalizeObjectLimit(maxResults);
+        normalizeObjectLimit(
+            maxResults
+        );
 
     try {
-        const objects = await getObjectsApex({
-            searchTerm:
-                typeof searchTerm === 'string'
-                    ? searchTerm.trim()
-                    : '',
-            maxResults: normalizedLimit
-        });
+        const objects =
+            await getObjectsApex({
+                searchTerm:
+                    typeof searchTerm ===
+                    'string'
+                        ? searchTerm.trim()
+                        : '',
+
+                maxResults:
+                    normalizedLimit
+            });
 
         return Array.isArray(objects)
-            ? objects.map(normalizeObjectInfo)
+            ? objects.map(
+                  normalizeObjectInfo
+              )
             : [];
     } catch (error) {
         throw createServiceError(
@@ -74,7 +126,8 @@ export async function searchObjects(
     maxResults = 50
 ) {
     if (
-        typeof searchTerm !== 'string' ||
+        typeof searchTerm !==
+            'string' ||
         !searchTerm.trim()
     ) {
         return [];
@@ -89,7 +142,9 @@ export async function searchObjects(
 export async function getObjectContext(
     objectApiName
 ) {
-    validateObjectApiName(objectApiName);
+    validateObjectApiName(
+        objectApiName
+    );
 
     try {
         const context =
@@ -98,7 +153,9 @@ export async function getObjectContext(
                     objectApiName.trim()
             });
 
-        return normalizeObjectContext(context);
+        return normalizeObjectContext(
+            context
+        );
     } catch (error) {
         throw createServiceError(
             `Unable to retrieve metadata for ${objectApiName}.`,
@@ -110,7 +167,9 @@ export async function getObjectContext(
 export async function getObjectFields(
     objectApiName
 ) {
-    validateObjectApiName(objectApiName);
+    validateObjectApiName(
+        objectApiName
+    );
 
     try {
         const fields =
@@ -120,7 +179,9 @@ export async function getObjectFields(
             });
 
         return Array.isArray(fields)
-            ? fields.map(normalizeFieldInfo)
+            ? fields.map(
+                  normalizeFieldInfo
+              )
             : [];
     } catch (error) {
         throw createServiceError(
@@ -133,7 +194,9 @@ export async function getObjectFields(
 export async function getRecordTypes(
     objectApiName
 ) {
-    validateObjectApiName(objectApiName);
+    validateObjectApiName(
+        objectApiName
+    );
 
     try {
         const recordTypes =
@@ -142,7 +205,9 @@ export async function getRecordTypes(
                     objectApiName.trim()
             });
 
-        return Array.isArray(recordTypes)
+        return Array.isArray(
+            recordTypes
+        )
             ? recordTypes.map(
                   normalizeRecordType
               )
@@ -159,35 +224,44 @@ export async function objectExists(
     objectApiName
 ) {
     if (
-        typeof objectApiName !== 'string' ||
+        typeof objectApiName !==
+            'string' ||
         !objectApiName.trim()
     ) {
         return false;
     }
 
     const objectMatch =
-        await findObject(objectApiName);
+        await findObject(
+            objectApiName
+        );
 
-    return Boolean(objectMatch);
+    return Boolean(
+        objectMatch
+    );
 }
 
 export async function findObject(
     objectName
 ) {
     if (
-        typeof objectName !== 'string' ||
+        typeof objectName !==
+            'string' ||
         !objectName.trim()
     ) {
         return null;
     }
 
     const requestedName =
-        objectName.trim().toLowerCase();
+        objectName
+            .trim()
+            .toLowerCase();
 
-    const objects = await getObjects(
-        objectName.trim(),
-        50
-    );
+    const objects =
+        await getObjects(
+            objectName.trim(),
+            50
+        );
 
     return (
         objects.find(
@@ -205,18 +279,644 @@ export async function findObject(
     );
 }
 
-function normalizeObjectLimit(maxResults) {
-    const numericLimit = Number(maxResults);
+/*
+ * Builds the shared live metadata snapshot used by:
+ * - Org Health
+ * - Explain This
+ * - Change Impact Analyzer
+ * - Deployment Readiness
+ * - Daily Admin Brief
+ *
+ * This method never inserts demo metadata.
+ */
+export async function buildLiveOrgSnapshot(
+    options = {}
+) {
+    const startedAt =
+        new Date().toISOString();
+
+    const requestedObjects =
+        normalizeRequestedObjects(
+            options.objectApiNames
+        );
+
+    const inventoryLimit =
+        normalizeObjectLimit(
+            options.inventoryLimit ||
+            MAXIMUM_OBJECT_LIMIT
+        );
+
+    const includeInventory =
+        options.includeInventory !==
+        false;
+
+    const errors = [];
+    const warnings = [];
+
+    let organization = null;
+    let objectInventory = [];
+    let objects = [];
+
+    try {
+        organization =
+            await getOrgSummary();
+    } catch (error) {
+        errors.push(
+            createSnapshotError(
+                'organization',
+                error
+            )
+        );
+    }
+
+    if (includeInventory) {
+        try {
+            objectInventory =
+                await getObjects(
+                    '',
+                    inventoryLimit
+                );
+
+            if (
+                organization &&
+                organization.totalObjects >
+                    objectInventory.length
+            ) {
+                warnings.push({
+                    code:
+                        'OBJECT_INVENTORY_LIMITED',
+
+                    category:
+                        'objects',
+
+                    message:
+                        `The org reports ${organization.totalObjects} objects, while the live inventory request returned ${objectInventory.length}. Detailed Org Health analysis is intentionally limited to selected business objects.`
+                });
+            }
+        } catch (error) {
+            warnings.push(
+                createSnapshotError(
+                    'objectInventory',
+                    error
+                )
+            );
+        }
+    }
+
+    const objectResults =
+        await Promise.allSettled(
+            requestedObjects.map(
+                (objectApiName) =>
+                    getObjectContext(
+                        objectApiName
+                    )
+            )
+        );
+
+    objects =
+        objectResults
+            .map(
+                (result, index) => {
+                    const objectApiName =
+                        requestedObjects[
+                            index
+                        ];
+
+                    if (
+                        result.status ===
+                        'fulfilled'
+                    ) {
+                        return result.value;
+                    }
+
+                    warnings.push(
+                        createSnapshotError(
+                            objectApiName,
+                            result.reason
+                        )
+                    );
+
+                    return null;
+                }
+            )
+            .filter(Boolean);
+
+    const coverage =
+        buildCoverageSummary({
+            organization,
+            objectInventory,
+            objects,
+            errors,
+            warnings
+        });
+
+    return {
+        success:
+            Boolean(
+                organization
+            ),
+
+        source:
+            'Org Context Service',
+
+        sourceType:
+            'live',
+
+        serviceVersion:
+            ORG_CONTEXT_SERVICE_VERSION,
+
+        coverageStatus:
+            coverage.status,
+
+        coverageLabel:
+            coverage.label,
+
+        organization:
+            organization
+                ? mapSummaryToOrganization(
+                      organization
+                  )
+                : {},
+
+        objects:
+            objects.map(
+                mapContextToSnapshotObject
+            ),
+
+        objectInventory,
+
+        flows: [],
+
+        validationRules: [],
+
+        duplicateRules: [],
+
+        matchingRules: [],
+
+        permissionSets: [],
+
+        profiles: [],
+
+        apexClasses: [],
+
+        apexTriggers: [],
+
+        reports: [],
+
+        dashboards: [],
+
+        deployments: [],
+
+        metadataItems: [],
+
+        recentChanges: [],
+
+        failedDeployments: [],
+
+        setupMetadataCoverage: {
+            flows:
+                false,
+
+            validationRules:
+                false,
+
+            duplicateRules:
+                false,
+
+            matchingRules:
+                false,
+
+            permissionSets:
+                false,
+
+            apexClasses:
+                false,
+
+            apexCoverage:
+                false
+        },
+
+        coverage,
+
+        errors,
+
+        warnings,
+
+        startedAt,
+
+        retrievedAt:
+            new Date().toISOString()
+    };
+}
+
+function buildCoverageSummary({
+    organization = null,
+    objectInventory = [],
+    objects = [],
+    errors = [],
+    warnings = []
+} = {}) {
+    const liveCategories = [];
+
+    if (organization) {
+        liveCategories.push(
+            'Organization'
+        );
+    }
 
     if (
-        !Number.isFinite(numericLimit) ||
+        Array.isArray(
+            objectInventory
+        ) &&
+        objectInventory.length
+    ) {
+        liveCategories.push(
+            'Object Inventory'
+        );
+    }
+
+    if (
+        Array.isArray(objects) &&
+        objects.length
+    ) {
+        liveCategories.push(
+            'Objects',
+            'Fields',
+            'Relationships',
+            'Record Types',
+            'Object Access'
+        );
+    }
+
+    const unavailableCategories = [
+        'Flows',
+        'Validation Rules',
+        'Duplicate Rules',
+        'Matching Rules',
+        'Permission Sets',
+        'Apex Classes',
+        'Apex Coverage'
+    ];
+
+    const hasOrganization =
+        Boolean(
+            organization
+        );
+
+    const status =
+        hasOrganization
+            ? 'partial'
+            : 'unavailable';
+
+    return {
+        status,
+
+        label:
+            status === 'partial'
+                ? LIVE_COVERAGE_STATUS
+                      .PARTIAL
+                : LIVE_COVERAGE_STATUS
+                      .UNAVAILABLE,
+
+        liveCategories:
+            uniqueStrings(
+                liveCategories
+            ),
+
+        unavailableCategories,
+
+        selectedObjectCount:
+            objects.length,
+
+        inventoryObjectCount:
+            objectInventory.length,
+
+        errorCount:
+            errors.length,
+
+        warningCount:
+            warnings.length
+    };
+}
+
+function normalizeRequestedObjects(
+    objectApiNames
+) {
+    if (
+        !Array.isArray(
+            objectApiNames
+        ) ||
+        !objectApiNames.length
+    ) {
+        return [
+            ...DEFAULT_HEALTH_OBJECTS
+        ];
+    }
+
+    return uniqueStrings(
+        objectApiNames
+            .map(
+                (value) =>
+                    typeof value ===
+                    'string'
+                        ? value.trim()
+                        : ''
+            )
+            .filter(Boolean)
+    );
+}
+
+function mapSummaryToOrganization(
+    summary = {}
+) {
+    return {
+        id:
+            summary.organizationId,
+
+        name:
+            summary.organizationName,
+
+        userName:
+            summary.userName,
+
+        userEmail:
+            summary.userEmail,
+
+        apiVersion:
+            summary.apiVersion,
+
+        locale:
+            summary.locale,
+
+        timeZone:
+            summary.timeZone,
+
+        totalObjects:
+            summary.totalObjects,
+
+        standardObjects:
+            summary.standardObjects,
+
+        customObjects:
+            summary.customObjects,
+
+        queryableObjects:
+            summary.queryableObjects,
+
+        accessibleObjects:
+            summary.accessibleObjects,
+
+        metadata: {
+            userId:
+                summary.userId,
+
+            profileId:
+                summary.profileId,
+
+            serviceVersion:
+                summary.serviceVersion
+        }
+    };
+}
+
+function mapContextToSnapshotObject(
+    context = {}
+) {
+    return {
+        apiName:
+            context.apiName,
+
+        label:
+            context.label,
+
+        labelPlural:
+            context.pluralLabel,
+
+        keyPrefix:
+            context.keyPrefix,
+
+        custom:
+            context.custom,
+
+        accessible:
+            context.accessible,
+
+        queryable:
+            context.queryable,
+
+        searchable:
+            context.searchable,
+
+        createable:
+            context.createable,
+
+        updateable:
+            context.updateable,
+
+        deletable:
+            context.deletable,
+
+        fields:
+            Array.isArray(
+                context.fields
+            )
+                ? context.fields.map(
+                      mapFieldToSnapshotField
+                  )
+                : [],
+
+        relationships:
+            buildRelationshipsFromFields(
+                context.fields,
+                context.apiName
+            ),
+
+        recordTypes:
+            Array.isArray(
+                context.recordTypes
+            )
+                ? context.recordTypes.map(
+                      mapRecordTypeToSnapshot
+                  )
+                : [],
+
+        metadata: {
+            source:
+                'Live Schema Describe',
+
+            fieldCount:
+                context.fieldCount,
+
+            relationshipCount:
+                context.relationshipCount,
+
+            recordTypeCount:
+                context.recordTypeCount
+        }
+    };
+}
+
+function mapFieldToSnapshotField(
+    field = {}
+) {
+    return {
+        apiName:
+            field.apiName,
+
+        label:
+            field.label,
+
+        dataType:
+            field.dataType,
+
+        custom:
+            field.custom,
+
+        required:
+            field.required,
+
+        unique:
+            field.unique,
+
+        externalId:
+            field.externalId,
+
+        calculated:
+            field.calculated,
+
+        encrypted:
+            false,
+
+        accessible:
+            field.accessible,
+
+        createable:
+            field.createable,
+
+        updateable:
+            field.updateable,
+
+        relationshipName:
+            field.relationshipName,
+
+        referenceTo:
+            Array.isArray(
+                field.referenceTo
+            )
+                ? [
+                      ...field.referenceTo
+                  ]
+                : [],
+
+        length:
+            field.length,
+
+        precision:
+            field.precision,
+
+        scale:
+            field.scale,
+
+        metadata: {
+            autoNumber:
+                field.autoNumber,
+
+            source:
+                'Live Schema Describe'
+        }
+    };
+}
+
+function buildRelationshipsFromFields(
+    fields = [],
+    sourceObject = ''
+) {
+    if (!Array.isArray(fields)) {
+        return [];
+    }
+
+    return fields
+        .filter(
+            (field) =>
+                Array.isArray(
+                    field.referenceTo
+                ) &&
+                field.referenceTo.length
+        )
+        .map(
+            (field) => ({
+                fieldApiName:
+                    field.apiName,
+
+                fieldLabel:
+                    field.label,
+
+                sourceObject,
+
+                targetObjects: [
+                    ...field.referenceTo
+                ],
+
+                relationshipName:
+                    field.relationshipName,
+
+                required:
+                    field.required,
+
+                custom:
+                    field.custom
+            })
+        );
+}
+
+function mapRecordTypeToSnapshot(
+    recordType = {}
+) {
+    return {
+        id:
+            recordType.recordTypeId,
+
+        developerName:
+            recordType.developerName,
+
+        name:
+            recordType.name,
+
+        active:
+            recordType.available,
+
+        defaultRecordTypeMapping:
+            recordType.defaultRecordType,
+
+        available:
+            recordType.available,
+
+        master:
+            recordType.master
+    };
+}
+
+function normalizeObjectLimit(
+    maxResults
+) {
+    const numericLimit =
+        Number(
+            maxResults
+        );
+
+    if (
+        !Number.isFinite(
+            numericLimit
+        ) ||
         numericLimit <= 0
     ) {
         return DEFAULT_OBJECT_LIMIT;
     }
 
     return Math.min(
-        Math.floor(numericLimit),
+        Math.floor(
+            numericLimit
+        ),
         MAXIMUM_OBJECT_LIMIT
     );
 }
@@ -225,7 +925,8 @@ function validateObjectApiName(
     objectApiName
 ) {
     if (
-        typeof objectApiName !== 'string' ||
+        typeof objectApiName !==
+            'string' ||
         !objectApiName.trim()
     ) {
         throw new Error(
@@ -234,38 +935,79 @@ function validateObjectApiName(
     }
 }
 
-function normalizeOrgSummary(summary = {}) {
+function normalizeOrgSummary(
+    summary = {}
+) {
     return {
         serviceVersion:
-            summary.serviceVersion || '',
+            summary.serviceVersion ||
+            '',
+
         apiVersion:
-            summary.apiVersion || '',
+            summary.apiVersion ||
+            '',
+
         organizationId:
-            summary.organizationId || '',
+            summary.organizationId ||
+            '',
+
         organizationName:
-            summary.organizationName || '',
+            summary.organizationName ||
+            '',
+
         userId:
-            summary.userId || '',
+            summary.userId ||
+            '',
+
         userName:
-            summary.userName || '',
+            summary.userName ||
+            '',
+
         userEmail:
-            summary.userEmail || '',
+            summary.userEmail ||
+            '',
+
         profileId:
-            summary.profileId || '',
+            summary.profileId ||
+            '',
+
         locale:
-            summary.locale || '',
+            summary.locale ||
+            '',
+
         timeZone:
-            summary.timeZone || '',
+            summary.timeZone ||
+            '',
+
         totalObjects:
-            Number(summary.totalObjects || 0),
+            Number(
+                summary.totalObjects ||
+                0
+            ),
+
         standardObjects:
-            Number(summary.standardObjects || 0),
+            Number(
+                summary.standardObjects ||
+                0
+            ),
+
         customObjects:
-            Number(summary.customObjects || 0),
+            Number(
+                summary.customObjects ||
+                0
+            ),
+
         queryableObjects:
-            Number(summary.queryableObjects || 0),
+            Number(
+                summary.queryableObjects ||
+                0
+            ),
+
         accessibleObjects:
-            Number(summary.accessibleObjects || 0)
+            Number(
+                summary.accessibleObjects ||
+                0
+            )
     };
 }
 
@@ -274,29 +1016,60 @@ function normalizeObjectInfo(
 ) {
     return {
         apiName:
-            objectInfo.apiName || '',
+            objectInfo.apiName ||
+            '',
+
         label:
-            objectInfo.label || '',
+            objectInfo.label ||
+            '',
+
         pluralLabel:
-            objectInfo.pluralLabel || '',
+            objectInfo.pluralLabel ||
+            '',
+
         keyPrefix:
-            objectInfo.keyPrefix || '',
+            objectInfo.keyPrefix ||
+            '',
+
         custom:
-            Boolean(objectInfo.custom),
+            Boolean(
+                objectInfo.custom
+            ),
+
         queryable:
-            Boolean(objectInfo.queryable),
+            Boolean(
+                objectInfo.queryable
+            ),
+
         searchable:
-            Boolean(objectInfo.searchable),
+            Boolean(
+                objectInfo.searchable
+            ),
+
         createable:
-            Boolean(objectInfo.createable),
+            Boolean(
+                objectInfo.createable
+            ),
+
         updateable:
-            Boolean(objectInfo.updateable),
+            Boolean(
+                objectInfo.updateable
+            ),
+
         deletable:
-            Boolean(objectInfo.deletable),
+            Boolean(
+                objectInfo.deletable
+            ),
+
         accessible:
-            Boolean(objectInfo.accessible),
+            Boolean(
+                objectInfo.accessible
+            ),
+
         hasRecordTypes:
-            Boolean(objectInfo.hasRecordTypes)
+            Boolean(
+                objectInfo.hasRecordTypes
+            )
     };
 }
 
@@ -305,43 +1078,83 @@ function normalizeObjectContext(
 ) {
     return {
         apiName:
-            context.apiName || '',
+            context.apiName ||
+            '',
+
         label:
-            context.label || '',
+            context.label ||
+            '',
+
         pluralLabel:
-            context.pluralLabel || '',
+            context.pluralLabel ||
+            '',
+
         keyPrefix:
-            context.keyPrefix || '',
+            context.keyPrefix ||
+            '',
+
         custom:
-            Boolean(context.custom),
+            Boolean(
+                context.custom
+            ),
+
         queryable:
-            Boolean(context.queryable),
+            Boolean(
+                context.queryable
+            ),
+
         searchable:
-            Boolean(context.searchable),
+            Boolean(
+                context.searchable
+            ),
+
         createable:
-            Boolean(context.createable),
+            Boolean(
+                context.createable
+            ),
+
         updateable:
-            Boolean(context.updateable),
+            Boolean(
+                context.updateable
+            ),
+
         deletable:
-            Boolean(context.deletable),
+            Boolean(
+                context.deletable
+            ),
+
         accessible:
-            Boolean(context.accessible),
+            Boolean(
+                context.accessible
+            ),
+
         fieldCount:
-            Number(context.fieldCount || 0),
+            Number(
+                context.fieldCount ||
+                0
+            ),
+
         relationshipCount:
             Number(
-                context.relationshipCount || 0
+                context.relationshipCount ||
+                0
             ),
+
         recordTypeCount:
             Number(
-                context.recordTypeCount || 0
+                context.recordTypeCount ||
+                0
             ),
+
         fields:
-            Array.isArray(context.fields)
+            Array.isArray(
+                context.fields
+            )
                 ? context.fields.map(
                       normalizeFieldInfo
                   )
                 : [],
+
         recordTypes:
             Array.isArray(
                 context.recordTypes
@@ -353,43 +1166,96 @@ function normalizeObjectContext(
     };
 }
 
-function normalizeFieldInfo(field = {}) {
+function normalizeFieldInfo(
+    field = {}
+) {
     return {
         apiName:
-            field.apiName || '',
+            field.apiName ||
+            '',
+
         label:
-            field.label || '',
+            field.label ||
+            '',
+
         dataType:
-            field.dataType || '',
+            field.dataType ||
+            '',
+
         length:
-            Number(field.length || 0),
+            Number(
+                field.length ||
+                0
+            ),
+
         precision:
-            Number(field.precision || 0),
+            Number(
+                field.precision ||
+                0
+            ),
+
         scale:
-            Number(field.scale || 0),
+            Number(
+                field.scale ||
+                0
+            ),
+
         accessible:
-            Boolean(field.accessible),
+            Boolean(
+                field.accessible
+            ),
+
         createable:
-            Boolean(field.createable),
+            Boolean(
+                field.createable
+            ),
+
         updateable:
-            Boolean(field.updateable),
+            Boolean(
+                field.updateable
+            ),
+
         required:
-            Boolean(field.required),
+            Boolean(
+                field.required
+            ),
+
         custom:
-            Boolean(field.custom),
+            Boolean(
+                field.custom
+            ),
+
         calculated:
-            Boolean(field.calculated),
+            Boolean(
+                field.calculated
+            ),
+
         unique:
-            Boolean(field.unique),
+            Boolean(
+                field.unique
+            ),
+
         externalId:
-            Boolean(field.externalId),
+            Boolean(
+                field.externalId
+            ),
+
         autoNumber:
-            Boolean(field.autoNumber),
+            Boolean(
+                field.autoNumber
+            ),
+
         relationshipName:
-            field.relationshipName || '',
+            field.relationshipName ||
+            '',
+
         referenceTo:
-            Array.isArray(field.referenceTo)
-                ? [...field.referenceTo]
+            Array.isArray(
+                field.referenceTo
+            )
+                ? [
+                      ...field.referenceTo
+                  ]
                 : []
     };
 }
@@ -399,15 +1265,27 @@ function normalizeRecordType(
 ) {
     return {
         recordTypeId:
-            recordType.recordTypeId || '',
+            recordType.recordTypeId ||
+            '',
+
         name:
-            recordType.name || '',
+            recordType.name ||
+            '',
+
         developerName:
-            recordType.developerName || '',
+            recordType.developerName ||
+            '',
+
         available:
-            Boolean(recordType.available),
+            Boolean(
+                recordType.available
+            ),
+
         master:
-            Boolean(recordType.master),
+            Boolean(
+                recordType.master
+            ),
+
         defaultRecordType:
             Boolean(
                 recordType.defaultRecordType
@@ -415,25 +1293,57 @@ function normalizeRecordType(
     };
 }
 
+function createSnapshotError(
+    category,
+    error
+) {
+    return {
+        category,
+
+        message:
+            extractErrorMessage(
+                error
+            )
+    };
+}
+
+function uniqueStrings(
+    values = []
+) {
+    return Array.from(
+        new Set(
+            values.filter(
+                Boolean
+            )
+        )
+    );
+}
+
 function createServiceError(
     message,
     error
 ) {
     const details =
-        extractErrorMessage(error);
+        extractErrorMessage(
+            error
+        );
 
-    const serviceError = new Error(
-        details
-            ? `${message} ${details}`
-            : message
-    );
+    const serviceError =
+        new Error(
+            details
+                ? `${message} ${details}`
+                : message
+        );
 
-    serviceError.originalError = error;
+    serviceError.originalError =
+        error;
 
     return serviceError;
 }
 
-function extractErrorMessage(error) {
+function extractErrorMessage(
+    error
+) {
     if (!error) {
         return DEFAULT_ERROR_MESSAGE;
     }
@@ -448,17 +1358,23 @@ function extractErrorMessage(error) {
 
     if (
         error.body &&
-        Array.isArray(error.body) &&
+        Array.isArray(
+            error.body
+        ) &&
         error.body.length
     ) {
         return error.body
-            .map((item) => item.message)
+            .map(
+                (item) =>
+                    item.message
+            )
             .filter(Boolean)
             .join(' ');
     }
 
     if (
-        typeof error.message === 'string'
+        typeof error.message ===
+        'string'
     ) {
         return error.message;
     }
