@@ -5,9 +5,12 @@ import orgKnowledgeService
     from 'c/orgKnowledgeService';
 
 import {
-    buildLiveOrgSnapshot,
-    LIVE_COVERAGE_STATUS
-} from 'c/orgContextService';
+    getMetadataSnapshot,
+    refreshMetadataSnapshot,
+    DATA_SOURCE_LABELS,
+    DATA_SOURCE_TYPES,
+    DEFAULT_BUSINESS_OBJECTS
+} from 'c/copilotCore';
 
 export default class OrgHealthDashboard extends LightningElement {
     analysisResult = null;
@@ -16,14 +19,23 @@ export default class OrgHealthDashboard extends LightningElement {
     lastRefreshedAt = '';
 
     dataSourceLabel =
-        LIVE_COVERAGE_STATUS.UNAVAILABLE;
+        DATA_SOURCE_LABELS[
+            DATA_SOURCE_TYPES.UNAVAILABLE
+        ];
+
+    dataSourceType =
+        DATA_SOURCE_TYPES.UNAVAILABLE;
 
     coverageStatus = 'unavailable';
     coverage = null;
     snapshotWarnings = [];
+    servedFromCache = false;
 
     connectedCallback() {
-        this.runOrgHealthAnalysis(false);
+        this.runOrgHealthAnalysis({
+            forceRefresh: false,
+            showToast: false
+        });
     }
 
     get hasAnalysis() {
@@ -34,22 +46,41 @@ export default class OrgHealthDashboard extends LightningElement {
     }
 
     get hasError() {
-        return Boolean(this.errorMessage);
+        return Boolean(
+            this.errorMessage
+        );
     }
 
     get isLiveData() {
-        return (
-            this.coverageStatus === 'complete' ||
-            this.coverageStatus === 'partial'
+        return [
+            DATA_SOURCE_TYPES.LIVE,
+            DATA_SOURCE_TYPES.LIVE_PARTIAL,
+            DATA_SOURCE_TYPES.CACHE
+        ].includes(
+            this.dataSourceType
         );
     }
 
     get isPartialCoverage() {
-        return this.coverageStatus === 'partial';
+        return (
+            this.coverageStatus ===
+            'partial'
+        );
+    }
+
+    get isCachedData() {
+        return (
+            this.dataSourceType ===
+                DATA_SOURCE_TYPES.CACHE ||
+            this.servedFromCache
+        );
     }
 
     get hasSnapshotWarnings() {
-        return this.snapshotWarnings.length > 0;
+        return (
+            this.snapshotWarnings.length >
+            0
+        );
     }
 
     get snapshotWarningRows() {
@@ -171,7 +202,8 @@ export default class OrgHealthDashboard extends LightningElement {
                 id: 'critical',
                 label: 'Critical',
                 value:
-                    metrics.criticalFindings ?? 0,
+                    metrics
+                        .criticalFindings ?? 0,
                 iconName:
                     'utility:error',
                 cardClass:
@@ -181,7 +213,8 @@ export default class OrgHealthDashboard extends LightningElement {
                 id: 'high',
                 label: 'High Risk',
                 value:
-                    metrics.highFindings ?? 0,
+                    metrics
+                        .highFindings ?? 0,
                 iconName:
                     'utility:warning',
                 cardClass:
@@ -191,7 +224,8 @@ export default class OrgHealthDashboard extends LightningElement {
                 id: 'blocking',
                 label: 'Blockers',
                 value:
-                    metrics.blockingFindings ?? 0,
+                    metrics
+                        .blockingFindings ?? 0,
                 iconName:
                     'utility:block_visitor',
                 cardClass:
@@ -201,7 +235,9 @@ export default class OrgHealthDashboard extends LightningElement {
                 id: 'recommendations',
                 label: 'Actions',
                 value:
-                    metrics.totalRecommendations ?? 0,
+                    metrics
+                        .totalRecommendations ??
+                    0,
                 iconName:
                     'utility:light_bulb',
                 cardClass:
@@ -242,7 +278,8 @@ export default class OrgHealthDashboard extends LightningElement {
                     ),
 
                 findingLabel:
-                    category.findingCount === 1
+                    category.findingCount ===
+                    1
                         ? '1 finding'
                         : `${category.findingCount} findings`
             })
@@ -250,7 +287,9 @@ export default class OrgHealthDashboard extends LightningElement {
     }
 
     get hasCategories() {
-        return this.categoryRows.length > 0;
+        return (
+            this.categoryRows.length > 0
+        );
     }
 
     get topFindings() {
@@ -282,14 +321,17 @@ export default class OrgHealthDashboard extends LightningElement {
                             : 'No deduction',
 
                     entityLabel:
-                        finding.entityApiName ||
+                        finding
+                            .entityApiName ||
                         'Organization'
                 })
             );
     }
 
     get hasTopFindings() {
-        return this.topFindings.length > 0;
+        return (
+            this.topFindings.length > 0
+        );
     }
 
     get topRecommendations() {
@@ -301,7 +343,10 @@ export default class OrgHealthDashboard extends LightningElement {
         return recommendations
             .slice(0, 4)
             .map(
-                (recommendation, index) => ({
+                (
+                    recommendation,
+                    index
+                ) => ({
                     ...recommendation,
 
                     displayId:
@@ -326,7 +371,10 @@ export default class OrgHealthDashboard extends LightningElement {
     }
 
     get hasRecommendations() {
-        return this.topRecommendations.length > 0;
+        return (
+            this.topRecommendations
+                .length > 0
+        );
     }
 
     get requiredTests() {
@@ -356,37 +404,47 @@ export default class OrgHealthDashboard extends LightningElement {
         return [
             {
                 id: 'objects',
-                label: 'Objects Analyzed',
+                label:
+                    'Objects Analyzed',
                 value:
                     counts.objects ?? 0
             },
             {
                 id: 'fields',
-                label: 'Fields Analyzed',
+                label:
+                    'Fields Analyzed',
                 value:
                     counts.fields ?? 0
             },
             {
                 id: 'flows',
-                label: 'Flows',
+                label:
+                    'Flows',
                 value:
                     counts.flows ?? 0
             },
             {
-                id: 'validation-rules',
-                label: 'Validation Rules',
+                id:
+                    'validation-rules',
+                label:
+                    'Validation Rules',
                 value:
-                    counts.validationRules ?? 0
+                    counts
+                        .validationRules ?? 0
             },
             {
-                id: 'permission-sets',
-                label: 'Permission Sets',
+                id:
+                    'permission-sets',
+                label:
+                    'Permission Sets',
                 value:
-                    counts.permissionSets ?? 0
+                    counts
+                        .permissionSets ?? 0
             },
             {
                 id: 'apex',
-                label: 'Apex Classes',
+                label:
+                    'Apex Classes',
                 value:
                     counts.apexClasses ?? 0
             }
@@ -406,7 +464,8 @@ export default class OrgHealthDashboard extends LightningElement {
         return (
             this.analysisResult
                 ?.dashboardMetrics
-                ?.lowestCategoryScore ?? 100
+                ?.lowestCategoryScore ??
+            100
         );
     }
 
@@ -461,12 +520,16 @@ export default class OrgHealthDashboard extends LightningElement {
     }
 
     handleRefresh() {
-        this.runOrgHealthAnalysis(true);
+        this.runOrgHealthAnalysis({
+            forceRefresh: true,
+            showToast: true
+        });
     }
 
-    async runOrgHealthAnalysis(
+    async runOrgHealthAnalysis({
+        forceRefresh = false,
         showToast = false
-    ) {
+    } = {}) {
         if (this.isLoading) {
             return;
         }
@@ -476,27 +539,39 @@ export default class OrgHealthDashboard extends LightningElement {
         this.snapshotWarnings = [];
 
         try {
-            const liveSnapshot =
-                await buildLiveOrgSnapshot({
-                    objectApiNames: [
-                        'Account',
-                        'Contact',
-                        'Lead',
-                        'Opportunity',
-                        'Case',
-                        'User'
-                    ],
+            const snapshotOptions = {
+                objectApiNames: [
+                    ...DEFAULT_BUSINESS_OBJECTS
+                ],
 
-                    inventoryLimit:
-                        200,
+                inventoryLimit:
+                    200,
 
-                    includeInventory:
-                        true
-                });
+                includeInventory:
+                    true,
 
-            if (!liveSnapshot.success) {
+                includeSetupMetadata:
+                    true,
+
+                forceRefresh
+            };
+
+            const metadataSnapshot =
+                forceRefresh
+                    ? await refreshMetadataSnapshot(
+                          snapshotOptions
+                      )
+                    : await getMetadataSnapshot(
+                          snapshotOptions
+                      );
+
+            if (
+                !metadataSnapshot ||
+                !metadataSnapshot.success
+            ) {
                 throw new Error(
-                    liveSnapshot.errors?.[0]
+                    metadataSnapshot
+                        ?.errors?.[0]
                         ?.message ||
                     'Live Salesforce metadata could not be retrieved.'
                 );
@@ -504,7 +579,7 @@ export default class OrgHealthDashboard extends LightningElement {
 
             const result =
                 orgKnowledgeService.analyzeOrg(
-                    liveSnapshot,
+                    metadataSnapshot,
                     {
                         analysisMode:
                             'health'
@@ -523,20 +598,51 @@ export default class OrgHealthDashboard extends LightningElement {
                 result;
 
             this.coverage =
-                liveSnapshot.coverage;
+                metadataSnapshot.coverage;
 
             this.coverageStatus =
-                liveSnapshot.coverageStatus;
+                metadataSnapshot
+                    .coverageStatus ||
+                metadataSnapshot
+                    ?.coverage
+                    ?.status ||
+                'unavailable';
+
+            this.dataSourceType =
+                metadataSnapshot
+                    .sourceType ||
+                DATA_SOURCE_TYPES
+                    .UNAVAILABLE;
 
             this.dataSourceLabel =
-                liveSnapshot.coverageLabel;
+                metadataSnapshot
+                    .sourceLabel ||
+                DATA_SOURCE_LABELS[
+                    this.dataSourceType
+                ] ||
+                DATA_SOURCE_LABELS[
+                    DATA_SOURCE_TYPES
+                        .UNAVAILABLE
+                ];
 
             this.snapshotWarnings = [
                 ...(
-                    liveSnapshot.warnings ||
-                    []
+                    metadataSnapshot
+                        .warnings || []
                 )
             ];
+
+            this.servedFromCache =
+                Boolean(
+                    metadataSnapshot
+                        .servedFromCache
+                );
+
+            const refreshDate =
+                metadataSnapshot
+                    .retrievedAt ||
+                new Date()
+                    .toISOString();
 
             this.lastRefreshedAt =
                 new Intl.DateTimeFormat(
@@ -561,7 +667,9 @@ export default class OrgHealthDashboard extends LightningElement {
                             '2-digit'
                     }
                 ).format(
-                    new Date()
+                    new Date(
+                        refreshDate
+                    )
                 );
 
             if (showToast) {
@@ -571,7 +679,7 @@ export default class OrgHealthDashboard extends LightningElement {
                             'Live analysis refreshed',
 
                         message:
-                            'Current Salesforce organization and object metadata were analyzed successfully.',
+                            'The shared Salesforce metadata snapshot and Org Health analysis were refreshed successfully.',
 
                         variant:
                             'success'
@@ -588,9 +696,18 @@ export default class OrgHealthDashboard extends LightningElement {
             this.coverageStatus =
                 'unavailable';
 
-            this.dataSourceLabel =
-                LIVE_COVERAGE_STATUS
+            this.dataSourceType =
+                DATA_SOURCE_TYPES
                     .UNAVAILABLE;
+
+            this.dataSourceLabel =
+                DATA_SOURCE_LABELS[
+                    DATA_SOURCE_TYPES
+                        .UNAVAILABLE
+                ];
+
+            this.servedFromCache =
+                false;
 
             this.errorMessage =
                 error?.body?.message ||
@@ -621,60 +738,108 @@ export default class OrgHealthDashboard extends LightningElement {
                 .toLowerCase();
 
         if (
-            normalized === 'healthy' ||
-            normalized === 'excellent' ||
-            normalized === 'ready'
+            normalized ===
+                'healthy' ||
+            normalized ===
+                'excellent' ||
+            normalized ===
+                'ready'
         ) {
-            return 'status-badge status-success';
+            return (
+                'status-badge ' +
+                'status-success'
+            );
         }
 
         if (
-            normalized.includes('warning') ||
-            normalized.includes('attention')
+            normalized.includes(
+                'warning'
+            ) ||
+            normalized.includes(
+                'attention'
+            )
         ) {
-            return 'status-badge status-warning';
+            return (
+                'status-badge ' +
+                'status-warning'
+            );
         }
 
         if (
-            normalized.includes('risk') ||
-            normalized.includes('not ready') ||
-            normalized.includes('critical')
+            normalized.includes(
+                'risk'
+            ) ||
+            normalized.includes(
+                'not ready'
+            ) ||
+            normalized.includes(
+                'critical'
+            )
         ) {
-            return 'status-badge status-danger';
+            return (
+                'status-badge ' +
+                'status-danger'
+            );
         }
 
-        return 'status-badge status-neutral';
+        return (
+            'status-badge ' +
+            'status-neutral'
+        );
     }
 
-    getSeverityClass(severity = '') {
-        return `severity-badge severity-${String(
-            severity
-        )
-            .trim()
-            .toLowerCase()}`;
+    getSeverityClass(
+        severity = ''
+    ) {
+        return (
+            'severity-badge ' +
+            `severity-${String(
+                severity
+            )
+                .trim()
+                .toLowerCase()}`
+        );
     }
 
-    getPriorityClass(priority = '') {
-        return `priority-badge priority-${String(
-            priority
-        )
-            .trim()
-            .toLowerCase()}`;
+    getPriorityClass(
+        priority = ''
+    ) {
+        return (
+            'priority-badge ' +
+            `priority-${String(
+                priority
+            )
+                .trim()
+                .toLowerCase()}`
+        );
     }
 
-    getProgressClass(score = 0) {
+    getProgressClass(
+        score = 0
+    ) {
         if (score >= 90) {
-            return 'progress-fill progress-success';
+            return (
+                'progress-fill ' +
+                'progress-success'
+            );
         }
 
         if (score >= 75) {
-            return 'progress-fill progress-warning';
+            return (
+                'progress-fill ' +
+                'progress-warning'
+            );
         }
 
-        return 'progress-fill progress-danger';
+        return (
+            'progress-fill ' +
+            'progress-danger'
+        );
     }
 
-    createStableId(value = '') {
+    createStableId(
+        value = ''
+    ) {
         return String(value)
             .trim()
             .toLowerCase()

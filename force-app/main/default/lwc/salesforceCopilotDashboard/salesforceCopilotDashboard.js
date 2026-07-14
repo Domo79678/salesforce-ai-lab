@@ -1,255 +1,225 @@
 import { LightningElement } from 'lwc';
 
+const DASHBOARD = 'dashboard';
+
 export default class SalesforceCopilotDashboard extends LightningElement {
-    currentView = 'dashboard';
+
+    currentView = DASHBOARD;
 
     capabilities = [
+
+        {
+            name: 'explainThis',
+            title: 'Explain This',
+            iconName: 'utility:knowledge_base',
+            description:
+                'Instantly explain Salesforce metadata using business context, technical analysis, dependency mapping, deployment guidance, testing recommendations, and interview coaching.',
+            status: 'Available',
+            statusClass: 'status-badge status-available',
+            progress: 100,
+            progressLabel: '100% complete',
+            phase: 'Copilot Intelligence Engine',
+            disabled: false,
+            featured: true
+        },
+
         {
             name: 'flowIntelligence',
             title: 'Flow Intelligence',
             iconName: 'utility:flow',
             description:
-                'Analyze Flow logic, risks, tests, documentation, and interview insights.',
+                'Analyze Salesforce Flows, identify risks, documentation, testing strategies, and interview insights.',
             status: 'Available',
-            statusClass:
-                'status-badge status-available',
+            statusClass: 'status-badge status-available',
             progress: 85,
-            progressLabel:
-                '85% complete',
-            phase:
-                'Live Module',
+            progressLabel: '85% complete',
+            phase: 'Live Module',
             disabled: false
         },
+
         {
             name: 'orgExplorer',
             title: 'Org Explorer',
-            iconName:
-                'utility:connected_apps',
+            iconName: 'utility:connected_apps',
             description:
-                'Explore Salesforce objects, fields, relationships, permissions, and metadata.',
+                'Explore Salesforce objects, fields, permissions, relationships, and metadata.',
             status: 'Available',
-            statusClass:
-                'status-badge status-available',
-            progress: 75,
-            progressLabel:
-                '75% complete',
-            phase:
-                'Live Module',
+            statusClass: 'status-badge status-available',
+            progress: 80,
+            progressLabel: '80% complete',
+            phase: 'Metadata Explorer',
             disabled: false
         },
+
         {
             name: 'orgHealthDashboard',
             title: 'Org Health',
-            iconName:
-                'utility:shield',
+            iconName: 'utility:shield',
             description:
-                'Evaluate health scores, risks, recommendations, and deployment readiness.',
+                'Evaluate organization health, metadata quality, deployment readiness, and improvement opportunities.',
             status: 'Available',
-            statusClass:
-                'status-badge status-available',
-            progress: 85,
-            progressLabel:
-                '85% complete',
-            phase:
-                'Knowledge Layer MVP',
+            statusClass: 'status-badge status-available',
+            progress: 90,
+            progressLabel: '90% complete',
+            phase: 'Live Metadata',
             disabled: false
         },
+
         {
             name: 'automationAdvisor',
             title: 'Automation Advisor',
-            iconName:
-                'utility:settings',
+            iconName: 'utility:settings',
             description:
-                'Choose the right Salesforce automation architecture for a business requirement.',
+                'Recommend the best Salesforce automation solution using Flow, Validation Rules, Approval Processes, configuration, or Apex.',
             status: 'Available',
-            statusClass:
-                'status-badge status-available',
+            statusClass: 'status-badge status-available',
             progress: 100,
-            progressLabel:
-                '100% complete',
-            phase:
-                'Rules-Based Advisor v1.0',
+            progressLabel: '100% complete',
+            phase: 'Rules-Based Advisor',
             disabled: false
         },
+
         {
-            name:
-                'troubleshootingAssistant',
-            title:
-                'Troubleshooting Assistant',
-            iconName:
-                'utility:warning',
+            name: 'troubleshootingAssistant',
+            title: 'Troubleshooting Assistant',
+            iconName: 'utility:warning',
             description:
-                'Diagnose Salesforce errors and generate investigation, repair, and testing guidance.',
-            status:
-                'MVP Testing',
-            statusClass:
-                'status-badge status-available',
-            progress:
-                90,
-            progressLabel:
-                '90% complete',
-            phase:
-                'Rules-Based Assistant v1.0',
-            disabled:
-                false
+                'Diagnose Flow failures, save errors, permissions, duplicate rules, Apex issues, and configuration problems.',
+            status: 'Available',
+            statusClass: 'status-badge status-available',
+            progress: 90,
+            progressLabel: '90% complete',
+            phase: 'Rules-Based Assistant',
+            disabled: false
         },
+
         {
-            name:
-                'documentationGenerator',
-            title:
-                'Documentation Generator',
-            iconName:
-                'utility:knowledge_base',
+            name: 'documentationGenerator',
+            title: 'Documentation Generator',
+            iconName: 'utility:knowledge_base',
             description:
-                'Generate administrator documentation, release notes, and testing plans.',
-            status:
-                'Planned',
-            statusClass:
-                'status-badge status-planned',
-            progress:
-                5,
-            progressLabel:
-                '5% complete',
-            phase:
-                'Next Module',
-            disabled:
-                true
+                'Generate administrator documentation, release notes, deployment guides, and testing plans.',
+            status: 'Planned',
+            statusClass: 'status-badge status-planned',
+            progress: 5,
+            progressLabel: '5% complete',
+            phase: 'Coming Soon',
+            disabled: true
         },
+
         {
-            name:
-                'aiLearningCoach',
-            title:
-                'AI Learning Coach',
-            iconName:
-                'utility:education',
+            name: 'aiLearningCoach',
+            title: 'AI Learning Coach',
+            iconName: 'utility:education',
             description:
-                'Practice Salesforce scenarios, certification concepts, and interviews.',
-            status:
-                'Planned',
-            statusClass:
-                'status-badge status-planned',
-            progress:
-                5,
-            progressLabel:
-                '5% complete',
-            phase:
-                'Upcoming Module',
-            disabled:
-                true
+                'Practice Salesforce concepts, certification questions, interview scenarios, and administrator skills.',
+            status: 'Planned',
+            statusClass: 'status-badge status-planned',
+            progress: 5,
+            progressLabel: '5% complete',
+            phase: 'Coming Soon',
+            disabled: true
         }
+
     ];
 
+    /*
+    -----------------------------------------
+    Views
+    -----------------------------------------
+    */
+
     get showDashboard() {
-        return this.currentView === 'dashboard';
+        return this.currentView === DASHBOARD;
+    }
+
+    get showExplainThis() {
+        return this.currentView === 'explainThis';
     }
 
     get showFlowIntelligence() {
-        return (
-            this.currentView ===
-            'flowIntelligence'
-        );
+        return this.currentView === 'flowIntelligence';
     }
 
     get showOrgExplorer() {
-        return (
-            this.currentView ===
-            'orgExplorer'
-        );
+        return this.currentView === 'orgExplorer';
     }
 
     get showOrgHealthDashboard() {
-        return (
-            this.currentView ===
-            'orgHealthDashboard'
-        );
+        return this.currentView === 'orgHealthDashboard';
     }
 
     get showAutomationAdvisor() {
-        return (
-            this.currentView ===
-            'automationAdvisor'
-        );
+        return this.currentView === 'automationAdvisor';
     }
 
     get showTroubleshootingAssistant() {
-        return (
-            this.currentView ===
-            'troubleshootingAssistant'
-        );
+        return this.currentView === 'troubleshootingAssistant';
     }
 
     get showMetadataDiagnostic() {
-        return (
-            this.currentView ===
-            'metadataDiagnostic'
-        );
+        return this.currentView === 'metadataDiagnostic';
     }
 
+    /*
+    -----------------------------------------
+    Navigation
+    -----------------------------------------
+    */
+
     handleLaunch(event) {
-        const capabilityName =
-            event.currentTarget
-                .dataset.name;
 
-        if (!capabilityName) {
-            return;
-        }
+        const destination =
+            event.currentTarget.dataset.name;
 
-        const capability =
-            this.capabilities.find(
-                (item) =>
-                    item.name ===
-                    capabilityName
-            );
+        this.navigate(destination);
 
-        if (
-            !capability ||
-            capability.disabled
-        ) {
-            return;
-        }
-
-        this.currentView =
-            capabilityName;
     }
 
     handleQuickAction(event) {
+
         const destination =
-            event.currentTarget
-                .dataset.destination;
+            event.currentTarget.dataset.destination;
+
+        this.navigate(destination);
+
+    }
+
+    navigate(destination) {
 
         if (!destination) {
             return;
         }
 
-        if (
-            destination ===
-            'metadataDiagnostic'
-        ) {
-            this.currentView =
-                destination;
+        if (destination === 'metadataDiagnostic') {
+
+            this.currentView = destination;
+
             return;
+
         }
 
         const capability =
             this.capabilities.find(
-                (item) =>
-                    item.name ===
-                    destination
+                item => item.name === destination
             );
 
-        if (
-            !capability ||
-            capability.disabled
-        ) {
+        if (!capability) {
             return;
         }
 
-        this.currentView =
-            destination;
+        if (capability.disabled) {
+            return;
+        }
+
+        this.currentView = destination;
+
     }
 
     backToDashboard() {
-        this.currentView =
-            'dashboard';
+
+        this.currentView = DASHBOARD;
+
     }
+
 }

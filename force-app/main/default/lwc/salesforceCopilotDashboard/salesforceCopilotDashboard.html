@@ -17,25 +17,24 @@
                             </div>
 
                             <p class="slds-m-top_small">
-                                Analyze automation, explore
-                                metadata, evaluate org health,
-                                troubleshoot issues, and plan
-                                Salesforce solutions.
+                                Explain Salesforce metadata, analyze automation,
+                                explore the org, evaluate health, troubleshoot
+                                issues, and plan Salesforce solutions.
                             </p>
 
                             <div class="slds-m-top_medium">
                                 <lightning-badge
-                                    label="5 Live Modules">
+                                    label="6 Live Modules">
                                 </lightning-badge>
 
                                 <lightning-badge
                                     class="slds-m-left_x-small"
-                                    label="Knowledge Layer Active">
+                                    label="Copilot Intelligence Active">
                                 </lightning-badge>
 
                                 <lightning-badge
                                     class="slds-m-left_x-small"
-                                    label="Live Metadata Available">
+                                    label="Live Metadata Connected">
                                 </lightning-badge>
                             </div>
                         </div>
@@ -61,7 +60,7 @@
                                     </p>
 
                                     <h2 class="kpi-value">
-                                        5
+                                        6
                                     </h2>
 
                                     <p class="kpi-detail">
@@ -75,7 +74,7 @@
                             <lightning-card class="kpi-card">
                                 <div class="slds-p-around_medium">
                                     <p class="slds-text-title_caps">
-                                        Knowledge Layer
+                                        Intelligence Layer
                                     </p>
 
                                     <h2 class="kpi-value">
@@ -83,7 +82,7 @@
                                     </h2>
 
                                     <p class="kpi-detail">
-                                        Rules and scoring connected
+                                        Explanations and dependency analysis connected
                                     </p>
                                 </div>
                             </lightning-card>
@@ -117,32 +116,32 @@
                         </h2>
 
                         <p class="slds-text-body_small">
-                            Start with the task you need to complete.
+                            Start with the Salesforce task you need to complete.
                         </p>
                     </div>
 
                     <div class="slds-grid slds-wrap slds-gutters">
 
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
+                            <lightning-button
+                                label="Explain This"
+                                icon-name="utility:knowledge_base"
+                                variant="brand"
+                                data-destination="explainThis"
+                                onclick={handleQuickAction}>
+                            </lightning-button>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
                             <lightning-button
                                 label="Org Health"
                                 icon-name="utility:shield"
-                                variant="brand"
                                 data-destination="orgHealthDashboard"
                                 onclick={handleQuickAction}>
                             </lightning-button>
                         </div>
 
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
-                            <lightning-button
-                                label="Explore Org"
-                                icon-name="utility:connected_apps"
-                                data-destination="orgExplorer"
-                                onclick={handleQuickAction}>
-                            </lightning-button>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
                             <lightning-button
                                 label="Analyze Flow"
                                 icon-name="utility:flow"
@@ -151,7 +150,16 @@
                             </lightning-button>
                         </div>
 
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
+                            <lightning-button
+                                label="Explore Org"
+                                icon-name="utility:connected_apps"
+                                data-destination="orgExplorer"
+                                onclick={handleQuickAction}>
+                            </lightning-button>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
                             <lightning-button
                                 label="Automation Advice"
                                 icon-name="utility:settings"
@@ -160,7 +168,7 @@
                             </lightning-button>
                         </div>
 
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-5 slds-p-bottom_small">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
                             <lightning-button
                                 label="Troubleshoot"
                                 icon-name="utility:warning"
@@ -168,6 +176,7 @@
                                 onclick={handleQuickAction}>
                             </lightning-button>
                         </div>
+
                     </div>
                 </section>
 
@@ -198,7 +207,8 @@
                                             <div class="slds-grid slds-grid_vertical-align-center">
                                                 <lightning-icon
                                                     icon-name={capability.iconName}
-                                                    size="small">
+                                                    size="small"
+                                                    alternative-text={capability.title}>
                                                 </lightning-icon>
 
                                                 <h3 class="slds-text-heading_small slds-m-left_small">
@@ -241,9 +251,11 @@
                                                 disabled={capability.disabled}>
                                             </lightning-button>
                                         </div>
+
                                     </div>
                                 </lightning-card>
                             </div>
+
                         </template>
                     </div>
                 </section>
@@ -262,9 +274,8 @@
                                     </p>
 
                                     <p class="slds-text-body_small slds-m-top_x-small">
-                                        Validate live organization,
-                                        object, field, relationship,
-                                        record-type, and access metadata.
+                                        Validate live organization, object, field,
+                                        relationship, record-type, and access metadata.
                                     </p>
                                 </div>
 
@@ -276,10 +287,27 @@
                                         onclick={handleQuickAction}>
                                     </lightning-button>
                                 </div>
+
                             </div>
                         </div>
                     </lightning-card>
                 </section>
+
+            </template>
+
+            <template if:true={showExplainThis}>
+                <div class="workspace-header">
+                    <lightning-button
+                        label="Back to Dashboard"
+                        icon-name="utility:back"
+                        onclick={backToDashboard}>
+                    </lightning-button>
+                </div>
+
+                <div class="workspace-container">
+                    <c-explain-this-workspace>
+                    </c-explain-this-workspace>
+                </div>
             </template>
 
             <template if:true={showFlowIntelligence}>
