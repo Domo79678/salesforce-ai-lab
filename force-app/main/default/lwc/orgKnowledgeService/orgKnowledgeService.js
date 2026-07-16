@@ -74,53 +74,26 @@ import {
     getHighestRiskCategory
 } from './knowledgeScoring';
 
-/*
- * Current Org Knowledge Layer version.
- */
-export const ORG_KNOWLEDGE_SERVICE_VERSION =
-    '1.0';
+export const ORG_KNOWLEDGE_SERVICE_VERSION = '1.0';
 
-/*
- * Analysis modes supported by the service.
- */
-export const KNOWLEDGE_ANALYSIS_MODES =
-    Object.freeze({
-        FULL: 'full',
-        HEALTH: 'health',
-        DEPLOYMENT: 'deployment',
-        EXPLAIN: 'explain',
-        CHANGE_IMPACT: 'changeImpact',
-        DAILY_BRIEF: 'dailyBrief'
-    });
+export const KNOWLEDGE_ANALYSIS_MODES = Object.freeze({
+    FULL: 'full',
+    HEALTH: 'health',
+    DEPLOYMENT: 'deployment',
+    EXPLAIN: 'explain',
+    CHANGE_IMPACT: 'changeImpact',
+    DAILY_BRIEF: 'dailyBrief'
+});
 
-/*
- * Main service entry point.
- *
- * Example:
- *
- * const result = analyzeOrgKnowledge({
- *     organization: {},
- *     objects: [],
- *     flows: [],
- *     validationRules: [],
- *     duplicateRules: [],
- *     permissionSets: [],
- *     apexClasses: [],
- *     deployments: []
- * });
- */
 export function analyzeOrgKnowledge(
     rawSnapshot = {},
     options = {}
 ) {
-    const startedAt =
-        new Date().toISOString();
+    const startedAt = new Date().toISOString();
 
     try {
         const normalizedSnapshot =
-            normalizeOrgSnapshot(
-                rawSnapshot
-            );
+            normalizeOrgSnapshot(rawSnapshot);
 
         const knowledgeProfiles =
             buildKnowledgeProfiles(
@@ -133,12 +106,10 @@ export function analyzeOrgKnowledge(
                     ...normalizedSnapshot,
 
                     organization:
-                        knowledgeProfiles
-                            .organization,
+                        knowledgeProfiles.organization,
 
                     objects:
-                        knowledgeProfiles
-                            .objects
+                        knowledgeProfiles.objects
                 },
                 options.ruleOptions || {}
             );
@@ -152,24 +123,19 @@ export function analyzeOrgKnowledge(
         const knowledgeModel =
             createOrgKnowledgeModel({
                 organization:
-                    knowledgeProfiles
-                        .organization,
+                    knowledgeProfiles.organization,
 
                 objects:
-                    knowledgeProfiles
-                        .objects,
+                    knowledgeProfiles.objects,
 
                 findings:
-                    scoringEvaluation
-                        .findings,
+                    scoringEvaluation.findings,
 
                 recommendations:
-                    scoringEvaluation
-                        .recommendations,
+                    scoringEvaluation.recommendations,
 
                 health:
-                    scoringEvaluation
-                        .health,
+                    scoringEvaluation.health,
 
                 deploymentReadiness:
                     scoringEvaluation
@@ -198,31 +164,25 @@ export function analyzeOrgKnowledge(
             analysisMode:
                 safeString(
                     options.analysisMode,
-                    KNOWLEDGE_ANALYSIS_MODES
-                        .FULL
+                    KNOWLEDGE_ANALYSIS_MODES.FULL
                 ),
 
             knowledgeModel,
 
             organization:
-                knowledgeProfiles
-                    .organization,
+                knowledgeProfiles.organization,
 
             objects:
-                knowledgeProfiles
-                    .objects,
+                knowledgeProfiles.objects,
 
             findings:
-                scoringEvaluation
-                    .findings,
+                scoringEvaluation.findings,
 
             recommendations:
-                scoringEvaluation
-                    .recommendations,
+                scoringEvaluation.recommendations,
 
             health:
-                scoringEvaluation
-                    .health,
+                scoringEvaluation.health,
 
             deploymentReadiness:
                 scoringEvaluation
@@ -276,12 +236,6 @@ export function analyzeOrgKnowledge(
     }
 }
 
-/*
- * Alias for the main analysis method.
- *
- * Other Salesforce Copilot modules may use this
- * shorter function name.
- */
 export function analyzeOrg(
     rawSnapshot = {},
     options = {}
@@ -292,11 +246,6 @@ export function analyzeOrg(
     );
 }
 
-/*
- * Normalize the complete metadata snapshot.
- *
- * The service accepts missing arrays safely.
- */
 export function normalizeOrgSnapshot(
     rawSnapshot = {}
 ) {
@@ -419,9 +368,6 @@ export function normalizeOrgSnapshot(
     };
 }
 
-/*
- * Normalize organization-level information.
- */
 export function normalizeOrganizationMetadata(
     organization = {}
 ) {
@@ -468,8 +414,7 @@ export function normalizeOrganizationMetadata(
 
         organizationType:
             safeString(
-                organization
-                    .organizationType ||
+                organization.organizationType ||
                 organization.orgType
             ),
 
@@ -519,9 +464,6 @@ export function normalizeOrganizationMetadata(
     };
 }
 
-/*
- * Build organization and object knowledge profiles.
- */
 export function buildKnowledgeProfiles(
     normalizedSnapshot = {}
 ) {
@@ -532,8 +474,7 @@ export function buildKnowledgeProfiles(
 
     const organization =
         enrichOrganizationCounts(
-            normalizedSnapshot
-                .organization,
+            normalizedSnapshot.organization,
             objectProfiles
         );
 
@@ -554,10 +495,6 @@ export function buildKnowledgeProfiles(
     };
 }
 
-/*
- * Convert raw Salesforce objects into shared
- * Object Knowledge Profiles.
- */
 export function buildObjectKnowledgeProfiles(
     rawObjects = []
 ) {
@@ -578,9 +515,6 @@ export function buildObjectKnowledgeProfiles(
         );
 }
 
-/*
- * Build one Object Knowledge Profile.
- */
 export function buildObjectKnowledgeProfile(
     rawObject = {}
 ) {
@@ -613,8 +547,7 @@ export function buildObjectKnowledgeProfile(
 
     const recordTypes =
         normalizeArray(
-            normalizedObject
-                .recordTypes
+            normalizedObject.recordTypes
         ).map(
             (rawRecordType) =>
                 createRecordTypeKnowledgeProfile(
@@ -671,8 +604,7 @@ export function buildObjectKnowledgeProfile(
 
         recommendations:
             normalizeArray(
-                rawObject
-                    .recommendations
+                rawObject.recommendations
             ),
 
         metadata: {
@@ -686,16 +618,12 @@ export function buildObjectKnowledgeProfile(
             owner:
                 safeString(
                     rawObject.owner ||
-                    rawObject
-                        .businessOwner
+                    rawObject.businessOwner
                 )
         }
     });
 }
 
-/*
- * Build one Field Knowledge Profile.
- */
 export function buildFieldKnowledgeProfile(
     rawField = {},
     objectApiName = ''
@@ -716,8 +644,7 @@ export function buildFieldKnowledgeProfile(
 
         recommendations:
             normalizeArray(
-                rawField
-                    .recommendations
+                rawField.recommendations
             ),
 
         metadata: {
@@ -754,11 +681,6 @@ export function buildFieldKnowledgeProfile(
     });
 }
 
-/*
- * Build relationship profiles from both:
- * - the raw object's relationship collection
- * - fields that reference another object
- */
 export function buildRelationshipProfiles(
     normalizedObject = {},
     fieldProfiles = []
@@ -770,26 +692,21 @@ export function buildRelationshipProfiles(
 
     const explicitRelationships =
         normalizeArray(
-            normalizedObject
-                .relationships
+            normalizedObject.relationships
         ).map(
             (rawRelationship) =>
-                createRelationshipKnowledgeProfile(
-                    {
-                        ...mapRelationshipMetadata(
-                            rawRelationship,
-                            objectApiName
-                        ),
+                createRelationshipKnowledgeProfile({
+                    ...mapRelationshipMetadata(
+                        rawRelationship,
+                        objectApiName
+                    ),
 
-                        targetObjects:
-                            normalizeArray(
-                                rawRelationship
-                                    .targetObjects ||
-                                rawRelationship
-                                    .referenceTo
-                            )
-                    }
-                )
+                    targetObjects:
+                        normalizeArray(
+                            rawRelationship.targetObjects ||
+                            rawRelationship.referenceTo
+                        )
+                })
         );
 
     const fieldRelationships =
@@ -849,10 +766,6 @@ export function buildRelationshipProfiles(
     );
 }
 
-/*
- * Update organization counts using the profiles
- * produced by this service.
- */
 export function enrichOrganizationCounts(
     organization = {},
     objectProfiles = []
@@ -911,16 +824,6 @@ export function enrichOrganizationCounts(
     };
 }
 
-/*
- * Analyze one object or field for Explain This.
- *
- * Example:
- *
- * explainEntity(result, {
- *     entityType: 'field',
- *     entityApiName: 'Opportunity.Amount'
- * });
- */
 export function explainEntity(
     analysisResult = {},
     {
@@ -938,9 +841,7 @@ export function explainEntity(
             entityApiName
         );
 
-    if (
-        !normalizedApiName
-    ) {
+    if (!normalizedApiName) {
         return {
             success: false,
 
@@ -983,8 +884,7 @@ export function explainEntity(
 
     const recommendations =
         getRecommendationsForEntity(
-            analysisResult
-                .recommendations,
+            analysisResult.recommendations,
             normalizedApiName
         );
 
@@ -1024,9 +924,6 @@ export function explainEntity(
     };
 }
 
-/*
- * Explain one Salesforce object.
- */
 export function explainObject(
     analysisResult = {},
     objectApiName = ''
@@ -1069,8 +966,7 @@ export function explainObject(
 
     const recommendations =
         getRecommendationsForEntity(
-            analysisResult
-                .recommendations,
+            analysisResult.recommendations,
             objectApiName
         );
 
@@ -1100,8 +996,7 @@ export function explainObject(
             ),
 
         capabilities:
-            objectProfile
-                .capabilities,
+            objectProfile.capabilities,
 
         counts:
             objectProfile.counts,
@@ -1148,13 +1043,6 @@ export function explainObject(
     };
 }
 
-/*
- * Explain one Salesforce field.
- *
- * The qualified API name should use:
- *
- * ObjectApiName.FieldApiName
- */
 export function explainField(
     analysisResult = {},
     qualifiedApiName = ''
@@ -1194,16 +1082,13 @@ export function explainField(
     const findings =
         getFindingsForEntity(
             analysisResult.findings,
-            fieldProfile
-                .qualifiedApiName
+            fieldProfile.qualifiedApiName
         );
 
     const recommendations =
         getRecommendationsForEntity(
-            analysisResult
-                .recommendations,
-            fieldProfile
-                .qualifiedApiName
+            analysisResult.recommendations,
+            fieldProfile.qualifiedApiName
         );
 
     return {
@@ -1213,8 +1098,7 @@ export function explainField(
             ENTITY_TYPES.FIELD,
 
         entityApiName:
-            fieldProfile
-                .qualifiedApiName,
+            fieldProfile.qualifiedApiName,
 
         title:
             fieldProfile.label,
@@ -1262,8 +1146,7 @@ export function explainField(
             fieldProfile.calculated,
 
         relationship:
-            fieldProfile
-                .relationship,
+            fieldProfile.relationship,
 
         riskLevel:
             determineEntityRiskLevel(
@@ -1304,10 +1187,6 @@ export function explainField(
     };
 }
 
-/*
- * Analyze the potential impact of changing an object
- * or field.
- */
 export function analyzeChangeImpact(
     analysisResult = {},
     {
@@ -1325,9 +1204,7 @@ export function analyzeChangeImpact(
             }
         );
 
-    if (
-        !explanation.success
-    ) {
+    if (!explanation.success) {
         return {
             success: false,
 
@@ -1388,8 +1265,7 @@ export function analyzeChangeImpact(
             explanation.findings,
 
         recommendations:
-            explanation
-                .recommendations,
+            explanation.recommendations,
 
         risks:
             explanation.risks,
@@ -1407,9 +1283,6 @@ export function analyzeChangeImpact(
     };
 }
 
-/*
- * Generate the Daily Admin Brief.
- */
 export function buildDailyAdminBrief({
     snapshot = {},
     knowledgeModel = {},
@@ -1417,22 +1290,18 @@ export function buildDailyAdminBrief({
 } = {}) {
     const findings =
         sortFindingsBySeverity(
-            scoringEvaluation
-                .findings ||
+            scoringEvaluation.findings ||
             knowledgeModel.findings
         );
 
     const recommendations =
         sortRecommendationsByPriority(
-            scoringEvaluation
-                .recommendations ||
-            knowledgeModel
-                .recommendations
+            scoringEvaluation.recommendations ||
+            knowledgeModel.recommendations
         );
 
     const metrics =
-        scoringEvaluation
-            .dashboardMetrics ||
+        scoringEvaluation.dashboardMetrics ||
         {};
 
     const recentChanges =
@@ -1470,8 +1339,7 @@ export function buildDailyAdminBrief({
                         recommendation.category,
 
                     entityApiName:
-                        recommendation
-                            .entityApiName
+                        recommendation.entityApiName
                 })
             );
 
@@ -1510,8 +1378,7 @@ export function buildDailyAdminBrief({
                 safeString(
                     metrics
                         .deploymentReadinessStatus,
-                    READINESS_STATUSES
-                        .UNKNOWN
+                    READINESS_STATUSES.UNKNOWN
                 )
         },
 
@@ -1567,8 +1434,7 @@ export function buildDailyAdminBrief({
 
         highestRiskCategory:
             safeString(
-                metrics
-                    .highestRiskCategory,
+                metrics.highestRiskCategory,
                 'None'
             ),
 
@@ -1582,10 +1448,6 @@ export function buildDailyAdminBrief({
     };
 }
 
-/*
- * Build counts used by dashboard and reporting
- * components.
- */
 export function buildMetadataCounts(
     snapshot = {}
 ) {
@@ -1667,9 +1529,6 @@ export function buildMetadataCounts(
     };
 }
 
-/*
- * Return health findings for one category.
- */
 export function getHealthCategory(
     analysisResult = {},
     category = ''
@@ -1716,20 +1575,15 @@ export function getHealthCategory(
 
         recommendations:
             normalizeArray(
-                analysisResult
-                    .recommendations
+                analysisResult.recommendations
             ).filter(
                 (recommendation) =>
-                    recommendation
-                        .category ===
+                    recommendation.category ===
                     category
             )
     };
 }
 
-/*
- * Return deployment blockers.
- */
 export function getDeploymentBlockers(
     analysisResult = {}
 ) {
@@ -1741,16 +1595,12 @@ export function getDeploymentBlockers(
     );
 }
 
-/*
- * Return the highest-priority current issues.
- */
 export function getTopPriorities(
     analysisResult = {},
     limit = 5
 ) {
     return sortRecommendationsByPriority(
-        analysisResult
-            .recommendations
+        analysisResult.recommendations
     ).slice(
         0,
         Math.max(
@@ -1763,9 +1613,6 @@ export function getTopPriorities(
     );
 }
 
-/*
- * Return a compact dashboard summary.
- */
 export function getOrgHealthSummary(
     analysisResult = {}
 ) {
@@ -1794,8 +1641,7 @@ export function getOrgHealthSummary(
 
     const recommendationSummary =
         summarizeRecommendations(
-            analysisResult
-                .recommendations
+            analysisResult.recommendations
         );
 
     return {
@@ -1830,10 +1676,6 @@ export function getOrgHealthSummary(
     };
 }
 
-/*
- * Helper functions
- */
-
 function getRecommendationsForEntity(
     recommendations = [],
     entityApiName = ''
@@ -1842,8 +1684,7 @@ function getRecommendationsForEntity(
         recommendations
     ).filter(
         (recommendation) =>
-            recommendation
-                .entityApiName ===
+            recommendation.entityApiName ===
             entityApiName
     );
 }
@@ -1867,13 +1708,10 @@ function findFieldProfile(
                 objectProfile.fields
             ).find(
                 (field) =>
-                    field
-                        .qualifiedApiName ===
+                    field.qualifiedApiName ===
                         normalizedName ||
-                    (
-                        `${objectProfile.apiName}.${field.apiName}` ===
+                    `${objectProfile.apiName}.${field.apiName}` ===
                         normalizedName
-                    )
             );
 
         if (fieldProfile) {
@@ -1901,8 +1739,7 @@ function determineEntityRiskLevel(
         normalizedFindings.some(
             (finding) =>
                 finding.severity ===
-                    SEVERITY_LEVELS
-                        .CRITICAL ||
+                    SEVERITY_LEVELS.CRITICAL ||
                 safeBoolean(
                     finding.blocking
                 )
@@ -1925,8 +1762,7 @@ function determineEntityRiskLevel(
         normalizedFindings.some(
             (finding) =>
                 finding.severity ===
-                SEVERITY_LEVELS
-                    .MEDIUM
+                    SEVERITY_LEVELS.MEDIUM
         )
     ) {
         return RISK_LEVELS.MEDIUM;
@@ -1946,8 +1782,7 @@ function buildEntityTestCases({
     profile = {},
     findings = []
 } = {}) {
-    const tests =
-        new Set();
+    const tests = new Set();
 
     if (
         entityType ===
@@ -2036,8 +1871,7 @@ function buildEntityTestCases({
             (finding) => {
                 if (
                     finding.category ===
-                    HEALTH_CATEGORIES
-                        .SECURITY
+                    HEALTH_CATEGORIES.SECURITY
                 ) {
                     tests.add(
                         'Test least-privilege security using multiple user personas.'
@@ -2046,8 +1880,7 @@ function buildEntityTestCases({
 
                 if (
                     finding.category ===
-                    HEALTH_CATEGORIES
-                        .AUTOMATION
+                    HEALTH_CATEGORIES.AUTOMATION
                 ) {
                     tests.add(
                         'Test automation success, failure, and bulk-processing scenarios.'
@@ -2056,8 +1889,7 @@ function buildEntityTestCases({
 
                 if (
                     finding.category ===
-                    HEALTH_CATEGORIES
-                        .DATA_MODEL
+                    HEALTH_CATEGORIES.DATA_MODEL
                 ) {
                     tests.add(
                         'Test relationships, required values, uniqueness, and record-type behavior.'
@@ -2072,8 +1904,7 @@ function buildEntityTestCases({
 function buildImpactAreas(
     explanation = {}
 ) {
-    const impactAreas =
-        new Set();
+    const impactAreas = new Set();
 
     if (
         explanation.entityType ===
@@ -2331,8 +2162,7 @@ function buildServiceErrorResult(
         success: false,
 
         analysisMode:
-            KNOWLEDGE_ANALYSIS_MODES
-                .FULL,
+            KNOWLEDGE_ANALYSIS_MODES.FULL,
 
         knowledgeModel:
             null,
@@ -2361,9 +2191,7 @@ function buildServiceErrorResult(
                 summarizeFindings([]),
 
             recommendations:
-                summarizeRecommendations(
-                    []
-                ),
+                summarizeRecommendations([]),
 
             rules: null
         },
@@ -2398,17 +2226,6 @@ function buildServiceErrorResult(
     };
 }
 
-/*
- * Default service export.
- *
- * Other modules may import the entire service:
- *
- * import orgKnowledgeService
- *     from 'c/orgKnowledgeService';
- *
- * const result =
- *     orgKnowledgeService.analyzeOrg(snapshot);
- */
 const orgKnowledgeService = {
     version:
         ORG_KNOWLEDGE_SERVICE_VERSION,
