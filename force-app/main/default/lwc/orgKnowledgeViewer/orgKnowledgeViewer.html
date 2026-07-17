@@ -89,7 +89,8 @@
                         <p>
                             Loading organization context, object details,
                             fields, relationships, and record types before
-                            recalculating Org Health and Deployment Readiness.
+                            recalculating Org Health, Deployment Readiness,
+                            and Metadata Coverage.
                         </p>
                     </div>
                 </section>
@@ -112,7 +113,8 @@
                         <p>
                             Run the analysis to retrieve live Salesforce
                             metadata and generate findings, recommendations,
-                            health scores, and deployment guidance.
+                            health scores, deployment guidance, and metadata
+                            coverage.
                         </p>
 
                         <lightning-button
@@ -243,6 +245,15 @@
                     </article>
 
                 </section>
+
+               <!-- Detailed metadata-category coverage -->
+<template if:true={hasMetadataCoverage}>
+    <section class="metadata-coverage-section">
+        <c-metadata-coverage-panel
+            coverage={metadataCoverage}>
+        </c-metadata-coverage-panel>
+    </section>
+</template>
 
                 <!-- KPI cards -->
                 <section class="metric-grid">
@@ -558,7 +569,6 @@
                             </article>
                         </div>
 
-                        <!-- Grouped categories feed the same brief -->
                         <template if:true={hasGroupedFindings}>
                             <div class="brief-priorities">
                                 <h3>
@@ -1064,18 +1074,18 @@
                     </div>
                 </section>
 
-                <!-- Coverage and actions -->
+                <!-- Object scan coverage and actions -->
                 <section class="coverage-panel">
                     <div>
                         <h2 class="section-title">
-                            Analysis Coverage
+                            Object Scan Coverage
                         </h2>
 
                         <p class="panel-description">
-                            {coverageLabel}. A score of 100 means no
-                            findings were detected in the metadata analyzed;
-                            it does not automatically mean every metadata
-                            type in the organization has been fully verified.
+                            {coverageLabel}. This summary measures the object
+                            profiles inspected during this scan. The detailed
+                            Metadata Coverage panel above measures which
+                            Salesforce metadata categories are connected.
                         </p>
                     </div>
 
