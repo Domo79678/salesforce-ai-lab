@@ -2,7 +2,8 @@
     <section class="coverage-panel">
 
         <template if:true={hasCoverage}>
-            <!-- Header -->
+
+            <!-- Compact summary header -->
             <div class="panel-header">
                 <div>
                     <p class="eyebrow">
@@ -14,8 +15,8 @@
                     </h2>
 
                     <p class="panel-description">
-                        Shows how much of the planned Salesforce metadata
-                        the collector has actually inspected.
+                        Shows which planned Salesforce metadata categories
+                        are connected to the intelligence engine.
                     </p>
                 </div>
 
@@ -41,24 +42,28 @@
 
                 <div class="progress-meta">
                     <span>
-                        {completeCategories} complete
+                        <strong>{completeCategories}</strong>
+                        collected
                     </span>
 
                     <span>
-                        {partialCategories} partial
+                        <strong>{partialCategories}</strong>
+                        partial
                     </span>
 
                     <span>
-                        {missingCategories} missing
+                        <strong>{missingCategories}</strong>
+                        missing
                     </span>
 
                     <span>
-                        {totalCategories} total categories
+                        <strong>{totalCategories}</strong>
+                        total
                     </span>
                 </div>
             </div>
 
-            <!-- Summary -->
+            <!-- Compact summary -->
             <div class="summary-box">
                 <lightning-icon
                     icon-name="utility:info_alt"
@@ -69,7 +74,7 @@
                 <p>{summary}</p>
             </div>
 
-            <!-- Next best collection step -->
+            <!-- Next collection step -->
             <template if:true={hasNextCollectionStep}>
                 <section class="next-step-panel">
                     <div class="next-step-icon">
@@ -82,18 +87,20 @@
 
                     <div class="next-step-content">
                         <span class="next-step-label">
-                            Next Recommended Collection Target
+                            Next Recommended Target
                         </span>
 
-                        <h3>
-                            {nextCollectionLabel}
-                        </h3>
+                        <div class="next-step-heading">
+                            <h3>
+                                {nextCollectionLabel}
+                            </h3>
 
-                        <template if:true={nextCollectionPhase}>
-                            <span class="phase-badge">
-                                {nextCollectionPhase}
-                            </span>
-                        </template>
+                            <template if:true={nextCollectionPhase}>
+                                <span class="phase-badge">
+                                    {nextCollectionPhase}
+                                </span>
+                            </template>
+                        </div>
 
                         <p>
                             {nextCollectionReason}
@@ -102,39 +109,34 @@
                 </section>
             </template>
 
-            <!-- Coverage groups -->
-            <div class="coverage-groups">
+            <!-- Progressive disclosure -->
+            <lightning-accordion
+                allow-multiple-sections-open
+                active-section-name="">
 
-                <!-- Complete -->
-                <section class="coverage-group complete-group">
-                    <div class="group-header">
-                        <div>
-                            <h3>
-                                Collected
-                            </h3>
+                <!-- Collected -->
+                <lightning-accordion-section
+                    name="collected"
+                    label="Collected">
 
-                            <p>
-                                Metadata categories fully available to the
-                                intelligence engine.
-                            </p>
-                        </div>
-
-                        <span class="group-count">
-                            {completeCategories}
+                    <div class="accordion-summary">
+                        <span>
+                            {completeCategories} metadata categories are
+                            fully available.
                         </span>
                     </div>
 
                     <template if:true={hasCompletedCategories}>
-                        <div class="category-list">
+                        <div class="compact-category-list">
                             <template
                                 for:each={completedCategoryCoverage}
                                 for:item="category">
 
                                 <article
                                     key={category.id}
-                                    class="category-card">
+                                    class="compact-category-row">
 
-                                    <div class="category-card-header">
+                                    <div class="compact-category-main">
                                         <div>
                                             <h4>
                                                 {category.label}
@@ -150,11 +152,7 @@
                                         </strong>
                                     </div>
 
-                                    <p class="category-description">
-                                        {category.description}
-                                    </p>
-
-                                    <div class="category-details">
+                                    <div class="compact-category-meta">
                                         <span>
                                             {category.weightDisplay}
                                         </span>
@@ -164,24 +162,36 @@
                                         </span>
                                     </div>
 
-                                    <template if:true={category.enables}>
-                                        <div class="enables-list">
-                                            <span class="details-label">
-                                                Enables
-                                            </span>
+                                    <details class="category-details-toggle">
+                                        <summary>
+                                            View details
+                                        </summary>
 
-                                            <template
-                                                for:each={category.enables}
-                                                for:item="feature">
+                                        <div class="category-expanded-details">
+                                            <p>
+                                                {category.description}
+                                            </p>
 
-                                                <span
-                                                    key={feature}
-                                                    class="feature-chip">
-                                                    {feature}
-                                                </span>
+                                            <template if:true={category.enables}>
+                                                <div class="enables-list">
+                                                    <span class="details-label">
+                                                        Enables
+                                                    </span>
+
+                                                    <template
+                                                        for:each={category.enables}
+                                                        for:item="feature">
+
+                                                        <span
+                                                            key={feature}
+                                                            class="feature-chip">
+                                                            {feature}
+                                                        </span>
+                                                    </template>
+                                                </div>
                                             </template>
                                         </div>
-                                    </template>
+                                    </details>
                                 </article>
                             </template>
                         </div>
@@ -192,38 +202,31 @@
                             No metadata categories are fully collected yet.
                         </p>
                     </template>
-                </section>
+                </lightning-accordion-section>
 
                 <!-- Partial -->
-                <section class="coverage-group partial-group">
-                    <div class="group-header">
-                        <div>
-                            <h3>
-                                Partially Collected
-                            </h3>
+                <lightning-accordion-section
+                    name="partial"
+                    label="Partially Collected">
 
-                            <p>
-                                Some metadata is present, but the category
-                                has not been fully verified.
-                            </p>
-                        </div>
-
-                        <span class="group-count">
-                            {partialCategories}
+                    <div class="accordion-summary">
+                        <span>
+                            {partialCategories} categories contain some
+                            metadata but are not fully verified.
                         </span>
                     </div>
 
                     <template if:true={hasPartialCategories}>
-                        <div class="category-list">
+                        <div class="compact-category-list">
                             <template
                                 for:each={partialCategoryCoverage}
                                 for:item="category">
 
                                 <article
                                     key={category.id}
-                                    class="category-card">
+                                    class="compact-category-row partial-row">
 
-                                    <div class="category-card-header">
+                                    <div class="compact-category-main">
                                         <div>
                                             <h4>
                                                 {category.label}
@@ -239,11 +242,7 @@
                                         </strong>
                                     </div>
 
-                                    <p class="category-description">
-                                        {category.description}
-                                    </p>
-
-                                    <div class="category-details">
+                                    <div class="compact-category-meta">
                                         <span>
                                             {category.weightDisplay}
                                         </span>
@@ -253,19 +252,33 @@
                                         </span>
                                     </div>
 
-                                    <template if:true={category.limitation}>
-                                        <div class="limitation-note">
-                                            <lightning-icon
-                                                icon-name="utility:warning"
-                                                size="xx-small"
-                                                alternative-text="Limitation">
-                                            </lightning-icon>
+                                    <details class="category-details-toggle">
+                                        <summary>
+                                            View limitation
+                                        </summary>
 
-                                            <span>
-                                                {category.limitation}
-                                            </span>
+                                        <div class="category-expanded-details">
+                                            <p>
+                                                {category.description}
+                                            </p>
+
+                                            <template
+                                                if:true={category.limitation}>
+
+                                                <div class="limitation-note">
+                                                    <lightning-icon
+                                                        icon-name="utility:warning"
+                                                        size="xx-small"
+                                                        alternative-text="Limitation">
+                                                    </lightning-icon>
+
+                                                    <span>
+                                                        {category.limitation}
+                                                    </span>
+                                                </div>
+                                            </template>
                                         </div>
-                                    </template>
+                                    </details>
                                 </article>
                             </template>
                         </div>
@@ -276,38 +289,31 @@
                             No categories are partially collected.
                         </p>
                     </template>
-                </section>
+                </lightning-accordion-section>
 
                 <!-- Missing -->
-                <section class="coverage-group missing-group">
-                    <div class="group-header">
-                        <div>
-                            <h3>
-                                Not Yet Connected
-                            </h3>
+                <lightning-accordion-section
+                    name="missing"
+                    label="Not Yet Connected">
 
-                            <p>
-                                Planned metadata categories that are not yet
-                                available to the current analysis.
-                            </p>
-                        </div>
-
-                        <span class="group-count">
-                            {missingCategories}
+                    <div class="accordion-summary">
+                        <span>
+                            {missingCategories} planned categories are not
+                            connected to the current analysis.
                         </span>
                     </div>
 
                     <template if:true={hasMissingCategories}>
-                        <div class="category-list">
+                        <div class="compact-category-list">
                             <template
                                 for:each={missingCategoryCoverage}
                                 for:item="category">
 
                                 <article
                                     key={category.id}
-                                    class="category-card muted-card">
+                                    class="compact-category-row muted-row">
 
-                                    <div class="category-card-header">
+                                    <div class="compact-category-main">
                                         <div>
                                             <h4>
                                                 {category.label}
@@ -323,11 +329,7 @@
                                         </strong>
                                     </div>
 
-                                    <p class="category-description">
-                                        {category.description}
-                                    </p>
-
-                                    <div class="category-details">
+                                    <div class="compact-category-meta">
                                         <span>
                                             {category.weightDisplay}
                                         </span>
@@ -337,24 +339,36 @@
                                         </span>
                                     </div>
 
-                                    <template if:true={category.enables}>
-                                        <div class="enables-list">
-                                            <span class="details-label">
-                                                Will enable
-                                            </span>
+                                    <details class="category-details-toggle">
+                                        <summary>
+                                            View future capabilities
+                                        </summary>
 
-                                            <template
-                                                for:each={category.enables}
-                                                for:item="feature">
+                                        <div class="category-expanded-details">
+                                            <p>
+                                                {category.description}
+                                            </p>
 
-                                                <span
-                                                    key={feature}
-                                                    class="feature-chip future-chip">
-                                                    {feature}
-                                                </span>
+                                            <template if:true={category.enables}>
+                                                <div class="enables-list">
+                                                    <span class="details-label">
+                                                        Will enable
+                                                    </span>
+
+                                                    <template
+                                                        for:each={category.enables}
+                                                        for:item="feature">
+
+                                                        <span
+                                                            key={feature}
+                                                            class="feature-chip future-chip">
+                                                            {feature}
+                                                        </span>
+                                                    </template>
+                                                </div>
                                             </template>
                                         </div>
-                                    </template>
+                                    </details>
                                 </article>
                             </template>
                         </div>
@@ -365,48 +379,61 @@
                             All planned metadata categories are connected.
                         </p>
                     </template>
-                </section>
-            </div>
+                </lightning-accordion-section>
 
-            <!-- Limitations -->
-            <template if:true={hasLimitations}>
-                <section class="limitations-panel">
-                    <div class="limitations-header">
-                        <lightning-icon
-                            icon-name="utility:warning"
-                            size="small"
-                            alternative-text="Known limitations">
-                        </lightning-icon>
+                <!-- Limitations -->
+                <template if:true={hasLimitations}>
+                    <lightning-accordion-section
+                        name="limitations"
+                        label="Known Limitations">
 
-                        <div>
-                            <h3>
-                                Known Analysis Limitations
-                            </h3>
-
-                            <p>
-                                These limitations explain what the current
-                                scores do not yet verify.
-                            </p>
+                        <div class="accordion-summary">
+                            <span>
+                                Review what the current analysis does not yet
+                                verify.
+                            </span>
                         </div>
-                    </div>
 
-                    <ul class="limitations-list">
-                        <template
-                            for:each={limitations}
-                            for:item="limitation">
+                        <div class="compact-limitations">
+                            <div class="limitations-header">
+                                <lightning-icon
+                                    icon-name="utility:warning"
+                                    size="small"
+                                    alternative-text="Known limitations">
+                                </lightning-icon>
 
-                            <li key={limitation.id}>
-                                {limitation.text}
-                            </li>
-                        </template>
-                    </ul>
-                </section>
-            </template>
+                                <div>
+                                    <h3>
+                                        Analysis Limitations
+                                    </h3>
+
+                                    <p>
+                                        These items explain where current
+                                        scores may be incomplete.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <ul class="limitations-list">
+                                <template
+                                    for:each={limitations}
+                                    for:item="limitation">
+
+                                    <li key={limitation.id}>
+                                        {limitation.text}
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </lightning-accordion-section>
+                </template>
+
+            </lightning-accordion>
 
             <!-- Footer -->
             <footer class="coverage-footer">
                 <span>
-                    Coverage calculated:
+                    Calculated:
                     {generatedAtLabel}
                 </span>
 

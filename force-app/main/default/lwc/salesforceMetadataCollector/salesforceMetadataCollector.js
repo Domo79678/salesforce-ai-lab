@@ -9,6 +9,7 @@
  * - retrieve the object inventory
  * - select objects according to collection mode
  * - retrieve detailed object metadata in controlled batches
+ * - retrieve live Salesforce Flow metadata
  * - assemble a Salesforce-specific collection result
  * - adapt the result into a normalized CRM snapshot
  * - calculate truthful metadata coverage
@@ -20,7 +21,8 @@
 import {
     getOrgSummary,
     getObjects,
-    getObjectContext
+    getObjectContext,
+    getFlows
 } from 'c/orgContextService';
 
 import {
@@ -47,7 +49,8 @@ const OBJECT_LIMITS = Object.freeze({
     [COLLECTION_MODES.QUICK]: 12,
     [COLLECTION_MODES.STANDARD]: 25,
     [COLLECTION_MODES.EXTENDED]: 50,
-    [COLLECTION_MODES.FULL]: Number.MAX_SAFE_INTEGER
+    [COLLECTION_MODES.FULL]:
+        Number.MAX_SAFE_INTEGER
 });
 
 const PRIORITY_OBJECTS = Object.freeze([
@@ -126,6 +129,7 @@ export async function collectSalesforceMetadata(
                 objectInventory,
                 {
                     collectionMode,
+
                     objectLimit:
                         options.objectLimit,
 
@@ -144,8 +148,7 @@ export async function collectSalesforceMetadata(
                 label:
                     `Collecting detailed metadata for ${selectedObjects.length} objects`,
 
-                processed:
-                    0,
+                processed: 0,
 
                 total:
                     selectedObjects.length,
@@ -195,7 +198,7 @@ export async function collectSalesforceMetadata(
                                         calculateStagePercentage(
                                             progress.percentage,
                                             10,
-                                            70
+                                            68
                                         )
                                 })
                             );
@@ -206,6 +209,38 @@ export async function collectSalesforceMetadata(
         warnings.push(
             ...detailResult.warnings
         );
+
+        reportProgress(
+            options.onProgress,
+            createProgressState({
+                stage:
+                    'flows',
+
+                label:
+                    'Collecting live Salesforce Flow metadata',
+
+                percentage: 72
+            })
+        );
+
+        const flowResult =
+            await collectFlowMetadata({
+                continueOnError:
+                    options.continueOnError !==
+                    false
+            });
+
+        warnings.push(
+            ...flowResult.warnings
+        );
+
+        /*
+         * A successful live request counts as verified collection,
+         * even when Salesforce returns zero visible Flows.
+         */
+        collectionFlags.flowsCollected =
+            flowResult.collected ||
+            collectionFlags.flowsCollected;
 
         reportProgress(
             options.onProgress,
@@ -223,6 +258,16 @@ export async function collectSalesforceMetadata(
         const additionalMetadata =
             normalizeAdditionalMetadata(
                 options.additionalMetadata
+            );
+
+        /*
+         * Prefer live Flow results, while still allowing supplied
+         * metadata to supplement the collection.
+         */
+        const flows =
+            mergeMetadataCollections(
+                flowResult.flows,
+                additionalMetadata.flows
             );
 
         const collectedAt =
@@ -260,44 +305,53 @@ export async function collectSalesforceMetadata(
             detailedObjects:
                 detailResult.detailedObjects,
 
-            flows:
-                additionalMetadata.flows,
+            flows,
 
             validationRules:
-                additionalMetadata.validationRules,
+                additionalMetadata
+                    .validationRules,
 
             duplicateRules:
-                additionalMetadata.duplicateRules,
+                additionalMetadata
+                    .duplicateRules,
 
             matchingRules:
-                additionalMetadata.matchingRules,
+                additionalMetadata
+                    .matchingRules,
 
             permissionSets:
-                additionalMetadata.permissionSets,
+                additionalMetadata
+                    .permissionSets,
 
             permissionSetGroups:
-                additionalMetadata.permissionSetGroups,
+                additionalMetadata
+                    .permissionSetGroups,
 
             permissionAssignments:
-                additionalMetadata.permissionAssignments,
+                additionalMetadata
+                    .permissionAssignments,
 
             profiles:
                 additionalMetadata.profiles,
 
             apexClasses:
-                additionalMetadata.apexClasses,
+                additionalMetadata
+                    .apexClasses,
 
             apexTriggers:
-                additionalMetadata.apexTriggers,
+                additionalMetadata
+                    .apexTriggers,
 
             reports:
                 additionalMetadata.reports,
 
             dashboards:
-                additionalMetadata.dashboards,
+                additionalMetadata
+                    .dashboards,
 
             sharingRules:
-                additionalMetadata.sharingRules,
+                additionalMetadata
+                    .sharingRules,
 
             roles:
                 additionalMetadata.roles,
@@ -306,38 +360,50 @@ export async function collectSalesforceMetadata(
                 additionalMetadata.queues,
 
             namedCredentials:
-                additionalMetadata.namedCredentials,
+                additionalMetadata
+                    .namedCredentials,
 
             customMetadata:
-                additionalMetadata.customMetadata,
+                additionalMetadata
+                    .customMetadata,
 
             deployments:
-                additionalMetadata.deployments,
+                additionalMetadata
+                    .deployments,
 
             failedDeployments:
-                additionalMetadata.failedDeployments,
+                additionalMetadata
+                    .failedDeployments,
 
             recentChanges:
-                additionalMetadata.recentChanges,
+                additionalMetadata
+                    .recentChanges,
 
             metadataItems:
-                additionalMetadata.metadataItems,
+                additionalMetadata
+                    .metadataItems,
 
             blockingFindings:
-                additionalMetadata.blockingFindings,
+                additionalMetadata
+                    .blockingFindings,
 
             deploymentBlockers:
-                additionalMetadata.deploymentBlockers,
+                additionalMetadata
+                    .deploymentBlockers,
 
             collectionFlags,
 
             collectionEvidence:
                 buildCollectionEvidence({
                     organization,
+
                     objectInventory,
+
                     selectedObjects,
+
                     detailedObjects:
-                        detailResult.detailedObjects,
+                        detailResult
+                            .detailedObjects,
 
                     successfulObjectCount:
                         detailResult
@@ -346,6 +412,12 @@ export async function collectSalesforceMetadata(
                     failedObjectCount:
                         detailResult
                             .failedObjectCount,
+
+                    flows,
+
+                    flowsCollected:
+                        collectionFlags
+                            .flowsCollected,
 
                     additionalMetadata
                 }),
@@ -440,11 +512,15 @@ export async function collectSalesforceMetadata(
                 detailResult.detailedObjects,
 
             connectedObjectNames:
-                detailResult.detailedObjects.map(
-                    (objectItem) =>
-                        objectItem.apiName ||
-                        objectItem.name
-                ),
+                detailResult
+                    .detailedObjects
+                    .map(
+                        (objectItem) =>
+                            objectItem.apiName ||
+                            objectItem.name
+                    ),
+
+            flows,
 
             snapshot,
 
@@ -506,6 +582,9 @@ export async function collectSalesforceMetadata(
                         'recordTypes'
                     ),
 
+                flowCount:
+                    flows.length,
+
                 completionPercentage:
                     calculateCompletionPercentage(
                         selectedObjects.length,
@@ -555,8 +634,11 @@ export async function collectSalesforceMetadata(
 
         return buildFailedCollectionResult({
             collectionMode,
+
             startedAt,
+
             completedAt,
+
             durationMilliseconds:
                 Math.max(
                     0,
@@ -565,7 +647,9 @@ export async function collectSalesforceMetadata(
                 ),
 
             warnings,
+
             errors,
+
             collectionFlags
         });
     }
@@ -584,6 +668,61 @@ export async function collectFoundationMetadata() {
         rawOrganization,
         rawObjectInventory
     };
+}
+
+/*
+ * Retrieves live Flow definitions and versions.
+ *
+ * A successful request that returns an empty array still
+ * counts as verified collection.
+ */
+export async function collectFlowMetadata(
+    options = {}
+) {
+    const continueOnError =
+        options.continueOnError !==
+        false;
+
+    try {
+        const flowRecords =
+            await getFlows();
+
+        return {
+            collected: true,
+
+            flows:
+                normalizeArray(
+                    flowRecords
+                ),
+
+            warnings: []
+        };
+    } catch (error) {
+        if (!continueOnError) {
+            throw error;
+        }
+
+        return {
+            collected: false,
+
+            flows: [],
+
+            warnings: [
+                {
+                    type:
+                        'FlowMetadataWarning',
+
+                    apiName:
+                        'Flow',
+
+                    message:
+                        getErrorMessage(
+                            error
+                        )
+                }
+            ]
+        };
+    }
 }
 
 export async function collectDetailedObjectMetadata(
@@ -715,15 +854,12 @@ export async function collectDetailedObjectMetadata(
                     result.object
                 );
 
-                processedObjectCount +=
-                    1;
+                processedObjectCount += 1;
 
                 if (result.success) {
-                    successfulObjectCount +=
-                        1;
+                    successfulObjectCount += 1;
                 } else {
-                    failedObjectCount +=
-                        1;
+                    failedObjectCount += 1;
 
                     if (result.warning) {
                         warnings.push(
@@ -760,9 +896,13 @@ export async function collectDetailedObjectMetadata(
 
     return {
         detailedObjects,
+
         processedObjectCount,
+
         successfulObjectCount,
+
         failedObjectCount,
+
         warnings
     };
 }
@@ -808,6 +948,7 @@ export function selectObjectsForCollection(
             : modeLimit;
 
     const selected = [];
+
     const selectedNames =
         new Set();
 
@@ -984,6 +1125,31 @@ export function normalizeOrganizationSummary(
                 source.isSandbox
             ),
 
+        totalObjects:
+            toNumber(
+                source.totalObjects
+            ),
+
+        standardObjects:
+            toNumber(
+                source.standardObjects
+            ),
+
+        customObjects:
+            toNumber(
+                source.customObjects
+            ),
+
+        queryableObjects:
+            toNumber(
+                source.queryableObjects
+            ),
+
+        accessibleObjects:
+            toNumber(
+                source.accessibleObjects
+            ),
+
         metadata: {
             ...source
         }
@@ -1044,6 +1210,7 @@ export function normalizeInventoryObject(
         labelPlural:
             firstValue(
                 source.labelPlural,
+                source.pluralLabel,
                 label
             ),
 
@@ -1131,7 +1298,9 @@ export function mergeObjectContext(
         labelPlural:
             firstValue(
                 context.labelPlural,
+                context.pluralLabel,
                 inventoryObject.labelPlural,
+                inventoryObject.pluralLabel,
                 context.label
             ),
 
@@ -1366,20 +1535,17 @@ export function buildCollectionFlags(
 
         validationRulesCollected:
             Boolean(
-                source
-                    .validationRulesCollected
+                source.validationRulesCollected
             ),
 
         duplicateRulesCollected:
             Boolean(
-                source
-                    .duplicateRulesCollected
+                source.duplicateRulesCollected
             ),
 
         permissionsCollected:
             Boolean(
-                source
-                    .permissionsCollected
+                source.permissionsCollected
             ),
 
         apexCollected:
@@ -1411,6 +1577,8 @@ export function buildCollectionEvidence({
     detailedObjects = [],
     successfulObjectCount = 0,
     failedObjectCount = 0,
+    flows = [],
+    flowsCollected = false,
     additionalMetadata = {}
 } = {}) {
     return [
@@ -1484,15 +1652,19 @@ export function buildCollectionEvidence({
                 'flows',
 
             status:
-                additionalMetadata.flows.length
+                flowsCollected
                     ? COLLECTION_STATUSES.COMPLETE
                     : COLLECTION_STATUSES.NOT_STARTED,
 
             count:
-                additionalMetadata.flows.length,
+                normalizeArray(
+                    flows
+                ).length,
 
             detail:
-                `${additionalMetadata.flows.length} Flow records supplied`
+                flowsCollected
+                    ? `${normalizeArray(flows).length} Flow definitions verified through live Salesforce metadata.`
+                    : 'Flow metadata was not collected.'
         },
         {
             metadataType:
@@ -1514,6 +1686,62 @@ export function buildCollectionEvidence({
                 `${additionalMetadata.validationRules.length} Validation Rules supplied`
         }
     ];
+}
+
+export function mergeMetadataCollections(
+    primaryItems = [],
+    supplementalItems = []
+) {
+    const combined = [
+        ...normalizeArray(
+            primaryItems
+        ),
+        ...normalizeArray(
+            supplementalItems
+        )
+    ];
+
+    const results = [];
+
+    const seenKeys =
+        new Set();
+
+    combined.forEach(
+        (item, index) => {
+            const source =
+                normalizeObject(
+                    item
+                );
+
+            const key =
+                firstValue(
+                    source.id,
+                    source.apiName,
+                    source.fullName,
+                    source.developerName,
+                    source.name,
+                    `metadata-${index}`
+                );
+
+            if (
+                seenKeys.has(
+                    key
+                )
+            ) {
+                return;
+            }
+
+            seenKeys.add(
+                key
+            );
+
+            results.push(
+                item
+            );
+        }
+    );
+
+    return results;
 }
 
 export function buildFailedObjectResult(
@@ -1584,6 +1812,8 @@ export function buildFailedCollectionResult({
 
         connectedObjectNames: [],
 
+        flows: [],
+
         snapshot: null,
 
         metadataCoverage: null,
@@ -1609,6 +1839,7 @@ export function buildFailedCollectionResult({
             fieldCount: 0,
             relationshipCount: 0,
             recordTypeCount: 0,
+            flowCount: 0,
             completionPercentage: 0
         },
 
@@ -1694,10 +1925,12 @@ export function createProgressState({
         total,
         successful,
         failed,
+
         percentage:
             clampPercentage(
                 percentage
             ),
+
         status
     };
 }
@@ -2020,6 +2253,20 @@ function toBoolean(
     return Boolean(value);
 }
 
+function toNumber(
+    value,
+    fallback = 0
+) {
+    const numberValue =
+        Number(value);
+
+    return Number.isFinite(
+        numberValue
+    )
+        ? numberValue
+        : fallback;
+}
+
 function getErrorMessage(
     error
 ) {
@@ -2064,6 +2311,7 @@ function getErrorMessage(
 const salesforceMetadataCollector = {
     collectSalesforceMetadata,
     collectFoundationMetadata,
+    collectFlowMetadata,
     collectDetailedObjectMetadata,
     selectObjectsForCollection,
     normalizeOrganizationSummary,
@@ -2073,6 +2321,7 @@ const salesforceMetadataCollector = {
     normalizeAdditionalMetadata,
     buildCollectionFlags,
     buildCollectionEvidence,
+    mergeMetadataCollections,
     buildFailedObjectResult,
     buildObjectWarning,
     buildFailedCollectionResult,

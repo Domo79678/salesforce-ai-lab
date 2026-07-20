@@ -3,10 +3,10 @@
  *
  * Shared live-metadata service for Salesforce Copilot.
  *
- * This service wraps OrgContextController Apex methods and
- * builds a reusable live Org Knowledge snapshot.
+ * This service wraps Apex metadata methods and builds a
+ * reusable live Org Knowledge snapshot.
  *
- * Live coverage in Version 1.2:
+ * Live coverage in Version 1.3:
  * - organization information
  * - current user information
  * - object inventory
@@ -14,9 +14,9 @@
  * - fields
  * - relationships
  * - record types
+ * - Flow definitions and versions
  *
  * Planned setup-metadata coverage:
- * - Flows
  * - Validation Rules
  * - Duplicate Rules
  * - Matching Rules
@@ -40,6 +40,9 @@ import getObjectFieldsApex
 import getRecordTypesApex
     from '@salesforce/apex/OrgContextController.getRecordTypes';
 
+import getFlowsApex
+    from '@salesforce/apex/FlowMetadataController.getFlows';
+
 const DEFAULT_OBJECT_LIMIT = 100;
 const MAXIMUM_OBJECT_LIMIT = 200;
 
@@ -56,7 +59,7 @@ const DEFAULT_ERROR_MESSAGE =
     'The Org Context Service could not retrieve Salesforce metadata.';
 
 export const ORG_CONTEXT_SERVICE_VERSION =
-    '1.2';
+    '1.3';
 
 export const LIVE_COVERAGE_STATUS =
     Object.freeze({
@@ -220,6 +223,30 @@ export async function getRecordTypes(
     }
 }
 
+/*
+ * Retrieves live Flow definition and version metadata.
+ *
+ * An empty array is still a successful collection result.
+ * It means Salesforce returned no visible Flow definitions.
+ */
+export async function getFlows() {
+    try {
+        const flows =
+            await getFlowsApex();
+
+        return Array.isArray(flows)
+            ? flows.map(
+                  normalizeFlow
+              )
+            : [];
+    } catch (error) {
+        throw createServiceError(
+            'Unable to retrieve Salesforce Flow metadata.',
+            error
+        );
+    }
+}
+
 export async function objectExists(
     objectApiName
 ) {
@@ -310,12 +337,19 @@ export async function buildLiveOrgSnapshot(
         options.includeInventory !==
         false;
 
+    const includeFlows =
+        options.includeFlows !==
+        false;
+
     const errors = [];
     const warnings = [];
 
     let organization = null;
     let objectInventory = [];
     let objects = [];
+    let flows = [];
+
+    let flowsCollected = false;
 
     try {
         organization =
@@ -401,11 +435,29 @@ export async function buildLiveOrgSnapshot(
             )
             .filter(Boolean);
 
+    if (includeFlows) {
+        try {
+            flows =
+                await getFlows();
+
+            flowsCollected = true;
+        } catch (error) {
+            warnings.push(
+                createSnapshotError(
+                    'flows',
+                    error
+                )
+            );
+        }
+    }
+
     const coverage =
         buildCoverageSummary({
             organization,
             objectInventory,
             objects,
+            flows,
+            flowsCollected,
             errors,
             warnings
         });
@@ -445,7 +497,7 @@ export async function buildLiveOrgSnapshot(
 
         objectInventory,
 
-        flows: [],
+        flows,
 
         validationRules: [],
 
@@ -454,6 +506,10 @@ export async function buildLiveOrgSnapshot(
         matchingRules: [],
 
         permissionSets: [],
+
+        permissionSetGroups: [],
+
+        permissionAssignments: [],
 
         profiles: [],
 
@@ -465,6 +521,16 @@ export async function buildLiveOrgSnapshot(
 
         dashboards: [],
 
+        sharingRules: [],
+
+        roles: [],
+
+        queues: [],
+
+        namedCredentials: [],
+
+        customMetadata: [],
+
         deployments: [],
 
         metadataItems: [],
@@ -475,7 +541,7 @@ export async function buildLiveOrgSnapshot(
 
         setupMetadataCoverage: {
             flows:
-                false,
+                flowsCollected,
 
             validationRules:
                 false,
@@ -496,6 +562,56 @@ export async function buildLiveOrgSnapshot(
                 false
         },
 
+        collectionFlags: {
+            foundationCollected:
+                Boolean(
+                    organization
+                ),
+
+            objectsCollected:
+                Boolean(
+                    objectInventory.length
+                ),
+
+            fieldsCollected:
+                Boolean(
+                    objects.length
+                ),
+
+            relationshipsCollected:
+                Boolean(
+                    objects.length
+                ),
+
+            recordTypesCollected:
+                Boolean(
+                    objects.length
+                ),
+
+            flowsCollected,
+
+            validationRulesCollected:
+                false,
+
+            duplicateRulesCollected:
+                false,
+
+            permissionsCollected:
+                false,
+
+            apexCollected:
+                false,
+
+            analyticsCollected:
+                false,
+
+            sharingCollected:
+                false,
+
+            historyCollected:
+                false
+        },
+
         coverage,
 
         errors,
@@ -513,6 +629,8 @@ function buildCoverageSummary({
     organization = null,
     objectInventory = [],
     objects = [],
+    flows = [],
+    flowsCollected = false,
     errors = [],
     warnings = []
 } = {}) {
@@ -548,8 +666,13 @@ function buildCoverageSummary({
         );
     }
 
+    if (flowsCollected) {
+        liveCategories.push(
+            'Flows'
+        );
+    }
+
     const unavailableCategories = [
-        'Flows',
         'Validation Rules',
         'Duplicate Rules',
         'Matching Rules',
@@ -558,38 +681,71 @@ function buildCoverageSummary({
         'Apex Coverage'
     ];
 
+    if (!flowsCollected) {
+        unavailableCategories.unshift(
+            'Flows'
+        );
+    }
+
     const hasOrganization =
         Boolean(
             organization
         );
 
+    const hasFoundationMetadata =
+        Boolean(
+            objectInventory.length ||
+            objects.length
+        );
+
+    const hasSetupMetadata =
+        flowsCollected;
+
     const status =
-        hasOrganization
-            ? 'partial'
-            : 'unavailable';
+        hasOrganization &&
+        hasFoundationMetadata &&
+        hasSetupMetadata &&
+        unavailableCategories.length === 0
+            ? 'complete'
+            : hasOrganization
+              ? 'partial'
+              : 'unavailable';
 
     return {
         status,
 
         label:
-            status === 'partial'
+            status === 'complete'
                 ? LIVE_COVERAGE_STATUS
-                      .PARTIAL
-                : LIVE_COVERAGE_STATUS
-                      .UNAVAILABLE,
+                      .COMPLETE
+                : status === 'partial'
+                  ? LIVE_COVERAGE_STATUS
+                        .PARTIAL
+                  : LIVE_COVERAGE_STATUS
+                        .UNAVAILABLE,
 
         liveCategories:
             uniqueStrings(
                 liveCategories
             ),
 
-        unavailableCategories,
+        unavailableCategories:
+            uniqueStrings(
+                unavailableCategories
+            ),
 
         selectedObjectCount:
             objects.length,
 
         inventoryObjectCount:
             objectInventory.length,
+
+        flowCount:
+            Array.isArray(flows)
+                ? flows.length
+                : 0,
+
+        flowsCollected,
 
         errorCount:
             errors.length,
@@ -893,6 +1049,190 @@ function mapRecordTypeToSnapshot(
 
         master:
             recordType.master
+    };
+}
+
+function normalizeFlow(
+    flow = {}
+) {
+    return {
+        id:
+            flow.id ||
+            '',
+
+        apiName:
+            flow.apiName ||
+            '',
+
+        label:
+            flow.label ||
+            flow.apiName ||
+            '',
+
+        activeVersionId:
+            flow.activeVersionId ||
+            '',
+
+        latestVersionId:
+            flow.latestVersionId ||
+            '',
+
+        active:
+            Boolean(
+                flow.active
+            ),
+
+        status:
+            flow.status ||
+            (
+                flow.active
+                    ? 'Active'
+                    : 'Inactive'
+            ),
+
+        versionNumber:
+            Number(
+                flow.versionNumber ||
+                0
+            ),
+
+        versionCount:
+            Number(
+                flow.versionCount ||
+                0
+            ),
+
+        processType:
+            flow.processType ||
+            '',
+
+        description:
+            flow.description ||
+            '',
+
+        runInMode:
+            flow.runInMode ||
+            '',
+
+        apiVersion:
+            toNullableNumber(
+                flow.apiVersion
+            ),
+
+        apiVersionRuntime:
+            toNullableNumber(
+                flow.apiVersionRuntime
+            ),
+
+        lastModifiedDate:
+            flow.lastModifiedDate ||
+            '',
+
+        isTemplate:
+            Boolean(
+                flow.isTemplate
+            ),
+
+        activeVersion:
+            normalizeFlowVersion(
+                flow.activeVersion
+            ),
+
+        latestVersion:
+            normalizeFlowVersion(
+                flow.latestVersion
+            ),
+
+        versions:
+            Array.isArray(
+                flow.versions
+            )
+                ? flow.versions.map(
+                      normalizeFlowVersion
+                  )
+                : [],
+
+        metadata: {
+            source:
+                'Live FlowDefinitionView and FlowVersionView',
+
+            collectionService:
+                'FlowMetadataController',
+
+            collectedAt:
+                new Date().toISOString()
+        }
+    };
+}
+
+function normalizeFlowVersion(
+    version = null
+) {
+    if (
+        !version ||
+        typeof version !==
+            'object'
+    ) {
+        return null;
+    }
+
+    return {
+        id:
+            version.id ||
+            '',
+
+        durableId:
+            version.durableId ||
+            '',
+
+        flowDefinitionId:
+            version.flowDefinitionId ||
+            '',
+
+        label:
+            version.label ||
+            '',
+
+        description:
+            version.description ||
+            '',
+
+        status:
+            version.status ||
+            '',
+
+        versionNumber:
+            Number(
+                version.versionNumber ||
+                0
+            ),
+
+        processType:
+            version.processType ||
+            '',
+
+        isTemplate:
+            Boolean(
+                version.isTemplate
+            ),
+
+        runInMode:
+            version.runInMode ||
+            '',
+
+        lastModifiedDate:
+            version.lastModifiedDate ||
+            '',
+
+        apiVersion:
+            toNullableNumber(
+                version.apiVersion
+            ),
+
+        apiVersionRuntime:
+            toNullableNumber(
+                version.apiVersionRuntime
+            )
     };
 }
 
@@ -1291,6 +1631,27 @@ function normalizeRecordType(
                 recordType.defaultRecordType
             )
     };
+}
+
+function toNullableNumber(
+    value
+) {
+    if (
+        value === null ||
+        value === undefined ||
+        value === ''
+    ) {
+        return null;
+    }
+
+    const numberValue =
+        Number(value);
+
+    return Number.isFinite(
+        numberValue
+    )
+        ? numberValue
+        : null;
 }
 
 function createSnapshotError(

@@ -88,9 +88,9 @@
 
                         <p>
                             Loading organization context, object details,
-                            fields, relationships, and record types before
-                            recalculating Org Health, Deployment Readiness,
-                            and Metadata Coverage.
+                            fields, relationships, record types, and live Flow
+                            metadata before recalculating Org Health,
+                            Deployment Readiness, and Metadata Coverage.
                         </p>
                     </div>
                 </section>
@@ -130,7 +130,7 @@
             <!-- Results -->
             <template if:true={hasAnalysis}>
 
-                <!-- Organization identity -->
+                <!-- Persistent organization identity -->
                 <section class="identity-panel">
                     <div>
                         <p class="eyebrow dark-eyebrow">
@@ -179,625 +179,549 @@
                     </div>
                 </section>
 
-                <!-- Main scores -->
-                <section class="score-grid">
+                <!-- Tabbed workspace -->
+                <lightning-tabset
+                    variant="scoped"
+                    active-tab-value="overview">
 
-                    <article class="score-card primary-score-card">
-                        <div class="score-card-header">
-                            <lightning-icon
-                                icon-name="utility:favorite"
-                                size="small"
-                                alternative-text="Org Health">
-                            </lightning-icon>
+                    <!-- Overview -->
+                    <lightning-tab
+                        label="Overview"
+                        value="overview"
+                        icon-name="utility:home">
 
-                            <span>Org Health</span>
-                        </div>
+                        <div class="tab-workspace">
 
-                        <div class="score-value">
-                            {orgHealthDisplay}
-                        </div>
-
-                        <div class="score-status">
-                            {orgHealthStatus}
-                        </div>
-
-                        <lightning-progress-bar
-                            value={orgHealthScore}
-                            size="large">
-                        </lightning-progress-bar>
-
-                        <template if:true={hasTrendData}>
-                            <p class="score-trend">
-                                Previous scan: {healthTrendLabel}
-                            </p>
-                        </template>
-                    </article>
-
-                    <article class="score-card readiness-score-card">
-                        <div class="score-card-header">
-                            <lightning-icon
-                                icon-name="utility:check"
-                                size="small"
-                                alternative-text="Deployment Readiness">
-                            </lightning-icon>
-
-                            <span>Deployment Readiness</span>
-                        </div>
-
-                        <div class="score-value">
-                            {deploymentScoreDisplay}
-                        </div>
-
-                        <div class="score-status">
-                            {deploymentStatus}
-                        </div>
-
-                        <lightning-progress-bar
-                            value={deploymentScore}
-                            size="large">
-                        </lightning-progress-bar>
-
-                        <template if:true={hasTrendData}>
-                            <p class="score-trend">
-                                Previous scan: {deploymentTrendLabel}
-                            </p>
-                        </template>
-                    </article>
-
-                </section>
-
-               <!-- Detailed metadata-category coverage -->
-<template if:true={hasMetadataCoverage}>
-    <section class="metadata-coverage-section">
-        <c-metadata-coverage-panel
-            coverage={metadataCoverage}>
-        </c-metadata-coverage-panel>
-    </section>
-</template>
-
-                <!-- KPI cards -->
-                <section class="metric-grid">
-
-                    <article class="metric-card">
-                        <span class="metric-label">
-                            Inventory Objects
-                        </span>
-
-                        <strong class="metric-value">
-                            {totalObjects}
-                        </strong>
-
-                        <span class="metric-detail">
-                            Objects available in inventory
-                        </span>
-                    </article>
-
-                    <article class="metric-card">
-                        <span class="metric-label">
-                            Detailed Objects
-                        </span>
-
-                        <strong class="metric-value">
-                            {detailedObjectCount}
-                        </strong>
-
-                        <span class="metric-detail">
-                            Full profiles analyzed
-                        </span>
-                    </article>
-
-                    <article class="metric-card">
-                        <span class="metric-label">
-                            Fields Analyzed
-                        </span>
-
-                        <strong class="metric-value">
-                            {totalFields}
-                        </strong>
-
-                        <span class="metric-detail">
-                            Across detailed objects
-                        </span>
-                    </article>
-
-                    <article class="metric-card">
-                        <span class="metric-label">
-                            Findings
-                        </span>
-
-                        <strong class="metric-value">
-                            {totalFindings}
-                        </strong>
-
-                        <span class="metric-detail">
-                            <template if:true={hasTrendData}>
-                                {findingTrendLabel}
-                            </template>
-
-                            <template if:false={hasTrendData}>
-                                First tracked analysis
-                            </template>
-                        </span>
-                    </article>
-
-                    <article class="metric-card">
-                        <span class="metric-label">
-                            Recommendations
-                        </span>
-
-                        <strong class="metric-value">
-                            {totalRecommendations}
-                        </strong>
-
-                        <span class="metric-detail">
-                            Prioritized next actions
-                        </span>
-                    </article>
-
-                    <article class="metric-card">
-                        <span class="metric-label">
-                            Blocking Findings
-                        </span>
-
-                        <strong class="metric-value">
-                            {blockingFindings}
-                        </strong>
-
-                        <span class="metric-detail">
-                            Deployment blockers detected
-                        </span>
-                    </article>
-
-                </section>
-
-                <!-- Trend tracking -->
-                <section class="content-panel trend-panel">
-                    <div class="panel-header">
-                        <div>
-                            <h2 class="section-title">
-                                Previous Scan vs. Current Scan
-                            </h2>
-
-                            <p class="panel-description">
-                                Compares the current results with the previous
-                                analysis stored in this browser.
-                            </p>
-                        </div>
-
-                        <lightning-icon
-                            icon-name="utility:trending"
-                            size="small"
-                            alternative-text="Trend Tracking">
-                        </lightning-icon>
-                    </div>
-
-                    <template if:true={hasTrendData}>
-                        <div class="trend-grid">
-                            <article class="focus-card">
-                                <span class="focus-label">
-                                    Org Health Change
-                                </span>
-
-                                <strong>
-                                    {healthTrendLabel}
-                                </strong>
-
-                                <p>
-                                    Current score: {orgHealthDisplay}
-                                </p>
-                            </article>
-
-                            <article class="focus-card">
-                                <span class="focus-label">
-                                    Deployment Change
-                                </span>
-
-                                <strong>
-                                    {deploymentTrendLabel}
-                                </strong>
-
-                                <p>
-                                    Current score:
-                                    {deploymentScoreDisplay}
-                                </p>
-                            </article>
-
-                            <article class="focus-card">
-                                <span class="focus-label">
-                                    Finding Change
-                                </span>
-
-                                <strong>
-                                    {findingTrendLabel}
-                                </strong>
-
-                                <p>
-                                    Current findings: {totalFindings}
-                                </p>
-                            </article>
-                        </div>
-
-                        <p class="trend-source-note">
-                            Previous result generated:
-                            {previousAnalysisLabel}
-                        </p>
-                    </template>
-
-                    <template if:false={hasTrendData}>
-                        <p class="empty-copy">
-                            Run the analysis again to create the first
-                            current-versus-previous comparison.
-                        </p>
-                    </template>
-                </section>
-
-                <!-- Explain the score -->
-                <section class="content-panel explanation-panel">
-                    <div class="panel-header">
-                        <div>
-                            <p class="eyebrow dark-eyebrow">
-                                Explainable Scoring
-                            </p>
-
-                            <h2 class="section-title">
-                                {healthScoreExplanation.title}
-                            </h2>
-
-                            <p class="panel-description">
-                                {healthScoreExplanation.summary}
-                            </p>
-                        </div>
-
-                        <lightning-icon
-                            icon-name="utility:info_alt"
-                            size="small"
-                            alternative-text="Score Explanation">
-                        </lightning-icon>
-                    </div>
-
-                    <template if:true={hasHealthExplanationCategories}>
-                        <div class="category-grid">
-                            <template
-                                for:each={healthExplanationCategories}
-                                for:item="category">
+                            <!-- Main scores -->
+                            <section class="score-grid">
 
                                 <article
-                                    key={category.category}
-                                    class="category-card explanation-card">
+                                    class="score-card primary-score-card">
 
-                                    <div class="category-heading">
-                                        <strong>
-                                            {category.category}
-                                        </strong>
+                                    <div class="score-card-header">
+                                        <lightning-icon
+                                            icon-name="utility:favorite"
+                                            size="small"
+                                            alternative-text="Org Health">
+                                        </lightning-icon>
 
-                                        <span class="category-score">
-                                            -{category.totalScoreImpact}
-                                            points
+                                        <span>
+                                            Org Health
                                         </span>
                                     </div>
 
-                                    <div class="category-meta">
-                                        <span>
-                                            {category.findingCount}
-                                            findings
-                                        </span>
-
-                                        <span>
-                                            {category.highCount} high
-                                        </span>
-
-                                        <span>
-                                            {category.criticalCount}
-                                            critical
-                                        </span>
+                                    <div class="score-value">
+                                        {orgHealthDisplay}
                                     </div>
-                                </article>
-                            </template>
-                        </div>
-                    </template>
 
-                    <template if:false={hasHealthExplanationCategories}>
-                        <p class="empty-copy">
-                            No scoring deductions were generated from the
-                            metadata analyzed.
-                        </p>
-                    </template>
-                </section>
-
-                <!-- Daily Admin Brief -->
-                <template if:true={dailyBrief}>
-                    <section class="daily-brief-panel">
-                        <div class="panel-header">
-                            <div>
-                                <p class="eyebrow dark-eyebrow">
-                                    Daily Admin Brief
-                                </p>
-
-                                <h2 class="section-title">
-                                    {dailyBrief.greeting}
-                                </h2>
-
-                                <p class="panel-description">
-                                    {dailyBrief.headline}
-                                </p>
-                            </div>
-
-                            <lightning-icon
-                                icon-name="utility:dayview"
-                                size="medium"
-                                alternative-text="Daily Admin Brief">
-                            </lightning-icon>
-                        </div>
-
-                        <div class="brief-summary-grid">
-                            <article class="brief-summary-card">
-                                <span>Org Health</span>
-
-                                <strong>
-                                    {dailyBrief.orgHealth.score}/100
-                                </strong>
-
-                                <small>
-                                    {dailyBrief.orgHealth.status}
-                                </small>
-                            </article>
-
-                            <article class="brief-summary-card">
-                                <span>Deployment</span>
-
-                                <strong>
-                                    {dailyBrief.deploymentReadiness.score}/100
-                                </strong>
-
-                                <small>
-                                    {dailyBrief.deploymentReadiness.status}
-                                </small>
-                            </article>
-
-                            <article class="brief-summary-card">
-                                <span>Current Findings</span>
-
-                                <strong>
-                                    {dailyBrief.findings.total}
-                                </strong>
-
-                                <small>
-                                    {dailyBrief.findings.high} high,
-                                    {dailyBrief.findings.critical}
-                                    critical
-                                </small>
-                            </article>
-                        </div>
-
-                        <template if:true={hasGroupedFindings}>
-                            <div class="brief-priorities">
-                                <h3>
-                                    Current Risk and Improvement Areas
-                                </h3>
-
-                                <div class="category-grid">
-                                    <template
-                                        for:each={groupedFindings}
-                                        for:item="category">
-
-                                        <article
-                                            key={category.category}
-                                            class="category-card">
-
-                                            <div class="category-heading">
-                                                <strong>
-                                                    {category.category}
-                                                </strong>
-
-                                                <span class="category-score">
-                                                    {category.findingCount}
-                                                </span>
-                                            </div>
-
-                                            <div class="category-meta">
-                                                <span>
-                                                    Score impact:
-                                                    -{category.totalScoreImpact}
-                                                </span>
-
-                                                <span>
-                                                    High:
-                                                    {category.highCount}
-                                                </span>
-                                            </div>
-                                        </article>
-                                    </template>
-                                </div>
-                            </div>
-                        </template>
-
-                        <template if:true={hasDailyPriorities}>
-                            <div class="brief-priorities">
-                                <h3>
-                                    Today’s Recommended Priorities
-                                </h3>
-
-                                <ol class="numbered-list">
-                                    <template
-                                        for:each={dailyBrief.priorities}
-                                        for:item="priority">
-
-                                        <li key={priority.rank}>
-                                            <div>
-                                                <strong>
-                                                    {priority.title}
-                                                </strong>
-
-                                                <p>
-                                                    {priority.action}
-                                                </p>
-
-                                                <span class="inline-badge">
-                                                    {priority.priority}
-                                                </span>
-
-                                                <span class="inline-category">
-                                                    {priority.category}
-                                                </span>
-                                            </div>
-                                        </li>
-                                    </template>
-                                </ol>
-                            </div>
-                        </template>
-
-                        <div class="activity-source-note">
-                            <lightning-icon
-                                icon-name="utility:info"
-                                size="xx-small"
-                                alternative-text="Activity source">
-                            </lightning-icon>
-
-                            <span>
-                                Current priorities and category summaries use
-                                the same shared Org Knowledge findings that
-                                power Org Health and Deployment Readiness.
-                                Verified Salesforce change history will require
-                                a future deployment-history data source.
-                            </span>
-                        </div>
-                    </section>
-                </template>
-
-                <!-- Health categories -->
-                <template if:true={hasCategories}>
-                    <section class="content-panel">
-                        <div class="panel-header">
-                            <div>
-                                <h2 class="section-title">
-                                    Health Categories
-                                </h2>
-
-                                <p class="panel-description">
-                                    Each category begins at 100 and loses
-                                    points based on deterministic,
-                                    explainable findings.
-                                </p>
-                            </div>
-
-                            <lightning-icon
-                                icon-name="utility:chart"
-                                size="small"
-                                alternative-text="Health Categories">
-                            </lightning-icon>
-                        </div>
-
-                        <div class="category-grid">
-                            <template
-                                for:each={categoryResults}
-                                for:item="category">
-
-                                <article
-                                    key={category.category}
-                                    class="category-card">
-
-                                    <div class="category-heading">
-                                        <strong>
-                                            {category.category}
-                                        </strong>
-
-                                        <span class="category-score">
-                                            {category.score}/100
-                                        </span>
+                                    <div class="score-status">
+                                        {orgHealthStatus}
                                     </div>
 
                                     <lightning-progress-bar
-                                        value={category.score}
-                                        size="medium">
+                                        value={orgHealthScore}
+                                        size="large">
                                     </lightning-progress-bar>
 
-                                    <div class="category-meta">
-                                        <span>
-                                            {category.status}
-                                        </span>
+                                    <template if:true={hasTrendData}>
+                                        <p class="score-trend">
+                                            Previous scan:
+                                            {healthTrendLabel}
+                                        </p>
+                                    </template>
+                                </article>
+
+                                <article
+                                    class="score-card readiness-score-card">
+
+                                    <div class="score-card-header">
+                                        <lightning-icon
+                                            icon-name="utility:check"
+                                            size="small"
+                                            alternative-text="Deployment Readiness">
+                                        </lightning-icon>
 
                                         <span>
-                                            {category.findingCount}
-                                            findings
-                                        </span>
-
-                                        <span>
-                                            Risk:
-                                            {category.riskLevel}
+                                            Deployment Readiness
                                         </span>
                                     </div>
+
+                                    <div class="score-value">
+                                        {deploymentScoreDisplay}
+                                    </div>
+
+                                    <div class="score-status">
+                                        {deploymentStatus}
+                                    </div>
+
+                                    <lightning-progress-bar
+                                        value={deploymentScore}
+                                        size="large">
+                                    </lightning-progress-bar>
+
+                                    <template if:true={hasTrendData}>
+                                        <p class="score-trend">
+                                            Previous scan:
+                                            {deploymentTrendLabel}
+                                        </p>
+                                    </template>
                                 </article>
-                            </template>
+
+                            </section>
+
+                            <!-- KPI cards -->
+                            <section class="metric-grid">
+
+                                <article class="metric-card">
+                                    <span class="metric-label">
+                                        Inventory Objects
+                                    </span>
+
+                                    <strong class="metric-value">
+                                        {totalObjects}
+                                    </strong>
+
+                                    <span class="metric-detail">
+                                        Objects available in inventory
+                                    </span>
+                                </article>
+
+                                <article class="metric-card">
+                                    <span class="metric-label">
+                                        Detailed Objects
+                                    </span>
+
+                                    <strong class="metric-value">
+                                        {detailedObjectCount}
+                                    </strong>
+
+                                    <span class="metric-detail">
+                                        Full profiles analyzed
+                                    </span>
+                                </article>
+
+                                <article class="metric-card">
+                                    <span class="metric-label">
+                                        Fields Analyzed
+                                    </span>
+
+                                    <strong class="metric-value">
+                                        {totalFields}
+                                    </strong>
+
+                                    <span class="metric-detail">
+                                        Across detailed objects
+                                    </span>
+                                </article>
+
+                                <article class="metric-card">
+                                    <span class="metric-label">
+                                        Findings
+                                    </span>
+
+                                    <strong class="metric-value">
+                                        {totalFindings}
+                                    </strong>
+
+                                    <span class="metric-detail">
+                                        <template if:true={hasTrendData}>
+                                            {findingTrendLabel}
+                                        </template>
+
+                                        <template if:false={hasTrendData}>
+                                            First tracked analysis
+                                        </template>
+                                    </span>
+                                </article>
+
+                                <article class="metric-card">
+                                    <span class="metric-label">
+                                        Recommendations
+                                    </span>
+
+                                    <strong class="metric-value">
+                                        {totalRecommendations}
+                                    </strong>
+
+                                    <span class="metric-detail">
+                                        Prioritized next actions
+                                    </span>
+                                </article>
+
+                                <article class="metric-card">
+                                    <span class="metric-label">
+                                        Blocking Findings
+                                    </span>
+
+                                    <strong class="metric-value">
+                                        {blockingFindings}
+                                    </strong>
+
+                                    <span class="metric-detail">
+                                        Deployment blockers detected
+                                    </span>
+                                </article>
+
+                            </section>
+
+                            <!-- Risk focus -->
+                            <section class="focus-grid">
+                                <article class="focus-card">
+                                    <span class="focus-label">
+                                        Lowest Health Category
+                                    </span>
+
+                                    <strong>
+                                        {lowestCategory}
+                                    </strong>
+
+                                    <p>
+                                        Score:
+                                        {lowestCategoryScore}/100
+                                    </p>
+                                </article>
+
+                                <article class="focus-card">
+                                    <span class="focus-label">
+                                        Highest-Risk Category
+                                    </span>
+
+                                    <strong>
+                                        {highestRiskCategory}
+                                    </strong>
+
+                                    <p>
+                                        Risk level:
+                                        {highestRiskLevel}
+                                    </p>
+                                </article>
+
+                                <article class="focus-card">
+                                    <span class="focus-label">
+                                        High-Severity Findings
+                                    </span>
+
+                                    <strong>
+                                        {highFindings}
+                                    </strong>
+
+                                    <p>
+                                        Critical findings:
+                                        {criticalFindings}
+                                    </p>
+                                </article>
+                            </section>
+
+                            <!-- Shared intelligence summary -->
+                            <section
+                                class="content-panel shared-engine-panel">
+
+                                <div class="panel-header">
+                                    <div>
+                                        <h2 class="section-title">
+                                            Shared Intelligence Reuse
+                                        </h2>
+
+                                        <p class="panel-description">
+                                            The same Org Knowledge result
+                                            supports multiple Salesforce
+                                            Copilot workflows.
+                                        </p>
+                                    </div>
+
+                                    <lightning-icon
+                                        icon-name="utility:connected_apps"
+                                        size="small"
+                                        alternative-text="Shared Intelligence">
+                                    </lightning-icon>
+                                </div>
+
+                                <div class="metric-grid">
+                                    <article class="metric-card">
+                                        <span class="metric-label">
+                                            Explain This
+                                        </span>
+
+                                        <strong
+                                            class="shared-feature-status">
+                                            Knowledge Ready
+                                        </strong>
+
+                                        <span class="metric-detail">
+                                            Uses object, field, and Flow
+                                            profiles with risks,
+                                            recommendations, and tests.
+                                        </span>
+                                    </article>
+
+                                    <article class="metric-card">
+                                        <span class="metric-label">
+                                            Change Impact
+                                        </span>
+
+                                        <strong
+                                            class="shared-feature-status">
+                                            Knowledge Ready
+                                        </strong>
+
+                                        <span class="metric-detail">
+                                            Uses entity risk, structural
+                                            metadata, dependencies, and
+                                            testing guidance.
+                                        </span>
+                                    </article>
+
+                                    <article class="metric-card">
+                                        <span class="metric-label">
+                                            Deployment Readiness
+                                        </span>
+
+                                        <strong
+                                            class="shared-feature-status">
+                                            Live
+                                        </strong>
+
+                                        <span class="metric-detail">
+                                            Uses blockers, warnings,
+                                            findings, recommendations,
+                                            and readiness scoring.
+                                        </span>
+                                    </article>
+                                </div>
+                            </section>
+
                         </div>
-                    </section>
-                </template>
+                    </lightning-tab>
 
-                <!-- Findings grouped by category -->
-                <template if:true={hasGroupedFindings}>
-                    <section class="content-panel">
-                        <div class="panel-header">
-                            <div>
-                                <h2 class="section-title">
-                                    Findings by Category
-                                </h2>
+                    <!-- Findings -->
+                    <lightning-tab
+                        label="Findings"
+                        value="findings"
+                        icon-name="utility:warning">
 
-                                <p class="panel-description">
-                                    Documentation, security, automation,
-                                    data-model, performance, and deployment
-                                    findings are grouped for faster review.
-                                </p>
-                            </div>
+                        <div class="tab-workspace">
 
-                            <lightning-icon
-                                icon-name="utility:filterList"
-                                size="small"
-                                alternative-text="Grouped Findings">
-                            </lightning-icon>
-                        </div>
-
-                        <div class="grouped-findings-list">
-                            <template
-                                for:each={groupedFindings}
-                                for:item="category">
-
-                                <section
-                                    key={category.category}
-                                    class="finding-group">
-
-                                    <div class="finding-group-header">
+                            <!-- Health categories -->
+                            <template if:true={hasCategories}>
+                                <section class="content-panel">
+                                    <div class="panel-header">
                                         <div>
-                                            <h3>
-                                                {category.category}
-                                            </h3>
+                                            <h2 class="section-title">
+                                                Health Categories
+                                            </h2>
 
-                                            <p>
-                                                {category.findingCount}
-                                                findings ·
-                                                {category.totalScoreImpact}
-                                                point impact
+                                            <p class="panel-description">
+                                                Each category begins at 100
+                                                and loses points based on
+                                                deterministic, explainable
+                                                findings.
                                             </p>
                                         </div>
 
-                                        <span class="inline-category">
-                                            {category.highCount} high
-                                        </span>
+                                        <lightning-icon
+                                            icon-name="utility:chart"
+                                            size="small"
+                                            alternative-text="Health Categories">
+                                        </lightning-icon>
+                                    </div>
+
+                                    <div class="category-grid">
+                                        <template
+                                            for:each={categoryResults}
+                                            for:item="category">
+
+                                            <article
+                                                key={category.category}
+                                                class="category-card">
+
+                                                <div
+                                                    class="category-heading">
+
+                                                    <strong>
+                                                        {category.category}
+                                                    </strong>
+
+                                                    <span
+                                                        class="category-score">
+                                                        {category.score}/100
+                                                    </span>
+                                                </div>
+
+                                                <lightning-progress-bar
+                                                    value={category.score}
+                                                    size="medium">
+                                                </lightning-progress-bar>
+
+                                                <div class="category-meta">
+                                                    <span>
+                                                        {category.status}
+                                                    </span>
+
+                                                    <span>
+                                                        {category.findingCount}
+                                                        findings
+                                                    </span>
+
+                                                    <span>
+                                                        Risk:
+                                                        {category.riskLevel}
+                                                    </span>
+                                                </div>
+                                            </article>
+                                        </template>
+                                    </div>
+                                </section>
+                            </template>
+
+                            <!-- Findings grouped by category -->
+                            <template if:true={hasGroupedFindings}>
+                                <section class="content-panel">
+                                    <div class="panel-header">
+                                        <div>
+                                            <h2 class="section-title">
+                                                Findings by Category
+                                            </h2>
+
+                                            <p class="panel-description">
+                                                Documentation, security,
+                                                automation, data-model,
+                                                performance, and deployment
+                                                findings are grouped for
+                                                faster review.
+                                            </p>
+                                        </div>
+
+                                        <lightning-icon
+                                            icon-name="utility:filterList"
+                                            size="small"
+                                            alternative-text="Grouped Findings">
+                                        </lightning-icon>
+                                    </div>
+
+                                    <div
+                                        class="grouped-findings-list">
+
+                                        <template
+                                            for:each={groupedFindings}
+                                            for:item="category">
+
+                                            <section
+                                                key={category.category}
+                                                class="finding-group">
+
+                                                <div
+                                                    class="finding-group-header">
+
+                                                    <div>
+                                                        <h3>
+                                                            {category.category}
+                                                        </h3>
+
+                                                        <p>
+                                                            {category.findingCount}
+                                                            findings ·
+                                                            {category.totalScoreImpact}
+                                                            point impact
+                                                        </p>
+                                                    </div>
+
+                                                    <span
+                                                        class="inline-category">
+                                                        {category.highCount}
+                                                        high
+                                                    </span>
+                                                </div>
+
+                                                <div class="finding-list">
+                                                    <template
+                                                        for:each={category.findings}
+                                                        for:item="finding">
+
+                                                        <article
+                                                            key={finding.id}
+                                                            class="finding-item">
+
+                                                            <div
+                                                                class="finding-heading">
+
+                                                                <strong>
+                                                                    {finding.title}
+                                                                </strong>
+
+                                                                <span
+                                                                    class="severity-badge">
+                                                                    {finding.severity}
+                                                                </span>
+                                                            </div>
+
+                                                            <p>
+                                                                {finding.summary}
+                                                            </p>
+
+                                                            <div
+                                                                class="finding-footer">
+
+                                                                <span>
+                                                                    {finding.entityApiName}
+                                                                </span>
+
+                                                                <span>
+                                                                    Impact:
+                                                                    -{finding.scoreImpact}
+                                                                </span>
+                                                            </div>
+                                                        </article>
+                                                    </template>
+                                                </div>
+                                            </section>
+                                        </template>
+                                    </div>
+                                </section>
+                            </template>
+
+                            <!-- Deployment blockers -->
+                            <template if:true={hasDeploymentBlockers}>
+                                <section
+                                    class="content-panel blocker-panel">
+
+                                    <div class="panel-header">
+                                        <div>
+                                            <h2 class="section-title">
+                                                Deployment Blockers
+                                            </h2>
+
+                                            <p class="panel-description">
+                                                Resolve these findings
+                                                before approving a
+                                                production deployment.
+                                            </p>
+                                        </div>
+
+                                        <lightning-icon
+                                            icon-name="utility:block_visitor"
+                                            size="small"
+                                            alternative-text="Deployment Blockers">
+                                        </lightning-icon>
                                     </div>
 
                                     <div class="finding-list">
                                         <template
-                                            for:each={category.findings}
+                                            for:each={deploymentBlockers}
                                             for:item="finding">
 
                                             <article
                                                 key={finding.id}
-                                                class="finding-item">
+                                                class="finding-item critical-item">
 
-                                                <div class="finding-heading">
+                                                <div
+                                                    class="finding-heading">
+
                                                     <strong>
                                                         {finding.title}
                                                     </strong>
 
-                                                    <span class="severity-badge">
+                                                    <span
+                                                        class="severity-badge">
                                                         {finding.severity}
                                                     </span>
                                                 </div>
@@ -806,7 +730,13 @@
                                                     {finding.summary}
                                                 </p>
 
-                                                <div class="finding-footer">
+                                                <div
+                                                    class="finding-footer">
+
+                                                    <span>
+                                                        {finding.category}
+                                                    </span>
+
                                                     <span>
                                                         {finding.entityApiName}
                                                     </span>
@@ -821,291 +751,515 @@
                                     </div>
                                 </section>
                             </template>
-                        </div>
-                    </section>
-                </template>
 
-                <!-- Risk focus -->
-                <section class="focus-grid">
-                    <article class="focus-card">
-                        <span class="focus-label">
-                            Lowest Health Category
-                        </span>
+                            <!-- Recommendations -->
+                            <section class="content-panel">
+                                <div class="panel-header">
+                                    <div>
+                                        <h2 class="section-title">
+                                            Recommended Actions
+                                        </h2>
 
-                        <strong>
-                            {lowestCategory}
-                        </strong>
-
-                        <p>
-                            Score:
-                            {lowestCategoryScore}/100
-                        </p>
-                    </article>
-
-                    <article class="focus-card">
-                        <span class="focus-label">
-                            Highest-Risk Category
-                        </span>
-
-                        <strong>
-                            {highestRiskCategory}
-                        </strong>
-
-                        <p>
-                            Risk level:
-                            {highestRiskLevel}
-                        </p>
-                    </article>
-
-                    <article class="focus-card">
-                        <span class="focus-label">
-                            High-Severity Findings
-                        </span>
-
-                        <strong>
-                            {highFindings}
-                        </strong>
-
-                        <p>
-                            Critical findings:
-                            {criticalFindings}
-                        </p>
-                    </article>
-                </section>
-
-                <!-- Deployment blockers -->
-                <template if:true={hasDeploymentBlockers}>
-                    <section class="content-panel blocker-panel">
-                        <div class="panel-header">
-                            <div>
-                                <h2 class="section-title">
-                                    Deployment Blockers
-                                </h2>
-
-                                <p class="panel-description">
-                                    Resolve these findings before approving
-                                    a production deployment.
-                                </p>
-                            </div>
-
-                            <lightning-icon
-                                icon-name="utility:block_visitor"
-                                size="small"
-                                alternative-text="Deployment Blockers">
-                            </lightning-icon>
-                        </div>
-
-                        <div class="finding-list">
-                            <template
-                                for:each={deploymentBlockers}
-                                for:item="finding">
-
-                                <article
-                                    key={finding.id}
-                                    class="finding-item critical-item">
-
-                                    <div class="finding-heading">
-                                        <strong>
-                                            {finding.title}
-                                        </strong>
-
-                                        <span class="severity-badge">
-                                            {finding.severity}
-                                        </span>
+                                        <p class="panel-description">
+                                            Prioritized actions generated
+                                            from the same findings used by
+                                            the Daily Admin Brief, health
+                                            score, and deployment assessment.
+                                        </p>
                                     </div>
 
-                                    <p>
-                                        {finding.summary}
+                                    <lightning-icon
+                                        icon-name="utility:strategy"
+                                        size="small"
+                                        alternative-text="Recommendations">
+                                    </lightning-icon>
+                                </div>
+
+                                <template if:true={hasRecommendations}>
+                                    <div
+                                        class="recommendation-list">
+
+                                        <template
+                                            for:each={topRecommendations}
+                                            for:item="recommendation">
+
+                                            <article
+                                                key={recommendation.id}
+                                                class="recommendation-item">
+
+                                                <div
+                                                    class="finding-heading">
+
+                                                    <strong>
+                                                        {recommendation.title}
+                                                    </strong>
+
+                                                    <span
+                                                        class="priority-badge">
+                                                        {recommendation.priority}
+                                                    </span>
+                                                </div>
+
+                                                <p>
+                                                    {recommendation.action}
+                                                </p>
+
+                                                <div
+                                                    class="finding-footer">
+
+                                                    <span>
+                                                        {recommendation.category}
+                                                    </span>
+
+                                                    <span>
+                                                        {recommendation.entityApiName}
+                                                    </span>
+                                                </div>
+                                            </article>
+                                        </template>
+                                    </div>
+                                </template>
+
+                                <template if:false={hasRecommendations}>
+                                    <p class="empty-copy">
+                                        No recommendations were generated.
                                     </p>
+                                </template>
+                            </section>
 
-                                    <div class="finding-footer">
-                                        <span>
-                                            {finding.category}
-                                        </span>
+                        </div>
+                    </lightning-tab>
 
-                                        <span>
-                                            {finding.entityApiName}
-                                        </span>
+                    <!-- Metadata Coverage -->
+                    <lightning-tab
+                        label="Metadata Coverage"
+                        value="metadata-coverage"
+                        icon-name="utility:database">
 
-                                        <span>
-                                            Impact:
-                                            -{finding.scoreImpact}
-                                        </span>
-                                    </div>
-                                </article>
+                        <div class="tab-workspace">
+
+                            <!-- Detailed metadata coverage -->
+                            <template if:true={hasMetadataCoverage}>
+                                <section
+                                    class="metadata-coverage-section">
+
+                                    <c-metadata-coverage-panel
+                                        coverage={metadataCoverage}>
+                                    </c-metadata-coverage-panel>
+                                </section>
                             </template>
-                        </div>
-                    </section>
-                </template>
 
-                <!-- Recommendations -->
-                <section class="content-panel">
-                    <div class="panel-header">
-                        <div>
-                            <h2 class="section-title">
-                                Recommended Actions
-                            </h2>
+                            <!-- Object scan coverage -->
+                            <section class="coverage-panel">
+                                <div>
+                                    <h2 class="section-title">
+                                        Object Scan Coverage
+                                    </h2>
 
-                            <p class="panel-description">
-                                Prioritized actions generated from the same
-                                findings used by the Daily Admin Brief,
-                                health score, and deployment assessment.
-                            </p>
-                        </div>
-
-                        <lightning-icon
-                            icon-name="utility:strategy"
-                            size="small"
-                            alternative-text="Recommendations">
-                        </lightning-icon>
-                    </div>
-
-                    <template if:true={hasRecommendations}>
-                        <div class="recommendation-list">
-                            <template
-                                for:each={topRecommendations}
-                                for:item="recommendation">
-
-                                <article
-                                    key={recommendation.id}
-                                    class="recommendation-item">
-
-                                    <div class="finding-heading">
-                                        <strong>
-                                            {recommendation.title}
-                                        </strong>
-
-                                        <span class="priority-badge">
-                                            {recommendation.priority}
-                                        </span>
-                                    </div>
-
-                                    <p>
-                                        {recommendation.action}
+                                    <p class="panel-description">
+                                        {coverageLabel}. This summary
+                                        measures the object profiles
+                                        inspected during this scan. The
+                                        detailed Metadata Coverage panel
+                                        measures which Salesforce metadata
+                                        categories are connected.
                                     </p>
+                                </div>
 
-                                    <div class="finding-footer">
-                                        <span>
-                                            {recommendation.category}
-                                        </span>
+                                <div class="coverage-actions">
+                                    <lightning-button
+                                        label="Clear Results"
+                                        icon-name="utility:clear"
+                                        onclick={handleClear}
+                                        disabled={isLoading}>
+                                    </lightning-button>
+
+                                    <lightning-button
+                                        label="Run Again"
+                                        variant="brand"
+                                        icon-name="utility:refresh"
+                                        onclick={handleRunAgain}
+                                        disabled={isLoading}>
+                                    </lightning-button>
+                                </div>
+                            </section>
+
+                        </div>
+                    </lightning-tab>
+
+                    <!-- Daily Brief and Trends -->
+                    <lightning-tab
+                        label="Daily Brief & Trends"
+                        value="daily-brief"
+                        icon-name="utility:dayview">
+
+                        <div class="tab-workspace">
+
+                            <!-- Daily Admin Brief -->
+                            <template if:true={dailyBrief}>
+                                <section class="daily-brief-panel">
+                                    <div class="panel-header">
+                                        <div>
+                                            <p
+                                                class="eyebrow dark-eyebrow">
+                                                Daily Admin Brief
+                                            </p>
+
+                                            <h2 class="section-title">
+                                                {dailyBrief.greeting}
+                                            </h2>
+
+                                            <p
+                                                class="panel-description">
+                                                {dailyBrief.headline}
+                                            </p>
+                                        </div>
+
+                                        <lightning-icon
+                                            icon-name="utility:dayview"
+                                            size="medium"
+                                            alternative-text="Daily Admin Brief">
+                                        </lightning-icon>
+                                    </div>
+
+                                    <div class="brief-summary-grid">
+                                        <article
+                                            class="brief-summary-card">
+
+                                            <span>
+                                                Org Health
+                                            </span>
+
+                                            <strong>
+                                                {dailyBrief.orgHealth.score}/100
+                                            </strong>
+
+                                            <small>
+                                                {dailyBrief.orgHealth.status}
+                                            </small>
+                                        </article>
+
+                                        <article
+                                            class="brief-summary-card">
+
+                                            <span>
+                                                Deployment
+                                            </span>
+
+                                            <strong>
+                                                {dailyBrief.deploymentReadiness.score}/100
+                                            </strong>
+
+                                            <small>
+                                                {dailyBrief.deploymentReadiness.status}
+                                            </small>
+                                        </article>
+
+                                        <article
+                                            class="brief-summary-card">
+
+                                            <span>
+                                                Current Findings
+                                            </span>
+
+                                            <strong>
+                                                {dailyBrief.findings.total}
+                                            </strong>
+
+                                            <small>
+                                                {dailyBrief.findings.high}
+                                                high,
+                                                {dailyBrief.findings.critical}
+                                                critical
+                                            </small>
+                                        </article>
+                                    </div>
+
+                                    <template if:true={hasGroupedFindings}>
+                                        <div class="brief-priorities">
+                                            <h3>
+                                                Current Risk and
+                                                Improvement Areas
+                                            </h3>
+
+                                            <div class="category-grid">
+                                                <template
+                                                    for:each={groupedFindings}
+                                                    for:item="category">
+
+                                                    <article
+                                                        key={category.category}
+                                                        class="category-card">
+
+                                                        <div
+                                                            class="category-heading">
+
+                                                            <strong>
+                                                                {category.category}
+                                                            </strong>
+
+                                                            <span
+                                                                class="category-score">
+                                                                {category.findingCount}
+                                                            </span>
+                                                        </div>
+
+                                                        <div
+                                                            class="category-meta">
+
+                                                            <span>
+                                                                Score impact:
+                                                                -{category.totalScoreImpact}
+                                                            </span>
+
+                                                            <span>
+                                                                High:
+                                                                {category.highCount}
+                                                            </span>
+                                                        </div>
+                                                    </article>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <template if:true={hasDailyPriorities}>
+                                        <div class="brief-priorities">
+                                            <h3>
+                                                Today’s Recommended
+                                                Priorities
+                                            </h3>
+
+                                            <ol class="numbered-list">
+                                                <template
+                                                    for:each={dailyBrief.priorities}
+                                                    for:item="priority">
+
+                                                    <li
+                                                        key={priority.rank}>
+
+                                                        <div>
+                                                            <strong>
+                                                                {priority.title}
+                                                            </strong>
+
+                                                            <p>
+                                                                {priority.action}
+                                                            </p>
+
+                                                            <span
+                                                                class="inline-badge">
+                                                                {priority.priority}
+                                                            </span>
+
+                                                            <span
+                                                                class="inline-category">
+                                                                {priority.category}
+                                                            </span>
+                                                        </div>
+                                                    </li>
+                                                </template>
+                                            </ol>
+                                        </div>
+                                    </template>
+
+                                    <div class="activity-source-note">
+                                        <lightning-icon
+                                            icon-name="utility:info"
+                                            size="xx-small"
+                                            alternative-text="Activity source">
+                                        </lightning-icon>
 
                                         <span>
-                                            {recommendation.entityApiName}
+                                            Current priorities and category
+                                            summaries use the same shared
+                                            Org Knowledge findings that
+                                            power Org Health and Deployment
+                                            Readiness. Verified Salesforce
+                                            change history will require a
+                                            future deployment-history data
+                                            source.
                                         </span>
                                     </div>
-                                </article>
+                                </section>
                             </template>
+
+                            <!-- Trend tracking -->
+                            <section
+                                class="content-panel trend-panel">
+
+                                <div class="panel-header">
+                                    <div>
+                                        <h2 class="section-title">
+                                            Previous Scan vs. Current Scan
+                                        </h2>
+
+                                        <p class="panel-description">
+                                            Compares the current results
+                                            with the previous analysis
+                                            stored in this browser.
+                                        </p>
+                                    </div>
+
+                                    <lightning-icon
+                                        icon-name="utility:trending"
+                                        size="small"
+                                        alternative-text="Trend Tracking">
+                                    </lightning-icon>
+                                </div>
+
+                                <template if:true={hasTrendData}>
+                                    <div class="trend-grid">
+                                        <article class="focus-card">
+                                            <span class="focus-label">
+                                                Org Health Change
+                                            </span>
+
+                                            <strong>
+                                                {healthTrendLabel}
+                                            </strong>
+
+                                            <p>
+                                                Current score:
+                                                {orgHealthDisplay}
+                                            </p>
+                                        </article>
+
+                                        <article class="focus-card">
+                                            <span class="focus-label">
+                                                Deployment Change
+                                            </span>
+
+                                            <strong>
+                                                {deploymentTrendLabel}
+                                            </strong>
+
+                                            <p>
+                                                Current score:
+                                                {deploymentScoreDisplay}
+                                            </p>
+                                        </article>
+
+                                        <article class="focus-card">
+                                            <span class="focus-label">
+                                                Finding Change
+                                            </span>
+
+                                            <strong>
+                                                {findingTrendLabel}
+                                            </strong>
+
+                                            <p>
+                                                Current findings:
+                                                {totalFindings}
+                                            </p>
+                                        </article>
+                                    </div>
+
+                                    <p class="trend-source-note">
+                                        Previous result generated:
+                                        {previousAnalysisLabel}
+                                    </p>
+                                </template>
+
+                                <template if:false={hasTrendData}>
+                                    <p class="empty-copy">
+                                        Run the analysis again to create
+                                        the first current-versus-previous
+                                        comparison.
+                                    </p>
+                                </template>
+                            </section>
+
+                            <!-- Explainable scoring -->
+                            <section
+                                class="content-panel explanation-panel">
+
+                                <div class="panel-header">
+                                    <div>
+                                        <p
+                                            class="eyebrow dark-eyebrow">
+                                            Explainable Scoring
+                                        </p>
+
+                                        <h2 class="section-title">
+                                            {healthScoreExplanation.title}
+                                        </h2>
+
+                                        <p class="panel-description">
+                                            {healthScoreExplanation.summary}
+                                        </p>
+                                    </div>
+
+                                    <lightning-icon
+                                        icon-name="utility:info_alt"
+                                        size="small"
+                                        alternative-text="Score Explanation">
+                                    </lightning-icon>
+                                </div>
+
+                                <template
+                                    if:true={hasHealthExplanationCategories}>
+
+                                    <div class="category-grid">
+                                        <template
+                                            for:each={healthExplanationCategories}
+                                            for:item="category">
+
+                                            <article
+                                                key={category.category}
+                                                class="category-card explanation-card">
+
+                                                <div
+                                                    class="category-heading">
+
+                                                    <strong>
+                                                        {category.category}
+                                                    </strong>
+
+                                                    <span
+                                                        class="category-score">
+                                                        -{category.totalScoreImpact}
+                                                        points
+                                                    </span>
+                                                </div>
+
+                                                <div class="category-meta">
+                                                    <span>
+                                                        {category.findingCount}
+                                                        findings
+                                                    </span>
+
+                                                    <span>
+                                                        {category.highCount}
+                                                        high
+                                                    </span>
+
+                                                    <span>
+                                                        {category.criticalCount}
+                                                        critical
+                                                    </span>
+                                                </div>
+                                            </article>
+                                        </template>
+                                    </div>
+                                </template>
+
+                                <template
+                                    if:false={hasHealthExplanationCategories}>
+
+                                    <p class="empty-copy">
+                                        No scoring deductions were
+                                        generated from the metadata
+                                        analyzed.
+                                    </p>
+                                </template>
+                            </section>
+
                         </div>
-                    </template>
+                    </lightning-tab>
 
-                    <template if:false={hasRecommendations}>
-                        <p class="empty-copy">
-                            No recommendations were generated.
-                        </p>
-                    </template>
-                </section>
-
-                <!-- Shared intelligence note -->
-                <section class="content-panel shared-engine-panel">
-                    <div class="panel-header">
-                        <div>
-                            <h2 class="section-title">
-                                Shared Intelligence Reuse
-                            </h2>
-
-                            <p class="panel-description">
-                                The same Org Knowledge result now supports
-                                multiple Salesforce Copilot workflows.
-                            </p>
-                        </div>
-
-                        <lightning-icon
-                            icon-name="utility:connected_apps"
-                            size="small"
-                            alternative-text="Shared Intelligence">
-                        </lightning-icon>
-                    </div>
-
-                    <div class="metric-grid">
-                        <article class="metric-card">
-                            <span class="metric-label">
-                                Explain This
-                            </span>
-
-                            <strong class="shared-feature-status">
-                                Knowledge Ready
-                            </strong>
-
-                            <span class="metric-detail">
-                                Uses object and field profiles, findings,
-                                risks, recommendations, and tests.
-                            </span>
-                        </article>
-
-                        <article class="metric-card">
-                            <span class="metric-label">
-                                Change Impact
-                            </span>
-
-                            <strong class="shared-feature-status">
-                                Knowledge Ready
-                            </strong>
-
-                            <span class="metric-detail">
-                                Uses entity risk, structural metadata,
-                                dependencies, and testing guidance.
-                            </span>
-                        </article>
-
-                        <article class="metric-card">
-                            <span class="metric-label">
-                                Deployment Readiness
-                            </span>
-
-                            <strong class="shared-feature-status">
-                                Live
-                            </strong>
-
-                            <span class="metric-detail">
-                                Uses blockers, warnings, findings,
-                                recommendations, and readiness scoring.
-                            </span>
-                        </article>
-                    </div>
-                </section>
-
-                <!-- Object scan coverage and actions -->
-                <section class="coverage-panel">
-                    <div>
-                        <h2 class="section-title">
-                            Object Scan Coverage
-                        </h2>
-
-                        <p class="panel-description">
-                            {coverageLabel}. This summary measures the object
-                            profiles inspected during this scan. The detailed
-                            Metadata Coverage panel above measures which
-                            Salesforce metadata categories are connected.
-                        </p>
-                    </div>
-
-                    <div class="coverage-actions">
-                        <lightning-button
-                            label="Clear Results"
-                            icon-name="utility:clear"
-                            onclick={handleClear}
-                            disabled={isLoading}>
-                        </lightning-button>
-
-                        <lightning-button
-                            label="Run Again"
-                            variant="brand"
-                            icon-name="utility:refresh"
-                            onclick={handleRunAgain}
-                            disabled={isLoading}>
-                        </lightning-button>
-                    </div>
-                </section>
+                </lightning-tabset>
 
             </template>
 
