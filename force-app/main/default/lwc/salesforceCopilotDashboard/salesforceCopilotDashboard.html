@@ -1,405 +1,400 @@
 <template>
-    <lightning-card>
-        <div class="slds-p-around_large">
+  <lightning-card>
+    <div class="slds-p-around_large">
+      <template if:true={showDashboard}>
+        <section class="hero">
+          <div
+            class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center"
+          >
+            <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-3">
+              <div class="hero-title">Salesforce Copilot</div>
 
-            <template if:true={showDashboard}>
+              <div class="hero-subtitle">
+                Intelligent Salesforce Administration Workspace
+              </div>
 
-                <section class="hero">
-                    <div class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center">
+              <p class="slds-m-top_small">
+                Explain Salesforce metadata, analyze automation, explore the
+                org, evaluate health, troubleshoot issues, and plan Salesforce
+                solutions.
+              </p>
 
-                        <div class="slds-col slds-size_1-of-1 slds-large-size_2-of-3">
-                            <div class="hero-title">
-                                Salesforce Copilot
-                            </div>
+              <div class="slds-m-top_medium">
+                <lightning-badge label={liveModulesLabel}> </lightning-badge>
 
-                            <div class="hero-subtitle">
-                                Intelligent Salesforce Administration Workspace
-                            </div>
+                <lightning-badge
+                  class="slds-m-left_x-small"
+                  label="Copilot Intelligence Active"
+                >
+                </lightning-badge>
 
-                            <p class="slds-m-top_small">
-                                Explain Salesforce metadata, analyze automation,
-                                explore the org, evaluate health, troubleshoot
-                                issues, and plan Salesforce solutions.
-                            </p>
+                <lightning-badge
+                  class="slds-m-left_x-small"
+                  label="Live Metadata Connected"
+                >
+                </lightning-badge>
+              </div>
+            </div>
 
-                            <div class="slds-m-top_medium">
-                                <lightning-badge
-                                    label="6 Live Modules">
-                                </lightning-badge>
+            <div
+              class="slds-col slds-size_1-of-1 slds-large-size_1-of-3 slds-text-align_right"
+            >
+              <lightning-icon
+                icon-name="utility:einstein"
+                size="large"
+                alternative-text="Salesforce Copilot"
+              >
+              </lightning-icon>
+            </div>
+          </div>
+        </section>
 
-                                <lightning-badge
-                                    class="slds-m-left_x-small"
-                                    label="Copilot Intelligence Active">
-                                </lightning-badge>
+        <section class="slds-m-bottom_large">
+          <div class="slds-grid slds-wrap slds-gutters">
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-p-bottom_medium"
+            >
+              <lightning-card class="kpi-card">
+                <div class="slds-p-around_medium">
+                  <p class="slds-text-title_caps">Live Modules</p>
 
-                                <lightning-badge
-                                    class="slds-m-left_x-small"
-                                    label="Live Metadata Connected">
-                                </lightning-badge>
-                            </div>
-                        </div>
+                  <h2 class="kpi-value">{liveModuleCount}</h2>
 
-                        <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-3 slds-text-align_right">
-                            <lightning-icon
-                                icon-name="utility:einstein"
-                                size="large"
-                                alternative-text="Salesforce Copilot">
-                            </lightning-icon>
-                        </div>
+                  <p class="kpi-detail">Active admin workspaces</p>
+                </div>
+              </lightning-card>
+            </div>
+
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-p-bottom_medium"
+            >
+              <lightning-card class="kpi-card">
+                <div class="slds-p-around_medium">
+                  <p class="slds-text-title_caps">Intelligence Layer</p>
+
+                  <h2 class="kpi-value">Active</h2>
+
+                  <p class="kpi-detail">
+                    Explanations and dependency analysis connected
+                  </p>
+                </div>
+              </lightning-card>
+            </div>
+
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-p-bottom_medium"
+            >
+              <lightning-card class="kpi-card">
+                <div class="slds-p-around_medium">
+                  <p class="slds-text-title_caps">Metadata</p>
+
+                  <h2 class="kpi-value">Connected</h2>
+
+                  <p class="kpi-detail">Org Context Service v1.1</p>
+                </div>
+              </lightning-card>
+            </div>
+          </div>
+        </section>
+
+        <section class="slds-m-bottom_large">
+          <div class="section-heading">
+            <h2 class="slds-text-heading_medium">Quick Actions</h2>
+
+            <p class="slds-text-body_small">
+              Start with the Salesforce task you need to complete.
+            </p>
+          </div>
+
+          <div class="slds-grid slds-wrap slds-gutters">
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+            >
+              <lightning-button
+                label="Explain This"
+                icon-name="utility:knowledge_base"
+                variant="brand"
+                data-destination="explainThis"
+                onclick={handleQuickAction}
+              >
+              </lightning-button>
+            </div>
+
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+            >
+              <lightning-button
+                label="Org Health"
+                icon-name="utility:shield"
+                data-destination="orgHealthDashboard"
+                onclick={handleQuickAction}
+              >
+              </lightning-button>
+            </div>
+
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+            >
+              <lightning-button
+                label="Analyze Flow"
+                icon-name="utility:flow"
+                data-destination="flowIntelligence"
+                onclick={handleQuickAction}
+              >
+              </lightning-button>
+            </div>
+
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+            >
+              <lightning-button
+                label="Explore Org"
+                icon-name="utility:connected_apps"
+                data-destination="orgExplorer"
+                onclick={handleQuickAction}
+              >
+              </lightning-button>
+            </div>
+
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+            >
+              <lightning-button
+                label="Automation Advice"
+                icon-name="utility:settings"
+                data-destination="automationAdvisor"
+                onclick={handleQuickAction}
+              >
+              </lightning-button>
+            </div>
+
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+            >
+              <lightning-button
+                label="Troubleshoot"
+                icon-name="utility:warning"
+                data-destination="troubleshootingAssistant"
+                onclick={handleQuickAction}
+              >
+              </lightning-button>
+            </div>
+          </div>
+        </section>
+
+        <section class="slds-m-bottom_large">
+          <div class="section-heading">
+            <h2 class="slds-text-heading_medium">Copilot Modules</h2>
+
+            <p class="slds-text-body_small">
+              Open a live workspace or preview an upcoming module.
+            </p>
+          </div>
+
+          <div class="slds-grid slds-wrap slds-gutters">
+            <template for:each={capabilities} for:item="capability">
+              <div
+                key={capability.name}
+                class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3 slds-p-bottom_medium"
+              >
+                <lightning-card class="module-card">
+                  <div class="slds-p-around_medium">
+                    <div
+                      class="slds-grid slds-grid_align-spread slds-grid_vertical-align-start"
+                    >
+                      <div class="slds-grid slds-grid_vertical-align-center">
+                        <lightning-icon
+                          icon-name={capability.iconName}
+                          size="small"
+                          alternative-text={capability.title}
+                        >
+                        </lightning-icon>
+
+                        <h3 class="slds-text-heading_small slds-m-left_small">
+                          {capability.title}
+                        </h3>
+                      </div>
+
+                      <span class={capability.statusClass}>
+                        {capability.status}
+                      </span>
                     </div>
-                </section>
 
-                <section class="slds-m-bottom_large">
-                    <div class="slds-grid slds-wrap slds-gutters">
+                    <p class="module-description slds-m-top_medium">
+                      {capability.description}
+                    </p>
 
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-p-bottom_medium">
-                            <lightning-card class="kpi-card">
-                                <div class="slds-p-around_medium">
-                                    <p class="slds-text-title_caps">
-                                        Live Modules
-                                    </p>
+                    <div class="slds-m-top_medium">
+                      <div
+                        class="slds-grid slds-grid_align-spread slds-m-bottom_x-small"
+                      >
+                        <span class="slds-text-body_small">
+                          {capability.phase}
+                        </span>
 
-                                    <h2 class="kpi-value">
-                                        6
-                                    </h2>
+                        <span class="slds-text-body_small">
+                          {capability.progressLabel}
+                        </span>
+                      </div>
 
-                                    <p class="kpi-detail">
-                                        Active admin workspaces
-                                    </p>
-                                </div>
-                            </lightning-card>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-p-bottom_medium">
-                            <lightning-card class="kpi-card">
-                                <div class="slds-p-around_medium">
-                                    <p class="slds-text-title_caps">
-                                        Intelligence Layer
-                                    </p>
-
-                                    <h2 class="kpi-value">
-                                        Active
-                                    </h2>
-
-                                    <p class="kpi-detail">
-                                        Explanations and dependency analysis connected
-                                    </p>
-                                </div>
-                            </lightning-card>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3 slds-p-bottom_medium">
-                            <lightning-card class="kpi-card">
-                                <div class="slds-p-around_medium">
-                                    <p class="slds-text-title_caps">
-                                        Metadata
-                                    </p>
-
-                                    <h2 class="kpi-value">
-                                        Connected
-                                    </h2>
-
-                                    <p class="kpi-detail">
-                                        Org Context Service v1.1
-                                    </p>
-                                </div>
-                            </lightning-card>
-                        </div>
-
-                    </div>
-                </section>
-
-                <section class="slds-m-bottom_large">
-                    <div class="section-heading">
-                        <h2 class="slds-text-heading_medium">
-                            Quick Actions
-                        </h2>
-
-                        <p class="slds-text-body_small">
-                            Start with the Salesforce task you need to complete.
-                        </p>
+                      <lightning-progress-bar
+                        value={capability.progress}
+                        size="medium"
+                      >
+                      </lightning-progress-bar>
                     </div>
 
-                    <div class="slds-grid slds-wrap slds-gutters">
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
-                            <lightning-button
-                                label="Explain This"
-                                icon-name="utility:knowledge_base"
-                                variant="brand"
-                                data-destination="explainThis"
-                                onclick={handleQuickAction}>
-                            </lightning-button>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
-                            <lightning-button
-                                label="Org Health"
-                                icon-name="utility:shield"
-                                data-destination="orgHealthDashboard"
-                                onclick={handleQuickAction}>
-                            </lightning-button>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
-                            <lightning-button
-                                label="Analyze Flow"
-                                icon-name="utility:flow"
-                                data-destination="flowIntelligence"
-                                onclick={handleQuickAction}>
-                            </lightning-button>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
-                            <lightning-button
-                                label="Explore Org"
-                                icon-name="utility:connected_apps"
-                                data-destination="orgExplorer"
-                                onclick={handleQuickAction}>
-                            </lightning-button>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
-                            <lightning-button
-                                label="Automation Advice"
-                                icon-name="utility:settings"
-                                data-destination="automationAdvisor"
-                                onclick={handleQuickAction}>
-                            </lightning-button>
-                        </div>
-
-                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small">
-                            <lightning-button
-                                label="Troubleshoot"
-                                icon-name="utility:warning"
-                                data-destination="troubleshootingAssistant"
-                                onclick={handleQuickAction}>
-                            </lightning-button>
-                        </div>
-
+                    <div class="slds-m-top_medium">
+                      <lightning-button
+                        label="Launch"
+                        variant="brand"
+                        data-name={capability.name}
+                        onclick={handleLaunch}
+                        disabled={capability.disabled}
+                      >
+                      </lightning-button>
                     </div>
-                </section>
-
-                <section class="slds-m-bottom_large">
-                    <div class="section-heading">
-                        <h2 class="slds-text-heading_medium">
-                            Copilot Modules
-                        </h2>
-
-                        <p class="slds-text-body_small">
-                            Open a live workspace or preview an upcoming module.
-                        </p>
-                    </div>
-
-                    <div class="slds-grid slds-wrap slds-gutters">
-                        <template
-                            for:each={capabilities}
-                            for:item="capability">
-
-                            <div
-                                key={capability.name}
-                                class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-3 slds-p-bottom_medium">
-
-                                <lightning-card class="module-card">
-                                    <div class="slds-p-around_medium">
-
-                                        <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-start">
-                                            <div class="slds-grid slds-grid_vertical-align-center">
-                                                <lightning-icon
-                                                    icon-name={capability.iconName}
-                                                    size="small"
-                                                    alternative-text={capability.title}>
-                                                </lightning-icon>
-
-                                                <h3 class="slds-text-heading_small slds-m-left_small">
-                                                    {capability.title}
-                                                </h3>
-                                            </div>
-
-                                            <span class={capability.statusClass}>
-                                                {capability.status}
-                                            </span>
-                                        </div>
-
-                                        <p class="module-description slds-m-top_medium">
-                                            {capability.description}
-                                        </p>
-
-                                        <div class="slds-m-top_medium">
-                                            <div class="slds-grid slds-grid_align-spread slds-m-bottom_x-small">
-                                                <span class="slds-text-body_small">
-                                                    {capability.phase}
-                                                </span>
-
-                                                <span class="slds-text-body_small">
-                                                    {capability.progressLabel}
-                                                </span>
-                                            </div>
-
-                                            <lightning-progress-bar
-                                                value={capability.progress}
-                                                size="medium">
-                                            </lightning-progress-bar>
-                                        </div>
-
-                                        <div class="slds-m-top_medium">
-                                            <lightning-button
-                                                label="Launch"
-                                                variant="brand"
-                                                data-name={capability.name}
-                                                onclick={handleLaunch}
-                                                disabled={capability.disabled}>
-                                            </lightning-button>
-                                        </div>
-
-                                    </div>
-                                </lightning-card>
-                            </div>
-
-                        </template>
-                    </div>
-                </section>
-
-                <section class="slds-m-bottom_small">
-                    <lightning-card
-                        title="Developer Tools"
-                        icon-name="utility:setup">
-
-                        <div class="slds-p-around_medium">
-                            <div class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center">
-
-                                <div class="slds-col">
-                                    <p class="slds-text-title_bold">
-                                        Metadata Diagnostic
-                                    </p>
-
-                                    <p class="slds-text-body_small slds-m-top_x-small">
-                                        Validate live organization, object, field,
-                                        relationship, record-type, and access metadata.
-                                    </p>
-                                </div>
-
-                                <div class="slds-col slds-m-top_small">
-                                    <lightning-button
-                                        label="Open Diagnostic"
-                                        icon-name="utility:database"
-                                        data-destination="metadataDiagnostic"
-                                        onclick={handleQuickAction}>
-                                    </lightning-button>
-                                </div>
-
-                            </div>
-                        </div>
-                    </lightning-card>
-                </section>
-
+                  </div>
+                </lightning-card>
+              </div>
             </template>
+          </div>
+        </section>
 
-            <template if:true={showExplainThis}>
-                <div class="workspace-header">
-                    <lightning-button
-                        label="Back to Dashboard"
-                        icon-name="utility:back"
-                        onclick={backToDashboard}>
-                    </lightning-button>
+        <section class="slds-m-bottom_small">
+          <lightning-card title="Developer Tools" icon-name="utility:setup">
+            <div class="slds-p-around_medium">
+              <div
+                class="slds-grid slds-wrap slds-grid_align-spread slds-grid_vertical-align-center"
+              >
+                <div class="slds-col">
+                  <p class="slds-text-title_bold">Metadata Diagnostic</p>
+
+                  <p class="slds-text-body_small slds-m-top_x-small">
+                    Validate live organization, object, field, relationship,
+                    record-type, and access metadata.
+                  </p>
                 </div>
 
-                <div class="workspace-container">
-                    <c-explain-this-workspace>
-                    </c-explain-this-workspace>
+                <div class="slds-col slds-m-top_small">
+                  <lightning-button
+                    label="Open Diagnostic"
+                    icon-name="utility:database"
+                    data-destination="metadataDiagnostic"
+                    onclick={handleQuickAction}
+                  >
+                  </lightning-button>
                 </div>
-            </template>
+              </div>
+            </div>
+          </lightning-card>
+        </section>
+      </template>
 
-            <template if:true={showFlowIntelligence}>
-                <div class="workspace-header">
-                    <lightning-button
-                        label="Back to Dashboard"
-                        icon-name="utility:back"
-                        onclick={backToDashboard}>
-                    </lightning-button>
-                </div>
-
-                <div class="workspace-container">
-                    <c-flow-intelligence>
-                    </c-flow-intelligence>
-                </div>
-            </template>
-
-            <template if:true={showOrgExplorer}>
-                <div class="workspace-header">
-                    <lightning-button
-                        label="Back to Dashboard"
-                        icon-name="utility:back"
-                        onclick={backToDashboard}>
-                    </lightning-button>
-                </div>
-
-                <div class="workspace-container">
-                    <c-org-explorer>
-                    </c-org-explorer>
-                </div>
-            </template>
-
-            <template if:true={showOrgHealthDashboard}>
-                <div class="workspace-header">
-                    <lightning-button
-                        label="Back to Dashboard"
-                        icon-name="utility:back"
-                        onclick={backToDashboard}>
-                    </lightning-button>
-                </div>
-
-                <div class="workspace-container">
-                    <c-org-health-dashboard>
-                    </c-org-health-dashboard>
-                </div>
-            </template>
-
-            <template if:true={showAutomationAdvisor}>
-                <div class="workspace-header">
-                    <lightning-button
-                        label="Back to Dashboard"
-                        icon-name="utility:back"
-                        onclick={backToDashboard}>
-                    </lightning-button>
-                </div>
-
-                <div class="workspace-container">
-                    <c-automation-advisor>
-                    </c-automation-advisor>
-                </div>
-            </template>
-
-            <template if:true={showTroubleshootingAssistant}>
-                <div class="workspace-header">
-                    <lightning-button
-                        label="Back to Dashboard"
-                        icon-name="utility:back"
-                        onclick={backToDashboard}>
-                    </lightning-button>
-                </div>
-
-                <div class="workspace-container">
-                    <c-troubleshooting-assistant>
-                    </c-troubleshooting-assistant>
-                </div>
-            </template>
-
-            <template if:true={showMetadataDiagnostic}>
-                <div class="workspace-header">
-                    <lightning-button
-                        label="Back to Dashboard"
-                        icon-name="utility:back"
-                        onclick={backToDashboard}>
-                    </lightning-button>
-                </div>
-
-                <div class="workspace-container">
-                    <c-org-context-viewer>
-                    </c-org-context-viewer>
-                </div>
-            </template>
-
+      <template if:true={showExplainThis}>
+        <div class="workspace-header">
+          <lightning-button
+            label="Back to Dashboard"
+            icon-name="utility:back"
+            onclick={backToDashboard}
+          >
+          </lightning-button>
         </div>
-    </lightning-card>
+
+        <div class="workspace-container">
+          <c-explain-this-workspace> </c-explain-this-workspace>
+        </div>
+      </template>
+
+      <template if:true={showFlowIntelligence}>
+        <div class="workspace-header">
+          <lightning-button
+            label="Back to Dashboard"
+            icon-name="utility:back"
+            onclick={backToDashboard}
+          >
+          </lightning-button>
+        </div>
+
+        <div class="workspace-container">
+          <c-flow-intelligence> </c-flow-intelligence>
+        </div>
+      </template>
+
+      <template if:true={showOrgExplorer}>
+        <div class="workspace-header">
+          <lightning-button
+            label="Back to Dashboard"
+            icon-name="utility:back"
+            onclick={backToDashboard}
+          >
+          </lightning-button>
+        </div>
+
+        <div class="workspace-container">
+          <c-org-explorer> </c-org-explorer>
+        </div>
+      </template>
+
+      <template if:true={showOrgHealthDashboard}>
+        <div class="workspace-header">
+          <lightning-button
+            label="Back to Dashboard"
+            icon-name="utility:back"
+            onclick={backToDashboard}
+          >
+          </lightning-button>
+        </div>
+
+        <div class="workspace-container">
+          <c-org-health-dashboard> </c-org-health-dashboard>
+        </div>
+      </template>
+
+      <template if:true={showAutomationAdvisor}>
+        <div class="workspace-header">
+          <lightning-button
+            label="Back to Dashboard"
+            icon-name="utility:back"
+            onclick={backToDashboard}
+          >
+          </lightning-button>
+        </div>
+
+        <div class="workspace-container">
+          <c-automation-advisor> </c-automation-advisor>
+        </div>
+      </template>
+
+      <template if:true={showTroubleshootingAssistant}>
+        <div class="workspace-header">
+          <lightning-button
+            label="Back to Dashboard"
+            icon-name="utility:back"
+            onclick={backToDashboard}
+          >
+          </lightning-button>
+        </div>
+
+        <div class="workspace-container">
+          <c-troubleshooting-assistant> </c-troubleshooting-assistant>
+        </div>
+      </template>
+
+      <template if:true={showMetadataDiagnostic}>
+        <div class="workspace-header">
+          <lightning-button
+            label="Back to Dashboard"
+            icon-name="utility:back"
+            onclick={backToDashboard}
+          >
+          </lightning-button>
+        </div>
+
+        <div class="workspace-container">
+          <c-org-context-viewer> </c-org-context-viewer>
+        </div>
+      </template>
+    </div>
+  </lightning-card>
 </template>
