@@ -1,0 +1,201 @@
+<template>
+  <section class="daily-brief" aria-labelledby="daily-brief-heading">
+    <header class="brief-header">
+      <div>
+        <p class="eyebrow">Salesforce Copilot</p>
+
+        <h1 id="daily-brief-heading" class="brief-title">
+          {greeting}, {userName}
+        </h1>
+
+        <p class="brief-date">{formattedDate}</p>
+      </div>
+
+      <div class="status-pill">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span>Deterministic mode</span>
+      </div>
+    </header>
+
+    <div class="summary-grid">
+      <article class="summary-card">
+        <div class="card-icon">
+          <lightning-icon
+            icon-name="utility:success"
+            alternative-text="Org health"
+            size="small"
+          ></lightning-icon>
+        </div>
+
+        <div>
+          <p class="card-label">Org Health</p>
+          <p class="card-value">{orgHealthStatus}</p>
+          <p class="card-detail">{orgHealthMessage}</p>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <div class="card-icon">
+          <lightning-icon
+            icon-name="utility:chart"
+            alternative-text="Metadata coverage"
+            size="small"
+          ></lightning-icon>
+        </div>
+
+        <div>
+          <p class="card-label">Metadata Coverage</p>
+          <p class="card-value">{metadataCoverage}%</p>
+          <p class="card-detail">Metadata categories currently analyzed</p>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <div class="card-icon">
+          <lightning-icon
+            icon-name="utility:apps"
+            alternative-text="Live modules"
+            size="small"
+          ></lightning-icon>
+        </div>
+
+        <div>
+          <p class="card-label">Live Modules</p>
+          <p class="card-value">{liveModuleCount}</p>
+          <p class="card-detail">Available Copilot workspaces</p>
+        </div>
+      </article>
+
+      <article class="summary-card">
+        <div class="card-icon">
+          <lightning-icon
+            icon-name="utility:priority"
+            alternative-text="Priority"
+            size="small"
+          ></lightning-icon>
+        </div>
+
+        <div>
+          <p class="card-label">Current Priority</p>
+          <p class="card-value card-value-small">{currentPriority}</p>
+          <p class="card-detail">
+            Recommended focus for this development session
+          </p>
+        </div>
+      </article>
+    </div>
+
+    <div class="content-grid">
+      <article class="content-card">
+        <div class="section-heading">
+          <div>
+            <p class="section-eyebrow">Focus</p>
+            <h2>Today’s Priorities</h2>
+          </div>
+
+          <lightning-icon
+            icon-name="utility:checklist"
+            alternative-text="Priority checklist"
+            size="small"
+          ></lightning-icon>
+        </div>
+
+        <ul class="priority-list">
+          <template for:each={dailyPriorities} for:item="priority">
+            <li key={priority.id} class="priority-item">
+              <span class={priority.indicatorClass} aria-hidden="true"></span>
+
+              <div>
+                <p class="priority-title">{priority.title}</p>
+                <p class="priority-description">{priority.description}</p>
+              </div>
+            </li>
+          </template>
+        </ul>
+      </article>
+
+      <article class="content-card">
+        <div class="section-heading">
+          <div>
+            <p class="section-eyebrow">Momentum</p>
+            <h2>Recent Progress</h2>
+          </div>
+
+          <lightning-icon
+            icon-name="utility:trail"
+            alternative-text="Recent progress"
+            size="small"
+          ></lightning-icon>
+        </div>
+
+        <ul class="progress-list">
+          <template for:each={recentProgress} for:item="progressItem">
+            <li key={progressItem.id} class="progress-item">
+              <lightning-icon
+                icon-name="utility:check"
+                alternative-text="Completed"
+                size="xx-small"
+              ></lightning-icon>
+
+              <span>{progressItem.label}</span>
+            </li>
+          </template>
+        </ul>
+      </article>
+    </div>
+
+    <article class="recommended-action">
+      <div class="recommended-content">
+        <div class="recommended-icon">
+          <lightning-icon
+            icon-name="utility:light_bulb"
+            alternative-text="Recommended action"
+            size="small"
+          ></lightning-icon>
+        </div>
+
+        <div>
+          <p class="section-eyebrow">Suggested Next Step</p>
+          <h2>{recommendedActionTitle}</h2>
+          <p>{recommendedActionDescription}</p>
+        </div>
+      </div>
+
+      <lightning-button
+        label="Open Recommended Workspace"
+        variant="brand"
+        onclick={handleRecommendedAction}
+      ></lightning-button>
+    </article>
+
+    <div class="quick-actions">
+      <div class="section-heading quick-actions-heading">
+        <div>
+          <p class="section-eyebrow">Navigate</p>
+          <h2>Quick Actions</h2>
+        </div>
+      </div>
+
+      <div class="action-grid">
+        <template for:each={quickActions} for:item="action">
+          <button
+            key={action.id}
+            class="action-card"
+            data-module={action.moduleName}
+            onclick={handleQuickAction}
+            type="button"
+          >
+            <lightning-icon
+              icon-name={action.iconName}
+              alternative-text={action.label}
+              size="small"
+            ></lightning-icon>
+
+            <span class="action-label">{action.label}</span>
+            <span class="action-description"> {action.description} </span>
+          </button>
+        </template>
+      </div>
+    </div>
+  </section>
+</template>

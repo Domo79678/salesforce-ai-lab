@@ -1,0 +1,47 @@
+<template>
+  <section class="workspace-router">
+    <div class="workspace-header">
+      <lightning-button
+        label="Back to Dashboard"
+        icon-name="utility:back"
+        onclick={handleBackToDashboard}
+      ></lightning-button>
+    </div>
+
+    <div class="workspace-container">
+      <template if:true={showDailyBrief}>
+        <c-daily-brief
+          onworkspacenavigate={handleWorkspaceNavigate}
+        ></c-daily-brief>
+      </template>
+
+      <template if:true={showExplainThis}>
+        <c-explain-this-workspace></c-explain-this-workspace>
+      </template>
+
+      <template if:true={showFlowIntelligence}>
+        <c-flow-intelligence></c-flow-intelligence>
+      </template>
+
+      <template if:true={showOrgExplorer}>
+        <c-org-explorer></c-org-explorer>
+      </template>
+
+      <template if:true={showOrgHealthDashboard}>
+        <c-org-health-dashboard></c-org-health-dashboard>
+      </template>
+
+      <template if:true={showAutomationAdvisor}>
+        <c-automation-advisor></c-automation-advisor>
+      </template>
+
+      <template if:true={showTroubleshootingAssistant}>
+        <c-troubleshooting-assistant></c-troubleshooting-assistant>
+      </template>
+
+      <template if:true={showMetadataDiagnostic}>
+        <c-org-context-viewer></c-org-context-viewer>
+      </template>
+    </div>
+  </section>
+</template>

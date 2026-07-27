@@ -9,6 +9,7 @@ import {
 } from "c/copilotModuleRegistry";
 
 const DASHBOARD = "dashboard";
+const METADATA_DIAGNOSTIC = "metadataDiagnostic";
 
 export default class SalesforceCopilotDashboard extends LightningElement {
   currentView = DASHBOARD;
@@ -16,12 +17,6 @@ export default class SalesforceCopilotDashboard extends LightningElement {
   capabilities = COPILOT_MODULES.map((moduleDefinition) => ({
     ...moduleDefinition
   }));
-
-  /*
-    -----------------------------------------
-    Dashboard Metrics
-    -----------------------------------------
-    */
 
   get liveCapabilities() {
     return getLiveModules();
@@ -47,60 +42,24 @@ export default class SalesforceCopilotDashboard extends LightningElement {
     return `${this.averageProgress}%`;
   }
 
-  /*
-    -----------------------------------------
-    Views
-    -----------------------------------------
-    */
-
   get showDashboard() {
     return this.currentView === DASHBOARD;
   }
 
-  get showExplainThis() {
-    return this.currentView === "explainThis";
+  get showWorkspaceRouter() {
+    return this.currentView !== DASHBOARD;
   }
-
-  get showFlowIntelligence() {
-    return this.currentView === "flowIntelligence";
-  }
-
-  get showOrgExplorer() {
-    return this.currentView === "orgExplorer";
-  }
-
-  get showOrgHealthDashboard() {
-    return this.currentView === "orgHealthDashboard";
-  }
-
-  get showAutomationAdvisor() {
-    return this.currentView === "automationAdvisor";
-  }
-
-  get showTroubleshootingAssistant() {
-    return this.currentView === "troubleshootingAssistant";
-  }
-
-  get showMetadataDiagnostic() {
-    return this.currentView === "metadataDiagnostic";
-  }
-
-  /*
-    -----------------------------------------
-    Navigation
-    -----------------------------------------
-    */
 
   handleLaunch(event) {
-    const destination = event.currentTarget.dataset.name;
-
-    this.navigate(destination);
+    this.navigate(event.currentTarget.dataset.name);
   }
 
   handleQuickAction(event) {
-    const destination = event.currentTarget.dataset.destination;
+    this.navigate(event.currentTarget.dataset.destination);
+  }
 
-    this.navigate(destination);
+  handleWorkspaceNavigate(event) {
+    this.navigate(event.detail?.destination);
   }
 
   navigate(destination) {
@@ -108,7 +67,7 @@ export default class SalesforceCopilotDashboard extends LightningElement {
       return;
     }
 
-    if (destination === "metadataDiagnostic") {
+    if (destination === METADATA_DIAGNOSTIC) {
       this.currentView = destination;
       return;
     }

@@ -6,6 +6,20 @@
  */
 export const COPILOT_MODULES = Object.freeze([
   Object.freeze({
+    name: "dailyBrief",
+    title: "Daily Brief",
+    iconName: "utility:dayview",
+    description:
+      "Review org health, metadata coverage, development priorities, recent progress, and recommended administrative actions.",
+    status: "Available",
+    statusClass: "status-badge status-available",
+    progress: 70,
+    progressLabel: "70% complete",
+    phase: "Executive Experience MVP",
+    disabled: false,
+    featured: true
+  }),
+  Object.freeze({
     name: "explainThis",
     title: "Explain This",
     iconName: "utility:knowledge_base",

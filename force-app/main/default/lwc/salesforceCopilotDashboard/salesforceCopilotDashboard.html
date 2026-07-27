@@ -57,9 +57,7 @@
               <lightning-card class="kpi-card">
                 <div class="slds-p-around_medium">
                   <p class="slds-text-title_caps">Live Modules</p>
-
                   <h2 class="kpi-value">{liveModuleCount}</h2>
-
                   <p class="kpi-detail">Active admin workspaces</p>
                 </div>
               </lightning-card>
@@ -71,9 +69,7 @@
               <lightning-card class="kpi-card">
                 <div class="slds-p-around_medium">
                   <p class="slds-text-title_caps">Intelligence Layer</p>
-
                   <h2 class="kpi-value">Active</h2>
-
                   <p class="kpi-detail">
                     Explanations and dependency analysis connected
                   </p>
@@ -87,9 +83,7 @@
               <lightning-card class="kpi-card">
                 <div class="slds-p-around_medium">
                   <p class="slds-text-title_caps">Metadata</p>
-
                   <h2 class="kpi-value">Connected</h2>
-
                   <p class="kpi-detail">Org Context Service v1.1</p>
                 </div>
               </lightning-card>
@@ -108,12 +102,24 @@
 
           <div class="slds-grid slds-wrap slds-gutters">
             <div
-              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-7 slds-p-bottom_small"
+            >
+              <lightning-button
+                label="Daily Brief"
+                icon-name="utility:dayview"
+                variant="brand"
+                data-destination="dailyBrief"
+                onclick={handleQuickAction}
+              >
+              </lightning-button>
+            </div>
+
+            <div
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-7 slds-p-bottom_small"
             >
               <lightning-button
                 label="Explain This"
                 icon-name="utility:knowledge_base"
-                variant="brand"
                 data-destination="explainThis"
                 onclick={handleQuickAction}
               >
@@ -121,7 +127,7 @@
             </div>
 
             <div
-              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-7 slds-p-bottom_small"
             >
               <lightning-button
                 label="Org Health"
@@ -133,7 +139,7 @@
             </div>
 
             <div
-              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-7 slds-p-bottom_small"
             >
               <lightning-button
                 label="Analyze Flow"
@@ -145,7 +151,7 @@
             </div>
 
             <div
-              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-7 slds-p-bottom_small"
             >
               <lightning-button
                 label="Explore Org"
@@ -157,7 +163,7 @@
             </div>
 
             <div
-              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-7 slds-p-bottom_small"
             >
               <lightning-button
                 label="Automation Advice"
@@ -169,7 +175,7 @@
             </div>
 
             <div
-              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-6 slds-p-bottom_small"
+              class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-7 slds-p-bottom_small"
             >
               <lightning-button
                 label="Troubleshoot"
@@ -291,109 +297,13 @@
         </section>
       </template>
 
-      <template if:true={showExplainThis}>
-        <div class="workspace-header">
-          <lightning-button
-            label="Back to Dashboard"
-            icon-name="utility:back"
-            onclick={backToDashboard}
-          >
-          </lightning-button>
-        </div>
-
-        <div class="workspace-container">
-          <c-explain-this-workspace> </c-explain-this-workspace>
-        </div>
-      </template>
-
-      <template if:true={showFlowIntelligence}>
-        <div class="workspace-header">
-          <lightning-button
-            label="Back to Dashboard"
-            icon-name="utility:back"
-            onclick={backToDashboard}
-          >
-          </lightning-button>
-        </div>
-
-        <div class="workspace-container">
-          <c-flow-intelligence> </c-flow-intelligence>
-        </div>
-      </template>
-
-      <template if:true={showOrgExplorer}>
-        <div class="workspace-header">
-          <lightning-button
-            label="Back to Dashboard"
-            icon-name="utility:back"
-            onclick={backToDashboard}
-          >
-          </lightning-button>
-        </div>
-
-        <div class="workspace-container">
-          <c-org-explorer> </c-org-explorer>
-        </div>
-      </template>
-
-      <template if:true={showOrgHealthDashboard}>
-        <div class="workspace-header">
-          <lightning-button
-            label="Back to Dashboard"
-            icon-name="utility:back"
-            onclick={backToDashboard}
-          >
-          </lightning-button>
-        </div>
-
-        <div class="workspace-container">
-          <c-org-health-dashboard> </c-org-health-dashboard>
-        </div>
-      </template>
-
-      <template if:true={showAutomationAdvisor}>
-        <div class="workspace-header">
-          <lightning-button
-            label="Back to Dashboard"
-            icon-name="utility:back"
-            onclick={backToDashboard}
-          >
-          </lightning-button>
-        </div>
-
-        <div class="workspace-container">
-          <c-automation-advisor> </c-automation-advisor>
-        </div>
-      </template>
-
-      <template if:true={showTroubleshootingAssistant}>
-        <div class="workspace-header">
-          <lightning-button
-            label="Back to Dashboard"
-            icon-name="utility:back"
-            onclick={backToDashboard}
-          >
-          </lightning-button>
-        </div>
-
-        <div class="workspace-container">
-          <c-troubleshooting-assistant> </c-troubleshooting-assistant>
-        </div>
-      </template>
-
-      <template if:true={showMetadataDiagnostic}>
-        <div class="workspace-header">
-          <lightning-button
-            label="Back to Dashboard"
-            icon-name="utility:back"
-            onclick={backToDashboard}
-          >
-          </lightning-button>
-        </div>
-
-        <div class="workspace-container">
-          <c-org-context-viewer> </c-org-context-viewer>
-        </div>
+      <template if:true={showWorkspaceRouter}>
+        <c-copilot-workspace-router
+          current-view={currentView}
+          onworkspacenavigate={handleWorkspaceNavigate}
+          onbacktodashboard={backToDashboard}
+        >
+        </c-copilot-workspace-router>
       </template>
     </div>
   </lightning-card>
