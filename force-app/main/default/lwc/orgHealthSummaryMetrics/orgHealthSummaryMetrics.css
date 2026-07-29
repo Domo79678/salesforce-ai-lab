@@ -1,0 +1,60 @@
+:host {
+  display: block;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.metric-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid #d8e2ef;
+  border-radius: 0.65rem;
+  background: #fff;
+}
+
+.metric-card span {
+  display: block;
+  color: #706e6b;
+  font-size: 0.66rem;
+}
+
+.metric-card strong {
+  display: block;
+  color: #032d60;
+  font-size: 1.2rem;
+}
+
+.metric-card-critical {
+  border-top: 3px solid #ba0517;
+}
+
+.metric-card-high {
+  border-top: 3px solid #fe9339;
+}
+
+.metric-card-blocking {
+  border-top: 3px solid #8e030f;
+}
+
+.metric-card-recommendation {
+  border-top: 3px solid #0176d3;
+}
+
+@media screen and (max-width: 64rem) {
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 48rem) {
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+}

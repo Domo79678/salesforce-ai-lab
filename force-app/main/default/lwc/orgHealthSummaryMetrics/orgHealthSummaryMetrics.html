@@ -1,0 +1,20 @@
+<template>
+  <section class="metric-grid">
+    <template for:each={cards} for:item="card">
+      <article key={card.id} class={card.cardClass}>
+        <lightning-icon
+          icon-name={card.iconName}
+          size="x-small"
+          alternative-text={card.label}
+        >
+        </lightning-icon>
+
+        <div>
+          <span> {card.label} </span>
+
+          <strong> {card.value} </strong>
+        </div>
+      </article>
+    </template>
+  </section>
+</template>

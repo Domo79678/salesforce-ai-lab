@@ -1,567 +1,382 @@
 <template>
-    <section class="org-health-shell">
+  <section class="org-health-shell">
+    <header class="workspace-header">
+      <div>
+        <span class="eyebrow"> Salesforce Copilot </span>
 
-        <header class="workspace-header">
+        <h1>Org Health</h1>
+
+        <p>
+          Monitor risks, recommendations, category health, and deployment
+          readiness using current Salesforce metadata.
+        </p>
+
+        <div class="source-row">
+          <span class="source-value"> {dataSourceLabel} </span>
+
+          <template if:true={lastRefreshedAt}>
+            <span class="refresh-label"> Updated {lastRefreshedAt} </span>
+          </template>
+        </div>
+      </div>
+
+      <lightning-button
+        label={refreshButtonLabel}
+        icon-name="utility:refresh"
+        variant="brand"
+        onclick={handleRefresh}
+        disabled={isLoading}
+      >
+      </lightning-button>
+    </header>
+
+    <template if:true={isLoading}>
+      <div class="loading-strip">
+        <lightning-spinner
+          alternative-text="Refreshing live analysis"
+          size="small"
+        >
+        </lightning-spinner>
+
+        <span> Retrieving and evaluating live Salesforce metadata... </span>
+      </div>
+    </template>
+
+    <template if:true={hasError}>
+      <div class="error-panel">
+        <lightning-icon
+          icon-name="utility:error"
+          size="small"
+          alternative-text="Error"
+        >
+        </lightning-icon>
+
+        <span> {errorMessage} </span>
+      </div>
+    </template>
+
+    <template if:true={hasAnalysis}>
+      <section class="score-grid">
+        <article class="score-card health-score-card">
+          <div class="score-card-heading">
             <div>
-                <span class="eyebrow">
-                    Salesforce Copilot
-                </span>
+              <span class="card-kicker"> Partial Live Score </span>
 
-                <h1>
-                    Org Health
-                </h1>
+              <h2>Org Health</h2>
+            </div>
 
-                <p>
-                    Monitor risks, recommendations,
-                    category health, and deployment
-                    readiness using current Salesforce
-                    metadata.
-                </p>
+            <lightning-icon
+              icon-name="utility:shield"
+              size="small"
+              alternative-text="Org Health"
+            >
+            </lightning-icon>
+          </div>
 
-                <div class="source-row">
-                    <span class="source-value">
-                        {dataSourceLabel}
+          <div class="score-line">
+            <strong> {healthScoreLabel} </strong>
+
+            <span class={healthStatusClass}> {healthStatus} </span>
+          </div>
+
+          <div class="score-detail">
+            <span> Lowest category </span>
+
+            <strong> {lowestCategory} · {lowestCategoryScore}/100 </strong>
+          </div>
+        </article>
+
+        <article class="score-card readiness-score-card">
+          <div class="score-card-heading">
+            <div>
+              <span class="card-kicker"> Partial Release Confidence </span>
+
+              <h2>Deployment Readiness</h2>
+            </div>
+
+            <lightning-icon
+              icon-name="utility:package"
+              size="small"
+              alternative-text="Deployment Readiness"
+            >
+            </lightning-icon>
+          </div>
+
+          <div class="score-line">
+            <strong> {deploymentScoreLabel} </strong>
+
+            <span class={deploymentStatusClass}> {deploymentStatus} </span>
+          </div>
+
+          <div class="score-detail split-detail">
+            <div>
+              <span> Risk </span>
+
+              <strong> {deploymentRiskLevel} </strong>
+            </div>
+
+            <div>
+              <span> Rollback </span>
+
+              <strong> {rollbackRequiredLabel} </strong>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <c-org-health-summary-metrics cards={summaryCards}>
+      </c-org-health-summary-metrics>
+
+      <section class="primary-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <span class="card-kicker"> Weighted Scoring </span>
+
+              <h2>Health Categories</h2>
+            </div>
+
+            <div class="risk-summary">
+              <span> Highest risk </span>
+
+              <strong> {highestRiskCategory} · {highestRiskLevel} </strong>
+            </div>
+          </div>
+
+          <template if:true={hasCategories}>
+            <div class="category-list">
+              <template for:each={categoryRows} for:item="category">
+                <div key={category.id} class="category-row">
+                  <div class="category-heading">
+                    <div>
+                      <strong> {category.category} </strong>
+
+                      <span> {category.findingLabel} </span>
+                    </div>
+
+                    <div class="category-score">
+                      <span class={category.statusClass}>
+                        {category.status}
+                      </span>
+
+                      <strong> {category.scoreLabel} </strong>
+                    </div>
+                  </div>
+
+                  <div class="progress-track">
+                    <div
+                      class={category.progressClass}
+                      style={category.scoreStyle}
+                    ></div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <template if:false={hasCategories}>
+            <div class="empty-state">Category scores are not available.</div>
+          </template>
+        </article>
+
+        <article class="panel brief-panel">
+          <div class="panel-header">
+            <div>
+              <span class="card-kicker"> Admin Intelligence </span>
+
+              <h2>Daily Brief</h2>
+            </div>
+
+            <lightning-icon
+              icon-name="utility:announcement"
+              size="small"
+              alternative-text="Daily Brief"
+            >
+            </lightning-icon>
+          </div>
+
+          <div class="brief-headline">{dailyBriefHeadline}</div>
+
+          <div class="priority-list">
+            <template for:each={dailyPriorities} for:item="priority">
+              <div key={priority.displayId} class="daily-priority">
+                <span> {priority.rank} </span>
+
+                <div>
+                  <strong> {priority.title} </strong>
+
+                  <p>{priority.action}</p>
+                </div>
+              </div>
+            </template>
+          </div>
+        </article>
+      </section>
+
+      <section class="secondary-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <span class="card-kicker"> Risk Detection </span>
+
+              <h2>Top Findings</h2>
+            </div>
+          </div>
+
+          <template if:true={hasTopFindings}>
+            <div class="compact-list">
+              <template for:each={topFindings} for:item="finding">
+                <div key={finding.displayId} class="finding-item">
+                  <div class="item-heading">
+                    <span class={finding.severityClass}>
+                      {finding.severity}
                     </span>
 
-                    <template if:true={lastRefreshedAt}>
-                        <span class="refresh-label">
-                            Updated {lastRefreshedAt}
-                        </span>
-                    </template>
+                    <strong> {finding.title} </strong>
+
+                    <span class="score-impact">
+                      {finding.scoreImpactLabel}
+                    </span>
+                  </div>
+
+                  <p>{finding.summary}</p>
+
+                  <span class="item-meta">
+                    {finding.category} · {finding.entityLabel}
+                  </span>
                 </div>
+              </template>
             </div>
+          </template>
 
-            <lightning-button
-                label={refreshButtonLabel}
-                icon-name="utility:refresh"
-                variant="brand"
-                onclick={handleRefresh}
-                disabled={isLoading}>
-            </lightning-button>
-        </header>
-
-        <template if:true={isLoading}>
-            <div class="loading-strip">
-                <lightning-spinner
-                    alternative-text="Refreshing live analysis"
-                    size="small">
-                </lightning-spinner>
-
-                <span>
-                    Retrieving and evaluating live
-                    Salesforce metadata...
-                </span>
+          <template if:false={hasTopFindings}>
+            <div class="empty-state">
+              No findings require attention within the metadata currently
+              connected.
             </div>
-        </template>
+          </template>
+        </article>
 
-        <template if:true={hasError}>
-            <div class="error-panel">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <span class="card-kicker"> Recommended Next Steps </span>
+
+              <h2>Priority Actions</h2>
+            </div>
+          </div>
+
+          <template if:true={hasRecommendations}>
+            <div class="compact-list">
+              <template for:each={topRecommendations} for:item="recommendation">
+                <div key={recommendation.displayId} class="recommendation-item">
+                  <span class="rank"> {recommendation.rank} </span>
+
+                  <div>
+                    <div class="item-heading">
+                      <strong> {recommendation.title} </strong>
+
+                      <span class={recommendation.priorityClass}>
+                        {recommendation.priority}
+                      </span>
+                    </div>
+
+                    <p>{recommendation.actionText}</p>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <template if:false={hasRecommendations}>
+            <div class="empty-state">
+              No actions were generated from the currently connected metadata.
+            </div>
+          </template>
+        </article>
+      </section>
+
+      <section class="bottom-grid">
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <span class="card-kicker"> Release Controls </span>
+
+              <h2>Deployment Guidance</h2>
+            </div>
+          </div>
+
+          <div class="guidance-message">{approvalRecommendation}</div>
+
+          <div class="test-list">
+            <template for:each={requiredTests} for:item="test">
+              <div key={test.id} class="test-item">
                 <lightning-icon
-                    icon-name="utility:error"
-                    size="small"
-                    alternative-text="Error">
+                  icon-name="utility:check"
+                  size="xx-small"
+                  alternative-text="Required Test"
+                >
                 </lightning-icon>
 
-                <span>
-                    {errorMessage}
-                </span>
+                <span> {test.label} </span>
+              </div>
+            </template>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-header">
+            <div>
+              <span class="card-kicker"> Analysis Coverage </span>
+
+              <h2>Metadata Evaluated</h2>
             </div>
-        </template>
-
-        <template if:true={hasAnalysis}>
-
-            <section class="score-grid">
-                <article class="score-card health-score-card">
-                    <div class="score-card-heading">
-                        <div>
-                            <span class="card-kicker">
-                                Partial Live Score
-                            </span>
-
-                            <h2>
-                                Org Health
-                            </h2>
-                        </div>
-
-                        <lightning-icon
-                            icon-name="utility:shield"
-                            size="small"
-                            alternative-text="Org Health">
-                        </lightning-icon>
-                    </div>
-
-                    <div class="score-line">
-                        <strong>
-                            {healthScoreLabel}
-                        </strong>
-
-                        <span class={healthStatusClass}>
-                            {healthStatus}
-                        </span>
-                    </div>
-
-                    <div class="score-detail">
-                        <span>
-                            Lowest category
-                        </span>
-
-                        <strong>
-                            {lowestCategory}
-                            ·
-                            {lowestCategoryScore}/100
-                        </strong>
-                    </div>
-                </article>
-
-                <article class="score-card readiness-score-card">
-                    <div class="score-card-heading">
-                        <div>
-                            <span class="card-kicker">
-                                Partial Release Confidence
-                            </span>
-
-                            <h2>
-                                Deployment Readiness
-                            </h2>
-                        </div>
-
-                        <lightning-icon
-                            icon-name="utility:package"
-                            size="small"
-                            alternative-text="Deployment Readiness">
-                        </lightning-icon>
-                    </div>
-
-                    <div class="score-line">
-                        <strong>
-                            {deploymentScoreLabel}
-                        </strong>
-
-                        <span class={deploymentStatusClass}>
-                            {deploymentStatus}
-                        </span>
-                    </div>
-
-                    <div class="score-detail split-detail">
-                        <div>
-                            <span>
-                                Risk
-                            </span>
-
-                            <strong>
-                                {deploymentRiskLevel}
-                            </strong>
-                        </div>
-
-                        <div>
-                            <span>
-                                Rollback
-                            </span>
-
-                            <strong>
-                                {rollbackRequiredLabel}
-                            </strong>
-                        </div>
-                    </div>
-                </article>
-            </section>
-
-            <section class="metric-grid">
-                <template
-                    for:each={summaryCards}
-                    for:item="card">
-
-                    <article
-                        key={card.id}
-                        class={card.cardClass}>
-
-                        <lightning-icon
-                            icon-name={card.iconName}
-                            size="x-small"
-                            alternative-text={card.label}>
-                        </lightning-icon>
-
-                        <div>
-                            <span>
-                                {card.label}
-                            </span>
-
-                            <strong>
-                                {card.value}
-                            </strong>
-                        </div>
-                    </article>
-                </template>
-            </section>
-
-            <section class="primary-grid">
-
-                <article class="panel">
-                    <div class="panel-header">
-                        <div>
-                            <span class="card-kicker">
-                                Weighted Scoring
-                            </span>
-
-                            <h2>
-                                Health Categories
-                            </h2>
-                        </div>
-
-                        <div class="risk-summary">
-                            <span>
-                                Highest risk
-                            </span>
-
-                            <strong>
-                                {highestRiskCategory}
-                                ·
-                                {highestRiskLevel}
-                            </strong>
-                        </div>
-                    </div>
-
-                    <template if:true={hasCategories}>
-                        <div class="category-list">
-                            <template
-                                for:each={categoryRows}
-                                for:item="category">
-
-                                <div
-                                    key={category.id}
-                                    class="category-row">
-
-                                    <div class="category-heading">
-                                        <div>
-                                            <strong>
-                                                {category.category}
-                                            </strong>
-
-                                            <span>
-                                                {category.findingLabel}
-                                            </span>
-                                        </div>
-
-                                        <div class="category-score">
-                                            <span class={category.statusClass}>
-                                                {category.status}
-                                            </span>
-
-                                            <strong>
-                                                {category.scoreLabel}
-                                            </strong>
-                                        </div>
-                                    </div>
-
-                                    <div class="progress-track">
-                                        <div
-                                            class={category.progressClass}
-                                            style={category.scoreStyle}>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </template>
-
-                    <template if:false={hasCategories}>
-                        <div class="empty-state">
-                            Category scores are not available.
-                        </div>
-                    </template>
-                </article>
-
-                <article class="panel brief-panel">
-                    <div class="panel-header">
-                        <div>
-                            <span class="card-kicker">
-                                Admin Intelligence
-                            </span>
-
-                            <h2>
-                                Daily Brief
-                            </h2>
-                        </div>
-
-                        <lightning-icon
-                            icon-name="utility:announcement"
-                            size="small"
-                            alternative-text="Daily Brief">
-                        </lightning-icon>
-                    </div>
-
-                    <div class="brief-headline">
-                        {dailyBriefHeadline}
-                    </div>
-
-                    <div class="priority-list">
-                        <template
-                            for:each={dailyPriorities}
-                            for:item="priority">
-
-                            <div
-                                key={priority.displayId}
-                                class="daily-priority">
-
-                                <span>
-                                    {priority.rank}
-                                </span>
-
-                                <div>
-                                    <strong>
-                                        {priority.title}
-                                    </strong>
-
-                                    <p>
-                                        {priority.action}
-                                    </p>
-                                </div>
-                            </div>
-                        </template>
-                    </div>
-                </article>
-            </section>
-
-            <section class="secondary-grid">
-
-                <article class="panel">
-                    <div class="panel-header">
-                        <div>
-                            <span class="card-kicker">
-                                Risk Detection
-                            </span>
-
-                            <h2>
-                                Top Findings
-                            </h2>
-                        </div>
-                    </div>
-
-                    <template if:true={hasTopFindings}>
-                        <div class="compact-list">
-                            <template
-                                for:each={topFindings}
-                                for:item="finding">
-
-                                <div
-                                    key={finding.displayId}
-                                    class="finding-item">
-
-                                    <div class="item-heading">
-                                        <span class={finding.severityClass}>
-                                            {finding.severity}
-                                        </span>
-
-                                        <strong>
-                                            {finding.title}
-                                        </strong>
-
-                                        <span class="score-impact">
-                                            {finding.scoreImpactLabel}
-                                        </span>
-                                    </div>
-
-                                    <p>
-                                        {finding.summary}
-                                    </p>
-
-                                    <span class="item-meta">
-                                        {finding.category}
-                                        ·
-                                        {finding.entityLabel}
-                                    </span>
-                                </div>
-                            </template>
-                        </div>
-                    </template>
-
-                    <template if:false={hasTopFindings}>
-                        <div class="empty-state">
-                            No findings require attention
-                            within the metadata currently
-                            connected.
-                        </div>
-                    </template>
-                </article>
-
-                <article class="panel">
-                    <div class="panel-header">
-                        <div>
-                            <span class="card-kicker">
-                                Recommended Next Steps
-                            </span>
-
-                            <h2>
-                                Priority Actions
-                            </h2>
-                        </div>
-                    </div>
-
-                    <template if:true={hasRecommendations}>
-                        <div class="compact-list">
-                            <template
-                                for:each={topRecommendations}
-                                for:item="recommendation">
-
-                                <div
-                                    key={recommendation.displayId}
-                                    class="recommendation-item">
-
-                                    <span class="rank">
-                                        {recommendation.rank}
-                                    </span>
-
-                                    <div>
-                                        <div class="item-heading">
-                                            <strong>
-                                                {recommendation.title}
-                                            </strong>
-
-                                            <span class={recommendation.priorityClass}>
-                                                {recommendation.priority}
-                                            </span>
-                                        </div>
-
-                                        <p>
-                                            {recommendation.actionText}
-                                        </p>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </template>
-
-                    <template if:false={hasRecommendations}>
-                        <div class="empty-state">
-                            No actions were generated from
-                            the currently connected metadata.
-                        </div>
-                    </template>
-                </article>
-            </section>
-
-            <section class="bottom-grid">
-
-                <article class="panel">
-                    <div class="panel-header">
-                        <div>
-                            <span class="card-kicker">
-                                Release Controls
-                            </span>
-
-                            <h2>
-                                Deployment Guidance
-                            </h2>
-                        </div>
-                    </div>
-
-                    <div class="guidance-message">
-                        {approvalRecommendation}
-                    </div>
-
-                    <div class="test-list">
-                        <template
-                            for:each={requiredTests}
-                            for:item="test">
-
-                            <div
-                                key={test.id}
-                                class="test-item">
-
-                                <lightning-icon
-                                    icon-name="utility:check"
-                                    size="xx-small"
-                                    alternative-text="Required Test">
-                                </lightning-icon>
-
-                                <span>
-                                    {test.label}
-                                </span>
-                            </div>
-                        </template>
-                    </div>
-                </article>
-
-                <article class="panel">
-                    <div class="panel-header">
-                        <div>
-                            <span class="card-kicker">
-                                Analysis Coverage
-                            </span>
-
-                            <h2>
-                                Metadata Evaluated
-                            </h2>
-                        </div>
-                    </div>
-
-                    <div class="metadata-grid">
-                        <template
-                            for:each={metadataCountCards}
-                            for:item="count">
-
-                            <div
-                                key={count.id}
-                                class="metadata-count">
-
-                                <strong>
-                                    {count.value}
-                                </strong>
-
-                                <span>
-                                    {count.label}
-                                </span>
-                            </div>
-                        </template>
-                    </div>
-
-                    <div class="snapshot-notice">
-                        <strong>
-                            {dataSourceLabel}
-                        </strong>
-
-                        <template if:true={isLiveData}>
-                            <p>
-                                {coverageSummaryLabel}
-                            </p>
-                        </template>
-
-                        <template if:true={isPartialCoverage}>
-                            <p>
-                                Organization, object, field,
-                                relationship, record-type,
-                                and access metadata are live.
-                                Setup metadata categories are
-                                being connected next.
-                            </p>
-                        </template>
-                    </div>
-
-                    <template if:true={hasSnapshotWarnings}>
-                        <div class="coverage-warning-list">
-                            <template
-                                for:each={snapshotWarningRows}
-                                for:item="warning">
-
-                                <div
-                                    key={warning.id}
-                                    class="coverage-warning">
-
-                                    <lightning-icon
-                                        icon-name="utility:warning"
-                                        size="xx-small"
-                                        alternative-text="Coverage warning">
-                                    </lightning-icon>
-
-                                    <span>
-                                        {warning.message}
-                                    </span>
-                                </div>
-                            </template>
-                        </div>
-                    </template>
-                </article>
-            </section>
-        </template>
-    </section>
+          </div>
+
+          <div class="metadata-grid">
+            <template for:each={metadataCountCards} for:item="count">
+              <div key={count.id} class="metadata-count">
+                <strong> {count.value} </strong>
+
+                <span> {count.label} </span>
+              </div>
+            </template>
+          </div>
+
+          <div class="snapshot-notice">
+            <strong> {dataSourceLabel} </strong>
+
+            <template if:true={isLiveData}>
+              <p>{coverageSummaryLabel}</p>
+            </template>
+
+            <template if:true={isPartialCoverage}>
+              <p>
+                Organization, object, field, relationship, record-type, and
+                access metadata are live. Setup metadata categories are being
+                connected next.
+              </p>
+            </template>
+          </div>
+
+          <template if:true={hasSnapshotWarnings}>
+            <div class="coverage-warning-list">
+              <template for:each={snapshotWarningRows} for:item="warning">
+                <div key={warning.id} class="coverage-warning">
+                  <lightning-icon
+                    icon-name="utility:warning"
+                    size="xx-small"
+                    alternative-text="Coverage warning"
+                  >
+                  </lightning-icon>
+
+                  <span> {warning.message} </span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </article>
+      </section>
+    </template>
+  </section>
 </template>
