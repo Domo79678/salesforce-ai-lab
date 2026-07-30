@@ -25,17 +25,63 @@ This repository serves as both a learning environment and a professional portfol
 ---
 
 ## Technologies
+## Languages and Development
+
+- JavaScript
+- Apex
+- HTML
+- CSS
+- XML
+- SOQL
+- JSON
+- Markdown
+
+## Salesforce Platform
 
 - Salesforce
-- Agentforce
+- Lightning Web Components
 - Flow Builder
-- Prompt Builder
+- Lightning App Builder
+- Salesforce Metadata API
 - Salesforce CLI
-- VS Code
+- Salesforce DX
+- Agentforce
+- Prompt Builder
+- REST APIs
+
+## Development Tools
+
+- Visual Studio Code
 - Git
 - GitHub
-- MCP
-- REST APIs
+- Jest
+- ESLint
+- Prettier
+- npm
+- Codex
+- Claude Code
+- ChatGPT
+
+## AI and Agentic Development
+
+- Codex
+- Claude Code
+- ChatGPT
+- Model Context Protocol (MCP)
+- Agentforce
+- Prompt Builder
+
+## Architecture and Professional Practices
+
+- Component-Based Architecture
+- Deterministic Metadata Analysis
+- Shared Service Architecture
+- CRM Process Automation
+- Metadata-Driven Development
+- Unit Testing
+- Version Control
+- Technical Documentation
+- AI-Assisted Development
 
 ---
 
