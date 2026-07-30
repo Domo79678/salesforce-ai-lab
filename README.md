@@ -2,30 +2,75 @@
 
 ## Overview
 
-Salesforce AI Lab is my personal development environment for designing, building, testing, and documenting modern Salesforce solutions using Agentforce, Flow, Prompt Builder, and AI-powered automation.
+Salesforce AI Lab is my personal research, development, and engineering environment for designing, building, testing, and documenting modern Salesforce solutions.
 
-This repository serves as both a learning environment and a professional portfolio demonstrating Salesforce Administration, AI solution design, and business automation.
+The flagship project in this repository is the **Salesforce Administration Workspace**—a modular application built with Lightning Web Components, Apex, and shared metadata services that helps Salesforce administrators, consultants, and CRM professionals better understand, analyze, document, and improve Salesforce organizations.
 
----
+The workspace is built on deterministic metadata analysis to provide reliable and explainable administrative insights. Future releases will introduce AI-assisted capabilities through Agentforce, Prompt Builder, and large language models to enhance explanation, documentation, and decision support while keeping deterministic analysis as the trusted foundation.
 
-## Current Goals
-## Current Goals
-
-- Become an exceptional Salesforce Administrator and CRM professional
-- Master Salesforce Flow automation and declarative architecture
-- Build practical Salesforce administration and decision-support tools
-- Learn Salesforce APIs, integrations, and metadata architecture
-- Develop real Agentforce and Prompt Builder solutions
-- Learn responsible AI-assisted development workflows
-- Strengthen Apex, Lightning Web Components, and Salesforce DX skills
-- Build reusable CRM administration workflows
-- Document every project professionally
-- Use hands-on projects to become a stronger administrator, consultant, and business systems professional
+This repository also serves as a professional portfolio documenting my journey as I continue developing expertise in Salesforce Administration, CRM architecture, automation, AI-assisted development, and modern software engineering.
 
 ---
 
-## Technologies
-## Languages and Development
+# Why This Repository Exists
+
+Salesforce provides powerful administrative tools, but administrators, consultants, and CRM professionals often spend significant time navigating Setup pages, metadata, documentation, and multiple applications just to understand how an organization works.
+
+The goal of this repository is to explore how a modern administration workspace can reduce context switching, improve decision-making, simplify documentation, and help professionals understand Salesforce organizations more efficiently.
+
+Rather than replacing Salesforce, this project is designed to complement the platform by providing deterministic analysis, guided workflows, documentation support, and eventually AI-assisted administrative experiences.
+
+---
+
+# Featured Project
+
+## Salesforce Administration Workspace
+
+**Status:** Active Development
+
+The Salesforce Administration Workspace is the primary application being developed within Salesforce AI Lab.
+
+Current capabilities include:
+
+- Executive Dashboard
+- Daily Brief
+- Org Health
+- Org Explorer
+- Org Knowledge Viewer
+- Explain This
+- Flow Intelligence
+- Shared Metadata Snapshot Services
+- Deterministic Org Knowledge Analysis
+- Workspace Routing
+
+The workspace is designed around five core objectives:
+
+- Help administrators understand unfamiliar Salesforce organizations.
+- Help professionals prioritize administrative work.
+- Analyze metadata and automation safely.
+- Improve documentation and knowledge sharing.
+- Help Salesforce professionals continuously improve their skills while working.
+
+---
+
+# Current Goals
+
+- Become an exceptional Salesforce Administrator and CRM professional.
+- Build production-quality Salesforce applications and administration tools.
+- Master Salesforce Flow, Apex, Lightning Web Components, and Salesforce DX.
+- Learn Salesforce APIs, integrations, and metadata architecture.
+- Build reusable CRM administration workflows.
+- Develop practical Agentforce and Prompt Builder solutions.
+- Learn responsible AI-assisted software development.
+- Strengthen software architecture, testing, and engineering practices.
+- Document every project professionally.
+- Build a portfolio demonstrating real-world Salesforce product development.
+
+---
+
+# Technologies
+
+## Languages
 
 - JavaScript
 - Apex
@@ -36,119 +81,157 @@ This repository serves as both a learning environment and a professional portfol
 - JSON
 - Markdown
 
+---
+
 ## Salesforce Platform
 
-- Salesforce
+- Salesforce Platform
 - Lightning Web Components
+- Apex
 - Flow Builder
 - Lightning App Builder
-- Salesforce Metadata API
-- Salesforce CLI
 - Salesforce DX
+- Salesforce CLI
+- Salesforce Metadata API
+- REST APIs
 - Agentforce
 - Prompt Builder
-- REST APIs
+
+---
 
 ## Development Tools
 
 - Visual Studio Code
 - Git
 - GitHub
+- npm
 - Jest
 - ESLint
 - Prettier
-- npm
+- Salesforce Extension Pack
 - Codex
 - Claude Code
 - ChatGPT
+
+---
 
 ## AI and Agentic Development
 
+Current AI Engineering Tools
+
+- OpenAI ChatGPT
 - Codex
 - Claude Code
-- ChatGPT
-- Model Context Protocol (MCP)
+
+Current AI Platform Technologies
+
 - Agentforce
 - Prompt Builder
 
+Research Areas
+
+- Retrieval-Augmented Generation (RAG)
+- Model Context Protocol (MCP)
+- AI-Assisted Development
+- AI Workflow Design
+- Deterministic + AI Hybrid Architectures
+
+---
+
 ## Architecture and Professional Practices
 
+Software Architecture
+
 - Component-Based Architecture
-- Deterministic Metadata Analysis
+- Modular Design
 - Shared Service Architecture
-- CRM Process Automation
 - Metadata-Driven Development
-- Unit Testing
+- Deterministic Analysis
+- Reusable UI Components
+
+Engineering Practices
+
 - Version Control
-- Technical Documentation
-- AI-Assisted Development
+- Unit Testing
+- Documentation-Driven Development
+- Professional Git Workflow
+- Code Reviews
+- Incremental Refactoring
+
+Salesforce Practices
+
+- Declarative First
+- Flow Automation
+- CRM Process Automation
+- Metadata Analysis
+- Org Health Monitoring
+- Administrator Decision Support
+- Consultant Thinking
 
 ---
 
-## Portfolio Projects
+## Current Workspace Modules
 
-### Salesforce Admin Assistant
+✅ Dashboard
 
-Status: Planning
-
-Purpose
-
-An AI assistant that helps Salesforce Administrators understand, troubleshoot, and document their org.
+Executive landing page for Salesforce administrators.
 
 ---
 
-### Flow Explainer
+✅ Daily Brief
 
-Status: Planning
-
-Purpose
-
-Explains Flow logic, business purpose, variables, and possible improvements.
+Provides a live administrative briefing using shared deterministic metadata analysis.
 
 ---
 
-### Documentation Assistant
+✅ Org Health
 
-Status: Planning
-
-Purpose
-
-Automatically generates administrator documentation.
+Analyzes metadata health using shared snapshots and deterministic scoring.
 
 ---
 
-### Org Health Analyzer
+✅ Org Explorer
 
-Status: Planning
-
-Purpose
-
-Reviews metadata and recommends improvements.
+Explore Salesforce metadata and organizational structure.
 
 ---
 
-## Repository Structure
+✅ Org Knowledge Viewer
 
-docs/
-
-projects/
-
-src/
-
-images/
-
-diagrams/
-
-loom/
+Displays shared organizational knowledge generated through deterministic analysis.
 
 ---
 
-## Current Status
+✅ Explain This
 
-Project initialization complete.
+Explains metadata from both business and technical perspectives.
 
-Developer Org connected.
+---
 
-Agentforce available.
+✅ Flow Intelligence
 
-Building portfolio projects.
+Analyzes Flow behavior, recommendations, testing guidance, and documentation.
+
+---
+
+🚧 Deployment Readiness
+
+Planned
+
+---
+
+🚧 Change Impact Analyzer
+
+Planned
+
+---
+
+🚧 Documentation Generator
+
+Planned
+
+---
+
+🚧 Salesforce Copilot (AI)
+
+Future conversational AI workspace built on deterministic metadata analysis.
