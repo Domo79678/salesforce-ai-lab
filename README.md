@@ -9,14 +9,18 @@ This repository serves as both a learning environment and a professional portfol
 ---
 
 ## Current Goals
+## Current Goals
 
-- Become an exceptional Salesforce Administrator
-- Build real Agentforce solutions
-- Learn Prompt Engineering inside Salesforce
-- Master Flow Automation
-- Learn Salesforce APIs and integrations
-- Build reusable AI-powered admin tools
+- Become an exceptional Salesforce Administrator and CRM professional
+- Master Salesforce Flow automation and declarative architecture
+- Build practical Salesforce administration and decision-support tools
+- Learn Salesforce APIs, integrations, and metadata architecture
+- Develop real Agentforce and Prompt Builder solutions
+- Learn responsible AI-assisted development workflows
+- Strengthen Apex, Lightning Web Components, and Salesforce DX skills
+- Build reusable CRM administration workflows
 - Document every project professionally
+- Use hands-on projects to become a stronger administrator, consultant, and business systems professional
 
 ---
 
