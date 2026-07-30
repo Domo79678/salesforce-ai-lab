@@ -244,6 +244,14 @@
                   <span class="item-meta">
                     {finding.category} · {finding.entityLabel}
                   </span>
+
+                  <lightning-button
+                    class="slds-m-top_small"
+                    label="Explain This"
+                    variant="base"
+                    data-id={finding.displayId}
+                    onclick={handleFindingExplain}
+                  ></lightning-button>
                 </div>
               </template>
             </div>
@@ -282,6 +290,14 @@
                     </div>
 
                     <p>{recommendation.actionText}</p>
+
+                    <lightning-button
+                      class="slds-m-top_small"
+                      label={recommendation.workspaceLabel}
+                      data-module={recommendation.moduleName}
+                      data-id={recommendation.displayId}
+                      onclick={handleRecommendationNavigate}
+                    ></lightning-button>
                   </div>
                 </div>
               </template>

@@ -1,0 +1,107 @@
+<template>
+  <section class="workspace">
+    <header>
+      <p class="eyebrow">Consultant planning workflow</p>
+      <h1>Ask Before You Build</h1>
+      <p>
+        Frame the business problem, affected users, design considerations, and
+        testing expectations before configuring Salesforce.
+      </p>
+      <lightning-badge label="Deterministic guidance"></lightning-badge>
+    </header>
+
+    <div class="steps">
+      <article class="step-card">
+        <span class="step-number">1</span>
+        <lightning-combobox
+          label="Select change type"
+          value={changeType}
+          options={changeTypeOptions}
+          onchange={handleChangeType}
+          required
+        ></lightning-combobox>
+      </article>
+
+      <article class="step-card">
+        <span class="step-number">2</span>
+        <lightning-textarea
+          label="Describe the business problem"
+          value={businessProblem}
+          onchange={handleBusinessProblem}
+          placeholder="Describe the outcome, constraint, and why the change is needed."
+          required
+        ></lightning-textarea>
+      </article>
+
+      <article class="step-card">
+        <span class="step-number">3</span>
+        <lightning-checkbox-group
+          name="affectedUsers"
+          label="Select affected users"
+          options={userOptions}
+          value={affectedUsers}
+          onchange={handleAffectedUsers}
+          required
+        ></lightning-checkbox-group>
+      </article>
+    </div>
+
+    <lightning-button
+      label="Review Before Building"
+      variant="brand"
+      icon-name="utility:choice"
+      onclick={buildGuidance}
+    ></lightning-button>
+
+    <template if:true={hasError}>
+      <div class="error" role="alert">{errorMessage}</div>
+    </template>
+
+    <template if:true={hasGuidance}>
+      <section class="results" aria-live="polite">
+        <article class="result-card feature-card">
+          <p class="eyebrow">Recommended Salesforce feature</p>
+          <h2>{guidance.recommendedFeature}</h2>
+          <p>
+            This recommendation is based on the selected change type. Use the
+            considerations below to validate that choice against the business
+            problem.
+          </p>
+        </article>
+
+        <article class="result-card">
+          <h2>Consultant Considerations</h2>
+          <ul>
+            <template for:each={considerationRows} for:item="item">
+              <li key={item.id}>{item.label}</li>
+            </template>
+          </ul>
+        </article>
+
+        <article class="result-card">
+          <h2>Testing Checklist</h2>
+          <ul>
+            <template for:each={testRows} for:item="item">
+              <li key={item.id}>{item.label}</li>
+            </template>
+          </ul>
+        </article>
+
+        <article class="result-card">
+          <h2>Related Workspaces</h2>
+          <div class="workspace-links">
+            <template for:each={relatedWorkspaceRows} for:item="item">
+              <lightning-button
+                key={item.moduleName}
+                label={item.label}
+                icon-name={item.iconName}
+                data-module={item.moduleName}
+                onclick={handleWorkspaceNavigate}
+              ></lightning-button>
+            </template>
+          </div>
+        </article>
+      </section>
+    </template>
+  </section>
+</template>

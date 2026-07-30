@@ -1,0 +1,80 @@
+<template>
+  <section class="brief-summary" aria-labelledby="brief-summary-title">
+    <template if:true={isLoading}>
+      <lightning-spinner
+        alternative-text="Loading Today's Brief Summary"
+        size="small"
+      ></lightning-spinner>
+    </template>
+
+    <template if:true={hasError}>
+      <span role="alert">{errorMessage}</span>
+    </template>
+
+    <div class="summary-heading">
+      <div>
+        <p>Mission Control</p>
+        <h2 id="brief-summary-title">Today's Brief Summary</h2>
+      </div>
+      <div class="counts" aria-label="Brief totals">
+        <strong>{highPriorityLabel}</strong>
+        <strong>{recommendedActionsLabel}</strong>
+      </div>
+    </div>
+
+    <div class="preview-grid">
+      <article class="priority-preview">
+        <p class="section-label">Top priority</p>
+        <template if:true={hasTopPriority}>
+          <h3>{topPriority.title}</h3>
+          <p>{topPriority.actionText}</p>
+          <lightning-button
+            label={topPriority.workspaceLabel}
+            data-module={topPriority.moduleName}
+            data-id={topPriority.displayId}
+            onclick={handleRecommendation}
+          ></lightning-button>
+        </template>
+        <template if:false={hasTopPriority}>
+          <p>No priority was generated from current metadata.</p>
+        </template>
+      </article>
+
+      <article class="actions-preview">
+        <p class="section-label">Recommended actions</p>
+        <template if:true={hasRecommendedActions}>
+          <ul>
+            <template for:each={recommendedActions} for:item="action">
+              <li key={action.displayId}>
+                <span>{action.title}</span>
+                <lightning-button
+                  label={action.workspaceLabel}
+                  variant="base"
+                  data-module={action.moduleName}
+                  data-id={action.displayId}
+                  onclick={handleRecommendation}
+                ></lightning-button>
+              </li>
+            </template>
+          </ul>
+        </template>
+        <template if:false={hasRecommendedActions}>
+          <p>No additional actions were generated.</p>
+        </template>
+      </article>
+    </div>
+
+    <div class="brief-footer">
+      <p>
+        <strong>Current summary</strong>
+        <span>{operationsSummaryLabel}</span>
+      </p>
+      <lightning-button
+        label="View Full Daily Brief"
+        variant="brand"
+        icon-name="utility:forward"
+        onclick={handleOpenBrief}
+      ></lightning-button>
+    </div>
+  </section>
+</template>

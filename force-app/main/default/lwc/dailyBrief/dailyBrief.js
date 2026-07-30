@@ -1,108 +1,74 @@
 import { LightningElement } from "lwc";
-import { getLiveModuleCount } from "c/copilotModuleRegistry";
+import { DATA_SOURCE_LABELS, DATA_SOURCE_TYPES } from "c/copilotCore";
+import { loadDailyBriefOperations } from "c/dailyBriefService";
+import {
+  createRecommendationContext,
+  createWorkspaceNavigationEvent,
+  enrichRecommendationWithWorkspace
+} from "c/recommendationWorkspaceService";
 
-const USER_NAME = "Domonique";
-
-const DAILY_PRIORITIES = Object.freeze([
-  Object.freeze({
-    id: "priority-1",
-    title: "Complete the Daily Brief workspace",
-    description:
-      "Finish the user interface, connect navigation, deploy, and verify the new workspace.",
-    indicatorClass: "priority-indicator priority-high"
-  }),
-  Object.freeze({
-    id: "priority-2",
-    title: "Improve the Findings experience",
-    description:
-      "Prepare severity grouping, filtering, and expandable findings for a cleaner admin workflow.",
-    indicatorClass: "priority-indicator priority-medium"
-  }),
-  Object.freeze({
-    id: "priority-3",
-    title: "Expand Explain This coverage",
-    description:
-      "Continue supporting additional Salesforce metadata types through the deterministic intelligence layer.",
-    indicatorClass: "priority-indicator priority-standard"
-  })
-]);
-
-const RECENT_PROGRESS = Object.freeze([
-  Object.freeze({
-    id: "progress-1",
-    label: "Created the centralized Copilot Module Registry"
-  }),
-  Object.freeze({
-    id: "progress-2",
-    label: "Refactored the dashboard to consume shared module definitions"
-  }),
-  Object.freeze({
-    id: "progress-3",
-    label: "Added permanent project and AI context documentation"
-  }),
-  Object.freeze({
-    id: "progress-4",
-    label: "Successfully deployed and verified the registry architecture"
-  }),
-  Object.freeze({
-    id: "progress-5",
-    label: "Created and deployed the Daily Brief workspace"
-  }),
-  Object.freeze({
-    id: "progress-6",
-    label: "Introduced the reusable Copilot Workspace Router"
-  })
-]);
-
-const QUICK_ACTIONS = Object.freeze([
-  Object.freeze({
-    id: "action-explain-this",
-    label: "Explain This",
-    description: "Understand Salesforce metadata and dependencies.",
-    iconName: "utility:knowledge_base",
-    moduleName: "explainThis"
-  }),
-  Object.freeze({
-    id: "action-flow-intelligence",
-    label: "Flow Intelligence",
-    description: "Analyze automation purpose, risks, and testing needs.",
-    iconName: "utility:flow",
-    moduleName: "flowIntelligence"
-  }),
-  Object.freeze({
-    id: "action-org-health",
-    label: "Org Health",
-    description: "Review health signals and prioritized findings.",
-    iconName: "utility:summary",
-    moduleName: "orgHealthDashboard"
-  }),
-  Object.freeze({
-    id: "action-org-explorer",
-    label: "Org Explorer",
-    description: "Inspect Salesforce objects and configuration.",
-    iconName: "utility:search",
-    moduleName: "orgExplorer"
-  })
-]);
+const UNKNOWN_USER = "Salesforce Administrator";
 
 export default class DailyBrief extends LightningElement {
-  userName = USER_NAME;
+  analysisResult = null;
+  errorMessage = "";
+  isLoading = false;
+  metadataSnapshot = null;
 
-  orgHealthStatus = "Healthy";
+  connectedCallback() {
+    this.loadBrief();
+  }
 
-  orgHealthMessage =
-    "No critical architecture concerns are currently highlighted.";
+  get brief() {
+    return this.analysisResult?.dailyBrief || {};
+  }
 
-  metadataCoverage = 84;
+  get hasAnalysis() {
+    return Boolean(this.analysisResult?.success);
+  }
 
-  currentPriority = "Findings Experience";
+  get hasError() {
+    return Boolean(this.errorMessage);
+  }
 
-  recommendedActionTitle = "Improve the Findings experience";
+  get userName() {
+    return this.metadataSnapshot?.organization?.userName || UNKNOWN_USER;
+  }
 
-  recommendedActionDescription =
-    "Open Org Health and begin organizing findings by severity with clearer filtering and expandable sections.";
+  get orgHealthStatus() {
+    return this.brief.orgHealth?.status || "Unknown";
+  }
 
-  recommendedModuleName = "orgHealthDashboard";
+  get orgHealthMessage() {
+    return this.brief.headline || "Org Health analysis is unavailable.";
+  }
+
+  get metadataCoverageLabel() {
+    return (
+      this.metadataSnapshot?.coverage?.label ||
+      DATA_SOURCE_LABELS[DATA_SOURCE_TYPES.UNAVAILABLE]
+    );
+  }
+
+  get metadataCoverageDetail() {
+    const coverage = this.metadataSnapshot?.coverage;
+
+    if (!coverage) {
+      return "Metadata coverage is unavailable.";
+    }
+
+    const selectedObjectCount = coverage.selectedObjectCount ?? 0;
+    const inventoryObjectCount = coverage.inventoryObjectCount ?? 0;
+
+    return `${selectedObjectCount} business objects analyzed from ${inventoryObjectCount} accessible objects`;
+  }
+
+  get dataSourceLabel() {
+    return (
+      this.metadataSnapshot?.sourceLabel ||
+      DATA_SOURCE_LABELS[DATA_SOURCE_TYPES.UNAVAILABLE]
+    );
+  }
 
   get greeting() {
     const currentHour = new Date().getHours();
@@ -127,24 +93,170 @@ export default class DailyBrief extends LightningElement {
     }).format(new Date());
   }
 
-  get liveModuleCount() {
-    return getLiveModuleCount();
+  get lastUpdatedLabel() {
+    const retrievedAt = this.metadataSnapshot?.retrievedAt;
+
+    if (!retrievedAt) {
+      return "";
+    }
+
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    }).format(new Date(retrievedAt));
   }
 
   get dailyPriorities() {
-    return DAILY_PRIORITIES;
+    return (this.brief.priorities || []).slice(0, 3).map((priority, index) => {
+      const enriched = enrichRecommendationWithWorkspace(priority);
+      return {
+        ...enriched,
+        id: `priority-${priority.rank || index + 1}`,
+        title: priority.title || "Review recommendation",
+        description:
+          priority.action || "Review the associated Org Health finding.",
+        indicatorClass: this.getPriorityIndicatorClass(priority.priority)
+      };
+    });
   }
 
-  get recentProgress() {
-    return RECENT_PROGRESS;
+  get hasPriorities() {
+    return this.dailyPriorities.length > 0;
   }
 
-  get quickActions() {
-    return QUICK_ACTIONS;
+  get topFindings() {
+    return (this.brief.findings?.top || [])
+      .slice(0, 3)
+      .map((finding, index) => ({
+        ...finding,
+        id: finding.id || `finding-${index + 1}`,
+        label: finding.title || finding.message || "Org Health finding",
+        reason: finding.summary || finding.message || ""
+      }));
+  }
+
+  get hasTopFindings() {
+    return this.topFindings.length > 0;
+  }
+
+  get executiveSummary() {
+    return this.brief.headline || "No findings require attention this morning.";
+  }
+
+  get documentationGaps() {
+    return (this.analysisResult?.findings || [])
+      .filter((finding) =>
+        String(finding.category).toLowerCase().includes("documentation")
+      )
+      .slice(0, 3)
+      .map((finding, index) => ({
+        id: finding.id || `documentation-gap-${index + 1}`,
+        label: finding.title || finding.summary || finding.message
+      }));
+  }
+
+  get hasDocumentationGaps() {
+    return this.documentationGaps.length > 0;
+  }
+
+  get deploymentReadinessStatus() {
+    return (
+      this.analysisResult?.deploymentReadiness?.status ||
+      this.analysisResult?.dashboardMetrics?.deploymentReadinessStatus ||
+      "Not evaluated"
+    );
+  }
+
+  get deploymentReadinessNotice() {
+    return (
+      this.analysisResult?.deploymentReadiness?.approvalRecommendation ||
+      "Deployment guidance is unavailable for the current metadata coverage."
+    );
+  }
+
+  get endOfDayChecklist() {
+    return (this.analysisResult?.deploymentReadiness?.requiredTests || [])
+      .slice(0, 5)
+      .map((label, index) => ({
+        id: `end-of-day-${index + 1}`,
+        label
+      }));
+  }
+
+  get hasEndOfDayChecklist() {
+    return this.endOfDayChecklist.length > 0;
+  }
+
+  get recommendedActionTitle() {
+    return this.dailyPriorities[0]?.title || "Review Org Health";
+  }
+
+  get recommendedActionDescription() {
+    return (
+      this.dailyPriorities[0]?.description ||
+      "Open Org Health to review the current analysis and metadata coverage."
+    );
+  }
+
+  get recommendedModuleName() {
+    return this.dailyPriorities[0]?.moduleName || "orgHealthDashboard";
+  }
+
+  async loadBrief() {
+    if (this.isLoading) {
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = "";
+
+    try {
+      const { metadataSnapshot, analysisResult } =
+        await loadDailyBriefOperations();
+
+      this.metadataSnapshot = metadataSnapshot;
+      this.analysisResult = analysisResult;
+    } catch (error) {
+      this.metadataSnapshot = null;
+      this.analysisResult = null;
+      this.errorMessage =
+        error?.body?.message ||
+        error?.message ||
+        "An unexpected Daily Brief error occurred.";
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  handleRetry() {
+    this.loadBrief();
   }
 
   handleRecommendedAction() {
-    this.dispatchNavigationEvent(this.recommendedModuleName);
+    this.dispatchNavigationEvent(
+      this.recommendedModuleName,
+      createRecommendationContext(this.dailyPriorities[0], {
+        sourceWorkspace: "dailyBrief",
+        sourceType: "priority",
+        metadataSnapshot: this.metadataSnapshot
+      })
+    );
+  }
+
+  handleFindingExplain(event) {
+    const finding = this.topFindings.find(
+      (item) => item.id === event.currentTarget.dataset.id
+    );
+    this.dispatchNavigationEvent(
+      "explainThis",
+      createRecommendationContext(finding, {
+        sourceWorkspace: "dailyBrief",
+        sourceType: "finding",
+        metadataSnapshot: this.metadataSnapshot
+      })
+    );
   }
 
   handleQuickAction(event) {
@@ -153,19 +265,43 @@ export default class DailyBrief extends LightningElement {
     this.dispatchNavigationEvent(moduleName);
   }
 
-  dispatchNavigationEvent(moduleName) {
+  handleWorkspaceNavigate(event) {
+    this.dispatchNavigationEvent(
+      event.detail?.moduleName || event.detail?.destination,
+      event.detail?.context
+    );
+  }
+
+  dispatchNavigationEvent(moduleName, context = null) {
     if (!moduleName) {
       return;
     }
 
-    this.dispatchEvent(
-      new CustomEvent("workspacenavigate", {
-        detail: {
-          moduleName
-        },
-        bubbles: true,
-        composed: true
-      })
+    const navigationEvent = createWorkspaceNavigationEvent(
+      moduleName,
+      context
+        ? {
+            ...context,
+            sourceWorkspace: "dailyBrief",
+            metadataSnapshot: this.metadataSnapshot
+          }
+        : null
     );
+
+    if (navigationEvent) {
+      this.dispatchEvent(navigationEvent);
+    }
+  }
+
+  getPriorityIndicatorClass(priority = "") {
+    switch (String(priority).toLowerCase()) {
+      case "critical":
+      case "high":
+        return "priority-indicator priority-high";
+      case "medium":
+        return "priority-indicator priority-medium";
+      default:
+        return "priority-indicator priority-standard";
+    }
   }
 }

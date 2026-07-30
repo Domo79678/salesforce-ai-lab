@@ -1,203 +1,151 @@
 <template>
+  <div class="workspace">
+    <!-- Hero Header -->
+
+    <section class="hero">
+      <div class="hero-left">
+        <p class="eyebrow">SALESFORCE COPILOT</p>
+
+        <h1>Explain This</h1>
+
+        <p class="subtitle">
+          Search any Salesforce metadata and instantly receive business context,
+          technical explanations, dependencies, deployment guidance, testing
+          recommendations, and interview coaching.
+        </p>
+      </div>
+    </section>
+
+    <template if:true={hasLaunchContext}>
+      <section class="context-banner" aria-labelledby="selected-issue-title">
+        <div>
+          <p class="eyebrow">Selected Issue</p>
+          <h2 id="selected-issue-title">{selectedIssueTitle}</h2>
+          <p>{selectedIssueReason}</p>
+          <span>Source: {selectedIssueSource}</span>
+        </div>
+        <lightning-button
+          label="Start New Explanation"
+          onclick={handleStartNewExplanation}
+        >
+        </lightning-button>
+      </section>
+    </template>
+
+    <!-- Search -->
+
+    <section class="search-panel">
+      <lightning-input
+        type="search"
+        label="Search Salesforce Metadata"
+        placeholder="Opportunity, Opportunity.Amount, Account, Case..."
+        value={searchValue}
+        onchange={handleSearchChange}
+      >
+      </lightning-input>
 
-    <div class="workspace">
+      <div class="button-row">
+        <lightning-button
+          variant="brand"
+          label="Explain"
+          disabled={explainButtonDisabled}
+          onclick={handleExplain}
+        >
+        </lightning-button>
+      </div>
+    </section>
+
+    <!-- Spinner -->
+
+    <template if:true={isLoading}>
+      <div class="loading-panel">
+        <lightning-spinner size="medium" alternative-text="Analyzing Metadata">
+        </lightning-spinner>
+      </div>
+    </template>
+
+    <!-- Results -->
+
+    <template if:true={hasExplanation}>
+      <!-- Summary -->
+
+      <section class="summary-bar">
+        <div class="summary-card">
+          <span class="summary-title"> Metadata Source </span>
+
+          <span class="summary-value"> {metadataSource} </span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-title"> Confidence </span>
+
+          <span class="summary-value"> {confidence}% </span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-title"> Dependencies </span>
+
+          <span class="summary-value"> {dependencyCount} </span>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-title"> Risk </span>
+
+          <span class="summary-value"> {riskLevel} </span>
+        </div>
+      </section>
+
+      <!-- Workspace Grid -->
+
+      <section class="workspace-grid">
+        <article class="panel">
+          <h2>Business Purpose</h2>
 
-        <!-- Hero Header -->
+          <p>{businessPurpose}</p>
+        </article>
 
-        <section class="hero">
+        <article class="panel">
+          <h2>Technical Explanation</h2>
 
-            <div class="hero-left">
+          <p>{technicalExplanation}</p>
+        </article>
 
-                <p class="eyebrow">
-                    SALESFORCE COPILOT
-                </p>
+        <article class="panel">
+          <h2>Dependencies</h2>
 
-                <h1>
-                    Explain This
-                </h1>
+          <p>{dependencySummary}</p>
+        </article>
 
-                <p class="subtitle">
+        <article class="panel">
+          <h2>Risk Analysis</h2>
 
-                    Search any Salesforce metadata and instantly receive
-                    business context, technical explanations,
-                    dependencies, deployment guidance,
-                    testing recommendations, and interview coaching.
+          <p>{riskSummary}</p>
+        </article>
 
-                </p>
+        <article class="panel">
+          <h2>Suggested Improvements</h2>
 
-            </div>
+          <p>{recommendations}</p>
+        </article>
 
-        </section>
+        <article class="panel">
+          <h2>Testing Guidance</h2>
 
-        <!-- Search -->
+          <p>{testingGuidance}</p>
+        </article>
 
-        <section class="search-panel">
+        <article class="panel">
+          <h2>Deployment Considerations</h2>
 
-            <lightning-input
-                type="search"
-                label="Search Salesforce Metadata"
-                placeholder="Opportunity, Opportunity.Amount, Account, Case..."
-                value={searchValue}
-                onchange={handleSearchChange}>
-            </lightning-input>
+          <p>{deploymentNotes}</p>
+        </article>
 
-            <div class="button-row">
+        <article class="panel">
+          <h2>Interview Explanation</h2>
 
-                <lightning-button
-                    variant="brand"
-                    label="Explain"
-                    onclick={handleExplain}>
-                </lightning-button>
-
-            </div>
-
-        </section>
-
-        <!-- Spinner -->
-
-        <template if:true={isLoading}>
-
-            <div class="loading-panel">
-
-                <lightning-spinner
-                    size="medium"
-                    alternative-text="Analyzing Metadata">
-                </lightning-spinner>
-
-            </div>
-
-        </template>
-
-        <!-- Results -->
-
-        <template if:true={hasExplanation}>
-
-            <!-- Summary -->
-
-            <section class="summary-bar">
-
-                <div class="summary-card">
-
-                    <span class="summary-title">
-                        Metadata Source
-                    </span>
-
-                    <span class="summary-value">
-                        {metadataSource}
-                    </span>
-
-                </div>
-
-                <div class="summary-card">
-
-                    <span class="summary-title">
-                        Confidence
-                    </span>
-
-                    <span class="summary-value">
-                        {confidence}%
-                    </span>
-
-                </div>
-
-                <div class="summary-card">
-
-                    <span class="summary-title">
-                        Dependencies
-                    </span>
-
-                    <span class="summary-value">
-                        {dependencyCount}
-                    </span>
-
-                </div>
-
-                <div class="summary-card">
-
-                    <span class="summary-title">
-                        Risk
-                    </span>
-
-                    <span class="summary-value">
-                        {riskLevel}
-                    </span>
-
-                </div>
-
-            </section>
-
-            <!-- Workspace Grid -->
-
-            <section class="workspace-grid">
-
-                <article class="panel">
-
-                    <h2>Business Purpose</h2>
-
-                    <p>{businessPurpose}</p>
-
-                </article>
-
-                <article class="panel">
-
-                    <h2>Technical Explanation</h2>
-
-                    <p>{technicalExplanation}</p>
-
-                </article>
-
-                <article class="panel">
-
-                    <h2>Dependencies</h2>
-
-                    <p>{dependencySummary}</p>
-
-                </article>
-
-                <article class="panel">
-
-                    <h2>Risk Analysis</h2>
-
-                    <p>{riskSummary}</p>
-
-                </article>
-
-                <article class="panel">
-
-                    <h2>Suggested Improvements</h2>
-
-                    <p>{recommendations}</p>
-
-                </article>
-
-                <article class="panel">
-
-                    <h2>Testing Guidance</h2>
-
-                    <p>{testingGuidance}</p>
-
-                </article>
-
-                <article class="panel">
-
-                    <h2>Deployment Considerations</h2>
-
-                    <p>{deploymentNotes}</p>
-
-                </article>
-
-                <article class="panel">
-
-                    <h2>Interview Explanation</h2>
-
-                    <p>{interviewGuidance}</p>
-
-                </article>
-
-            </section>
-
-        </template>
-
-    </div>
-
+          <p>{interviewGuidance}</p>
+        </article>
+      </section>
+    </template>
+  </div>
 </template>

@@ -1,0 +1,94 @@
+:host {
+  display: block;
+}
+
+.task-center {
+  padding: 1.15rem;
+  border: 1px solid #c9c7c5;
+  border-radius: 0.7rem;
+  background: #ffffff;
+}
+
+.section-heading,
+.task-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.section-heading {
+  margin-bottom: 0.85rem;
+}
+
+.section-heading h2,
+.task-center h3 {
+  color: #032d60;
+  font-weight: 700;
+}
+
+.eyebrow,
+.panel-label {
+  margin-bottom: 0.2rem;
+  color: #5f6a7d;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.brief-grid,
+.recommendation-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.brief-grid {
+  grid-template-columns: 1fr 2fr;
+}
+
+.recommendation-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.priority-panel,
+.recommended-section,
+.task-row {
+  padding: 0.85rem;
+  border-radius: 0.5rem;
+  background: #f8fafc;
+}
+
+.priority-panel {
+  border-left: 0.3rem solid #0b5cab;
+}
+
+.priority-panel p,
+.task-row p,
+.empty,
+.notice {
+  margin-top: 0.25rem;
+  color: #5f6a7d;
+}
+
+.priority-panel lightning-button {
+  margin-top: 0.65rem;
+}
+
+.recommendation-grid {
+  margin-top: 0.6rem;
+}
+
+.task-row {
+  flex-direction: column;
+}
+
+.task-row lightning-button {
+  margin-top: auto;
+}
+
+@media screen and (max-width: 48rem) {
+  .brief-grid,
+  .recommendation-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,70 @@
+<template>
+  <section class="task-center" aria-labelledby="admin-brief-heading">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Admin Task Center</p>
+        <h2 id="admin-brief-heading">Today’s Admin Brief</h2>
+      </div>
+      <lightning-icon
+        icon-name="utility:dayview"
+        size="small"
+        alternative-text="Today’s Admin Brief"
+      ></lightning-icon>
+    </div>
+
+    <template if:true={isLoading}>
+      <lightning-spinner
+        alternative-text="Loading today’s administrative brief"
+        size="small"
+      ></lightning-spinner>
+    </template>
+    <template if:true={hasError}>
+      <div class="notice" role="alert">{errorMessage}</div>
+    </template>
+
+    <div class="brief-grid">
+      <article class="priority-panel">
+        <p class="panel-label">Priority Queue</p>
+        <template if:true={hasTopPriority}>
+          <h3>{topPriority.title}</h3>
+          <p>{topPriority.actionText}</p>
+          <lightning-button
+            label={topPriority.workspaceLabel}
+            data-module={topPriority.moduleName}
+            data-id={topPriority.displayId}
+            onclick={handleNavigate}
+          ></lightning-button>
+        </template>
+        <template if:false={hasTopPriority}>
+          <p class="empty">No priority was generated from current metadata.</p>
+        </template>
+      </article>
+
+      <article class="recommended-section">
+        <p class="panel-label">What to do next</p>
+        <h3>Recommended Actions</h3>
+        <template if:true={hasRecommendedActions}>
+          <div class="recommendation-grid">
+            <template for:each={recommendedActions} for:item="task">
+              <article key={task.displayId} class="task-row">
+                <div>
+                  <strong>{task.title}</strong>
+                  <p>{task.actionText}</p>
+                </div>
+                <lightning-button
+                  label={task.workspaceLabel}
+                  data-module={task.moduleName}
+                  data-id={task.displayId}
+                  onclick={handleNavigate}
+                ></lightning-button>
+              </article>
+            </template>
+          </div>
+        </template>
+        <template if:false={hasRecommendedActions}>
+          <p class="empty">No additional actions were generated.</p>
+        </template>
+      </article>
+    </div>
+  </section>
+</template>

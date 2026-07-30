@@ -1,0 +1,58 @@
+<template>
+  <section class="workspace" aria-labelledby="developer-tools-title">
+    <header>
+      <div>
+        <p>Technical diagnostics</p>
+        <h1 id="developer-tools-title">Developer Tools</h1>
+        <span>
+          Inspect service state and metadata diagnostics away from admin
+          workflows.
+        </span>
+      </div>
+      <lightning-button
+        label="Refresh Diagnostics"
+        icon-name="utility:refresh"
+        onclick={handleRefreshDiagnostics}
+      ></lightning-button>
+    </header>
+
+    <div class="diagnostic-grid">
+      <article>
+        <span>Diagnostics</span><strong>{metadataStatus}</strong>
+      </article>
+      <article>
+        <span>Source Coverage</span><strong>{coverageStatus}</strong>
+      </article>
+      <article>
+        <span>Metadata Cache</span><strong>{cacheStatus}</strong>
+      </article>
+      <article><span>Services</span><strong>{serviceStatus}</strong></article>
+      <article><span>Registry</span><strong>{registryStatus}</strong></article>
+    </div>
+
+    <article class="panel">
+      <h2>Routing Diagnostics</h2>
+      <div class="route-list">
+        <template for:each={routingRows} for:item="route">
+          <div key={route.name}>
+            <strong>{route.name}</strong>
+            <span>{route.routeStatus}</span>
+          </div>
+        </template>
+      </div>
+    </article>
+
+    <article class="panel">
+      <h2>Verified History</h2>
+      <p>
+        No verified change-history provider is connected. History will remain
+        unavailable until Salesforce change events can be sourced and confirmed.
+      </p>
+    </article>
+
+    <article class="panel">
+      <h2>Metadata Diagnostic</h2>
+      <c-org-context-viewer></c-org-context-viewer>
+    </article>
+  </section>
+</template>

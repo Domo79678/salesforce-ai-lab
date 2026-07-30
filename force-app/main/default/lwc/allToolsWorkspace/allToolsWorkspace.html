@@ -1,0 +1,42 @@
+<template>
+  <section class="workspace" aria-labelledby="all-tools-title">
+    <header>
+      <p>Workspace directory</p>
+      <h1 id="all-tools-title">All Tools</h1>
+      <span>Choose the workspace that matches your administrative task.</span>
+    </header>
+
+    <h2>Available Workspaces</h2>
+    <div class="tool-grid">
+      <template for:each={availableTools} for:item="tool">
+        <article key={tool.name}>
+          <lightning-icon
+            icon-name={tool.iconName}
+            size="small"
+            alternative-text={tool.title}
+          ></lightning-icon>
+          <h3>{tool.title}</h3>
+          <p>{tool.description}</p>
+          <lightning-button
+            label="Open"
+            data-module={tool.name}
+            onclick={handleOpen}
+          ></lightning-button>
+        </article>
+      </template>
+    </div>
+
+    <lightning-accordion class="planned">
+      <lightning-accordion-section name="planned" label="Coming Soon">
+        <ul>
+          <template for:each={plannedTools} for:item="tool">
+            <li key={tool.name}>
+              <strong>{tool.title}</strong>
+              <span>{tool.description}</span>
+            </li>
+          </template>
+        </ul>
+      </lightning-accordion-section>
+    </lightning-accordion>
+  </section>
+</template>

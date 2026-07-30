@@ -1,0 +1,118 @@
+:host {
+  display: block;
+}
+
+.brief-summary {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-left: 0.35rem solid #ba0517;
+  border-radius: 0.65rem;
+  background: #ffffff;
+}
+
+.summary-heading,
+.brief-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brief-summary p {
+  color: #5f6a7d;
+}
+
+.summary-heading > div > p,
+.section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.brief-summary h2 {
+  color: #032d60;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.brief-summary h3 {
+  margin-bottom: 0.25rem;
+  color: #032d60;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.counts {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.counts strong {
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.4rem;
+  background: #f8fafc;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 1rem;
+}
+
+.priority-preview,
+.actions-preview {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.priority-preview lightning-button {
+  margin-top: 0.65rem;
+}
+
+.actions-preview ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actions-preview li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.25rem;
+  border-bottom: 1px solid #eef1f6;
+}
+
+.actions-preview li:last-child {
+  border-bottom: 0;
+}
+
+.brief-footer {
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.brief-footer p {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.brief-footer strong {
+  color: #032d60;
+}
+
+@media screen and (max-width: 48rem) {
+  .summary-heading,
+  .brief-footer,
+  .counts {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .preview-grid {
+    grid-template-columns: 1fr;
+  }
+}

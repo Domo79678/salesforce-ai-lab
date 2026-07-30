@@ -6,6 +6,20 @@
  */
 export const COPILOT_MODULES = Object.freeze([
   Object.freeze({
+    name: "dashboard",
+    title: "Dashboard",
+    iconName: "utility:home",
+    description: "Return to the Administration Workspace overview.",
+    status: "Available",
+    statusClass: "status-badge status-available",
+    progress: 100,
+    progressLabel: "100% complete",
+    phase: "Application Shell",
+    disabled: false,
+    hidden: true,
+    recommendationCategories: []
+  }),
+  Object.freeze({
     name: "dailyBrief",
     title: "Daily Brief",
     iconName: "utility:dayview",
@@ -17,7 +31,8 @@ export const COPILOT_MODULES = Object.freeze([
     progressLabel: "70% complete",
     phase: "Executive Experience MVP",
     disabled: false,
-    featured: true
+    featured: true,
+    recommendationCategories: ["Daily Brief"]
   }),
   Object.freeze({
     name: "explainThis",
@@ -31,7 +46,9 @@ export const COPILOT_MODULES = Object.freeze([
     progressLabel: "100% complete",
     phase: "Copilot Intelligence Engine",
     disabled: false,
-    featured: true
+    featured: true,
+    recommendationCategories: ["Data Model", "Documentation"],
+    entityTypes: ["Object", "Field"]
   }),
   Object.freeze({
     name: "flowIntelligence",
@@ -44,7 +61,9 @@ export const COPILOT_MODULES = Object.freeze([
     progress: 85,
     progressLabel: "85% complete",
     phase: "Live Module",
-    disabled: false
+    disabled: false,
+    recommendationCategories: ["Automation"],
+    entityTypes: ["Flow"]
   }),
   Object.freeze({
     name: "orgExplorer",
@@ -57,7 +76,9 @@ export const COPILOT_MODULES = Object.freeze([
     progress: 80,
     progressLabel: "80% complete",
     phase: "Metadata Explorer",
-    disabled: false
+    disabled: false,
+    recommendationCategories: ["Metadata Coverage"],
+    entityTypes: ["Object", "Field"]
   }),
   Object.freeze({
     name: "orgHealthDashboard",
@@ -70,6 +91,40 @@ export const COPILOT_MODULES = Object.freeze([
     progress: 90,
     progressLabel: "90% complete",
     phase: "Live Metadata",
+    disabled: false,
+    recommendationCategories: [
+      "Org Health",
+      "Security",
+      "Data Quality",
+      "Release Readiness"
+    ]
+  }),
+  Object.freeze({
+    name: "askBeforeYouBuild",
+    title: "Ask Before You Build",
+    iconName: "utility:choice",
+    description:
+      "Frame a Salesforce change, review consultant considerations, and prepare a deterministic testing checklist before implementation.",
+    status: "Available",
+    statusClass: "status-badge status-available",
+    progress: 100,
+    progressLabel: "100% complete",
+    phase: "Guided Planning",
+    disabled: false,
+    featured: true,
+    recommendationCategories: ["Solution Design"]
+  }),
+  Object.freeze({
+    name: "knowledgeCenter",
+    title: "Knowledge Center",
+    iconName: "utility:knowledge_base",
+    description:
+      "Understand organization metadata, findings, coverage, and explainable health analysis.",
+    status: "Available",
+    statusClass: "status-badge status-available",
+    progress: 100,
+    progressLabel: "100% complete",
+    phase: "Organization Understanding",
     disabled: false
   }),
   Object.freeze({
@@ -97,6 +152,46 @@ export const COPILOT_MODULES = Object.freeze([
     progressLabel: "90% complete",
     phase: "Rules-Based Assistant",
     disabled: false
+  }),
+  Object.freeze({
+    name: "metadataDiagnostic",
+    title: "Metadata Diagnostic",
+    iconName: "utility:database",
+    description: "Inspect the shared live metadata context and coverage.",
+    status: "Available",
+    statusClass: "status-badge status-available",
+    progress: 100,
+    progressLabel: "100% complete",
+    phase: "Developer Tool",
+    disabled: false,
+    hidden: true
+  }),
+  Object.freeze({
+    name: "allTools",
+    title: "All Tools",
+    iconName: "utility:apps",
+    description: "Browse every available and planned workspace.",
+    status: "Available",
+    statusClass: "status-badge status-available",
+    progress: 100,
+    progressLabel: "100% complete",
+    phase: "Application Shell",
+    disabled: false,
+    hidden: true
+  }),
+  Object.freeze({
+    name: "developerTools",
+    title: "Developer Tools",
+    iconName: "utility:setup",
+    description:
+      "Inspect metadata, coverage, cache, services, registry, and routing diagnostics.",
+    status: "Available",
+    statusClass: "status-badge status-available",
+    progress: 100,
+    progressLabel: "100% complete",
+    phase: "Technical Diagnostics",
+    disabled: false,
+    hidden: true
   }),
   Object.freeze({
     name: "documentationGenerator",
@@ -144,7 +239,9 @@ function copyModule(moduleDefinition) {
 export function getLiveModules() {
   return COPILOT_MODULES.filter(
     (moduleDefinition) =>
-      moduleDefinition.status === "Available" && !moduleDefinition.disabled
+      moduleDefinition.status === "Available" &&
+      !moduleDefinition.disabled &&
+      !moduleDefinition.hidden
   ).map(copyModule);
 }
 
@@ -205,4 +302,23 @@ export function findModuleByName(name) {
   const moduleDefinition = COPILOT_MODULES.find((item) => item.name === name);
 
   return moduleDefinition ? copyModule(moduleDefinition) : undefined;
+}
+
+export function getQuickLaunchModules() {
+  const quickLaunchNames = [
+    "dailyBrief",
+    "explainThis",
+    "flowIntelligence",
+    "orgHealthDashboard",
+    "orgExplorer",
+    "automationAdvisor",
+    "troubleshootingAssistant",
+    "askBeforeYouBuild"
+  ];
+
+  return quickLaunchNames
+    .map(findModuleByName)
+    .filter(
+      (moduleDefinition) => moduleDefinition && !moduleDefinition.disabled
+    );
 }

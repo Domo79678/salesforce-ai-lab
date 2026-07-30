@@ -1,0 +1,75 @@
+:host {
+  display: block;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+header p,
+header span,
+.diagnostic-grid span,
+.route-list span {
+  color: #5f6a7d;
+}
+
+h1,
+h2 {
+  color: #032d60;
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 1.6rem;
+}
+
+.diagnostic-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.diagnostic-grid article,
+.panel {
+  padding: 0.9rem;
+  border: 1px solid #d8dde6;
+  border-radius: 0.55rem;
+}
+
+.diagnostic-grid span,
+.diagnostic-grid strong {
+  display: block;
+}
+
+.panel {
+  margin-top: 1rem;
+}
+
+.route-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.route-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem;
+  background: #f8fafc;
+}
+
+@media screen and (max-width: 48rem) {
+  header {
+    flex-direction: column;
+  }
+
+  .diagnostic-grid,
+  .route-list {
+    grid-template-columns: 1fr;
+  }
+}
