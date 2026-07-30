@@ -1,237 +1,338 @@
-# Salesforce AI Lab
+# Salesforce Administration Workspace
 
-## Overview
+> A metadata-driven Salesforce administration platform that helps administrators understand, analyze, document, troubleshoot, and safely improve Salesforce organizations through connected workspaces powered by a shared deterministic intelligence engine.
 
-Salesforce AI Lab is my personal research, development, and engineering environment for designing, building, testing, and documenting modern Salesforce solutions.
-
-The flagship project in this repository is the **Salesforce Administration Workspace**—a modular application built with Lightning Web Components, Apex, and shared metadata services that helps Salesforce administrators, consultants, and CRM professionals better understand, analyze, document, and improve Salesforce organizations.
-
-The workspace is built on deterministic metadata analysis to provide reliable and explainable administrative insights. Future releases will introduce AI-assisted capabilities through Agentforce, Prompt Builder, and large language models to enhance explanation, documentation, and decision support while keeping deterministic analysis as the trusted foundation.
-
-This repository also serves as a professional portfolio documenting my journey as I continue developing expertise in Salesforce Administration, CRM architecture, automation, AI-assisted development, and modern software engineering.
+![Mission Control](docs/images/01-home-dashboard.png)
 
 ---
 
-# Why This Repository Exists
+# Why I Built This
 
-Salesforce provides powerful administrative tools, but administrators, consultants, and CRM professionals often spend significant time navigating Setup pages, metadata, documentation, and multiple applications just to understand how an organization works.
+Salesforce administrators often work across multiple browser tabs, Setup pages, Object Manager, Flows, Validation Rules, Reports, documentation, and spreadsheets just to understand how an organization is configured.
 
-The goal of this repository is to explore how a modern administration workspace can reduce context switching, improve decision-making, simplify documentation, and help professionals understand Salesforce organizations more efficiently.
+I wanted to build a unified administration workspace that brings these activities together into one connected experience.
 
-Rather than replacing Salesforce, this project is designed to complement the platform by providing deterministic analysis, guided workflows, documentation support, and eventually AI-assisted administrative experiences.
+Instead of building isolated utilities, this project demonstrates how multiple Salesforce administration workflows can share a common metadata foundation, reusable services, contextual navigation, and deterministic recommendations.
+
+The result is a workspace that helps administrators:
+
+- Understand an unfamiliar Salesforce org
+- Prioritize administrative work
+- Explain metadata in business language
+- Analyze automation
+- Evaluate org health
+- Plan changes before building
+- Troubleshoot issues
+- Navigate seamlessly between related workspaces
 
 ---
 
-# Featured Project
+# Architecture
 
-## Salesforce Administration Workspace
+![Architecture Diagram](docs/images/10-architecture-diagram.png)
 
-**Status:** Active Development
+The platform is built around a shared metadata analysis pipeline.
 
-The Salesforce Administration Workspace is the primary application being developed within Salesforce AI Lab.
+```
+Salesforce Org
+        │
+        ▼
+Metadata Snapshot Service
+        │
+        ▼
+Organization Knowledge Analysis
+        │
+        ▼
+Recommendation Engine
+        │
+        ▼
+Workspace Router
+        │
+        ▼
+Connected Workspaces
+```
 
-Current capabilities include:
+Rather than allowing each workspace to retrieve metadata independently, the platform analyzes metadata once, shares that analysis across the application, and routes administrators directly into the appropriate workspace with contextual information.
 
-- Executive Dashboard
+---
+
+# Workspace Gallery
+
+## Mission Control
+
+The Mission Control dashboard serves as the administrator's landing page.
+
+Features include:
+
+- Today's Brief Summary
+- Org Health Snapshot
+- Featured Ask Before You Build
+- Primary Actions
+- Explore More
+- Developer Tools
+
+![Mission Control](docs/images/01-home-dashboard.png)
+
+---
+
+## Daily Brief
+
+The Daily Brief acts as the Operations Center for the platform.
+
+It consolidates:
+
+- Executive Summary
+- Priority Queue
+- Recommended Actions
+- Documentation Gaps
+- Deployment Readiness
+- Recent Findings
+- Suggested Workspace
+- End-of-Day Checklist
+
+![Daily Brief](docs/images/02-daily-brief.png)
+
+---
+
+## Org Health Dashboard
+
+Evaluates the health of the connected Salesforce organization using deterministic analysis.
+
+Features include:
+
+- Health Score
+- Deployment Readiness
+- Category Scores
+- Findings
+- Prioritized Recommendations
+- Daily Brief Integration
+
+![Org Health](docs/images/03-org-health.png)
+
+---
+
+## Knowledge Center
+
+Analyzes organizational metadata using a shared metadata snapshot.
+
+Capabilities include:
+
+- Metadata Coverage
+- Organization Summary
+- Health Findings
+- Trend Analysis
+- Deployment Readiness
+- Shared Intelligence
+
+![Knowledge Center](docs/images/04-knowledge-center.png)
+
+---
+
+## Explain This
+
+Provides contextual explanations for Salesforce metadata.
+
+Supports:
+
+- Business Context
+- Technical Explanation
+- Dependency Mapping
+- Risk Analysis
+- Testing Guidance
+- Improvement Recommendations
+
+Context-aware launches automatically explain recommendations from:
+
 - Daily Brief
 - Org Health
-- Org Explorer
-- Org Knowledge Viewer
-- Explain This
+- Knowledge Center
+
+Direct launches begin with a blank search.
+
+![Explain This](docs/images/05-explain-this.png)
+
+---
+
+## Flow Intelligence
+
+Analyzes Salesforce Flow metadata and generates structured explanations.
+
+Outputs include:
+
+- Executive Summary
+- Business Purpose
+- Technical Walkthrough
+- Risks
+- Testing Checklist
+- AI Suggestions
+
+![Flow Intelligence](docs/images/06-flow-intelligence.png)
+
+---
+
+## Ask Before You Build
+
+A consultant-inspired planning workspace that encourages administrators to think before making Salesforce changes.
+
+Provides:
+
+- Business Problem Definition
+- Affected Users
+- Consultant Considerations
+- Testing Checklist
+- Deployment Guidance
+
+![Ask Before You Build](docs/images/07-ask-before-you-build.png)
+
+---
+
+## All Tools
+
+Central directory for every registered workspace.
+
+Provides quick navigation across the platform.
+
+![All Tools](docs/images/08-all-tools.png)
+
+---
+
+## Developer Tools
+
+Technical diagnostics used during development.
+
+Includes:
+
+- Workspace Registry
+- Metadata Cache
+- Routing Diagnostics
+- Source Coverage
+- Metadata Diagnostics
+
+![Developer Tools](docs/images/09-developer-tools.png)
+
+---
+
+# Current Capabilities
+
+Current implemented workspaces include:
+
+- Mission Control Dashboard
+- Daily Brief Operations Center
+- Org Health Dashboard
+- Knowledge Center
+- Contextual Explain This
 - Flow Intelligence
-- Shared Metadata Snapshot Services
-- Deterministic Org Knowledge Analysis
-- Workspace Routing
-
-The workspace is designed around five core objectives:
-
-- Help administrators understand unfamiliar Salesforce organizations.
-- Help professionals prioritize administrative work.
-- Analyze metadata and automation safely.
-- Improve documentation and knowledge sharing.
-- Help Salesforce professionals continuously improve their skills while working.
+- Ask Before You Build
+- Org Explorer
+- Automation Advisor
+- Troubleshooting Assistant
+- Developer Tools
+- Workspace Router
+- Shared Metadata Snapshot
+- Deterministic Recommendation Engine
 
 ---
 
-# Current Goals
+# Technical Highlights
 
-- Become an exceptional Salesforce Administrator and CRM professional.
-- Build production-quality Salesforce applications and administration tools.
-- Master Salesforce Flow, Apex, Lightning Web Components, and Salesforce DX.
-- Learn Salesforce APIs, integrations, and metadata architecture.
-- Build reusable CRM administration workflows.
-- Develop practical Agentforce and Prompt Builder solutions.
-- Learn responsible AI-assisted software development.
-- Strengthen software architecture, testing, and engineering practices.
-- Document every project professionally.
-- Build a portfolio demonstrating real-world Salesforce product development.
+The project demonstrates several architectural concepts:
+
+- Shared metadata snapshot architecture
+- Context-aware workspace routing
+- Registry-driven navigation
+- Reusable recommendation engine
+- Deterministic analysis pipeline
+- Modular Lightning Web Components
+- Shared services
+- Cached metadata analysis
+- Context preservation across workspaces
+- Workspace registry pattern
 
 ---
 
-# Technologies
+# Technology Stack
+
+## Salesforce
+
+- Lightning Web Components (LWC)
+- Apex
+- Metadata API
+- SOQL
 
 ## Languages
 
 - JavaScript
-- Apex
 - HTML
 - CSS
 - XML
-- SOQL
-- JSON
-- Markdown
 
----
-
-## Salesforce Platform
-
-- Salesforce Platform
-- Lightning Web Components
-- Apex
-- Flow Builder
-- Lightning App Builder
-- Salesforce DX
-- Salesforce CLI
-- Salesforce Metadata API
-- REST APIs
-- Agentforce
-- Prompt Builder
-
----
-
-## Development Tools
+## Development
 
 - Visual Studio Code
+- Salesforce CLI
 - Git
 - GitHub
-- npm
+
+## Quality
+
 - Jest
 - ESLint
 - Prettier
-- Salesforce Extension Pack
-- Codex
-- Claude Code
-- ChatGPT
 
 ---
 
-## AI and Agentic Development
+# Testing
 
-Current AI Engineering Tools
+The project uses:
 
-- OpenAI ChatGPT
-- Codex
-- Claude Code
-
-Current AI Platform Technologies
-
-- Agentforce
-- Prompt Builder
-
-Research Areas
-
-- Retrieval-Augmented Generation (RAG)
-- Model Context Protocol (MCP)
-- AI-Assisted Development
-- AI Workflow Design
-- Deterministic + AI Hybrid Architectures
+- Jest component testing
+- ESLint
+- Prettier
+- Shared deterministic services
+- Reusable routing
+- Cached metadata validation
 
 ---
 
-## Architecture and Professional Practices
+# Future Roadmap
 
-Software Architecture
+Planned enhancements include:
 
-- Component-Based Architecture
-- Modular Design
-- Shared Service Architecture
-- Metadata-Driven Development
-- Deterministic Analysis
-- Reusable UI Components
-
-Engineering Practices
-
-- Version Control
-- Unit Testing
-- Documentation-Driven Development
-- Professional Git Workflow
-- Code Reviews
-- Incremental Refactoring
-
-Salesforce Practices
-
-- Declarative First
-- Flow Automation
-- CRM Process Automation
-- Metadata Analysis
-- Org Health Monitoring
-- Administrator Decision Support
-- Consultant Thinking
+- AI Copilot Assistant
+- Change Impact Analyzer
+- Deployment Planner
+- Documentation Generator
+- Agentforce Integration
+- MCP Integrations
+- GitHub Intelligence
+- Prompt Library
+- Trend Analytics
+- Release Readiness Dashboard
 
 ---
 
-## Current Workspace Modules
+# Lessons Learned
 
-✅ Dashboard
+Building this project strengthened my understanding of:
 
-Executive landing page for Salesforce administrators.
-
----
-
-✅ Daily Brief
-
-Provides a live administrative briefing using shared deterministic metadata analysis.
-
----
-
-✅ Org Health
-
-Analyzes metadata health using shared snapshots and deterministic scoring.
+- Salesforce architecture
+- Lightning Web Components
+- Metadata-driven design
+- Component communication
+- Shared services
+- Software architecture
+- UI/UX design
+- Product thinking
+- Git workflows
+- Test-driven development
+- Documentation practices
 
 ---
 
-✅ Org Explorer
+# About This Project
 
-Explore Salesforce metadata and organizational structure.
+This repository represents my ongoing Salesforce portfolio project.
 
----
+My objective is to build production-quality Salesforce administration tools while continuing to deepen my knowledge of the Salesforce platform, software architecture, and modern CRM operations.
 
-✅ Org Knowledge Viewer
-
-Displays shared organizational knowledge generated through deterministic analysis.
-
----
-
-✅ Explain This
-
-Explains metadata from both business and technical perspectives.
-
----
-
-✅ Flow Intelligence
-
-Analyzes Flow behavior, recommendations, testing guidance, and documentation.
-
----
-
-🚧 Deployment Readiness
-
-Planned
-
----
-
-🚧 Change Impact Analyzer
-
-Planned
-
----
-
-🚧 Documentation Generator
-
-Planned
-
----
-
-🚧 Salesforce Copilot (AI)
-
-Future conversational AI workspace built on deterministic metadata analysis.
+The long-term vision is to evolve this platform into a comprehensive Salesforce Administration Workspace that combines deterministic metadata analysis with future AI-assisted workflows while remaining transparent, explainable, and administrator-focused.
