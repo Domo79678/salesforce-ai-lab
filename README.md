@@ -4,7 +4,7 @@
 > health, explaining configuration, and supporting common administration
 > workflows with deterministic analysis.
 
-![Mission Control](docs/images/01-home-dashboard.png)
+![Mission Control](docs/images/01%20Home%20%28Mission%20Control%29.png)
 
 This repository is a portfolio project demonstrating Salesforce administration,
 Lightning Web Component development, Apex metadata services, and explainable
@@ -81,40 +81,40 @@ experience:
 
 1. **Mission Control** — Today's Brief Summary, Org Health Snapshot, featured
    planning, Primary Actions, Explore More, and Developer Tools.
-   ![Mission Control](docs/images/01-home-dashboard.png)
+   ![Mission Control](docs/images/01%20Home%20%28Mission%20Control%29.png)
 2. **Daily Brief** — Executive Summary, Priority Queue, Recommended Actions,
    Documentation Gaps, Deployment Readiness, Recent Findings, Suggested
    Workspace, and End-of-Day Checklist.
-   ![Daily Brief](docs/images/02-daily-brief.png)
-3. **Org Health Dashboard** — Health and category scores, deployment readiness,
+   ![Daily Brief](docs/images/02%20Daily%20Brief.png)
+3. **Ask Before You Build** — Business problem framing, affected users,
+   consultant considerations, tests, and deployment guidance.
+   ![Ask Before You Build](docs/images/03%20Ask%20Before%20You%20Build.png)
+4. **Org Health Dashboard** — Health and category scores, deployment readiness,
    findings, prioritized recommendations, and Daily Brief integration.
-   ![Org Health](docs/images/03-org-health.png)
-4. **Knowledge Center** — Metadata coverage, organization summary, health
+   ![Org Health](docs/images/04%20Org%20Health.png)
+5. **Knowledge Center** — Metadata coverage, organization summary, health
    findings, trend analysis, deployment readiness, and shared intelligence.
-   ![Knowledge Center](docs/images/04-knowledge-center.png)
-5. **Explain This** — Business and technical context, dependencies, risks,
+   ![Knowledge Center](docs/images/05%20Knowledge%20Center.png)
+6. **Explain This** — Business and technical context, dependencies, risks,
    testing guidance, improvements, and contextual launches from supported
    recommendations.
-   ![Explain This](docs/images/05-explain-this.png)
-6. **Flow Intelligence** — Structured Flow summaries, business purpose,
+   ![Explain This](docs/images/06%20Explain%20This.png)
+7. **Flow Intelligence** — Structured Flow summaries, business purpose,
    walkthroughs, risks, testing checklists, and deterministic suggestions.
-   ![Flow Intelligence](docs/images/06-flow-intelligence.png)
-7. **Ask Before You Build** — Business problem framing, affected users,
-   consultant considerations, tests, and deployment guidance.
-   ![Ask Before You Build](docs/images/07-ask-before-you-build.png)
+   ![Flow Intelligence](docs/images/07%20Flow%20Intelligence.png)
 8. **All Tools** — Registry-driven directory and quick navigation for every
    available or planned workspace.
-   ![All Tools](docs/images/08-all-tools.png)
+   ![All Tools](docs/images/08%20All%20Tools.png)
 9. **Developer Tools** — Workspace registry, metadata cache, routing, source
    coverage, verified-history availability, and metadata diagnostics.
-   ![Developer Tools](docs/images/09-developer-tools.png)
+   ![Developer Tools](docs/images/09%20Developer%20Tools.png)
 
 No production-org identifiers, usernames, email addresses, customer data, or
 confidential metadata should appear in published screenshots.
 
 ## Architecture Overview
 
-![Architecture Diagram](docs/images/10-architecture-diagram.png)
+![Architecture Diagram](docs/images/10%20Architecture%20Diagram.png)
 
 The current architecture separates Salesforce data access, normalization,
 deterministic analysis, and presentation:
