@@ -95,6 +95,10 @@ export function createRecommendationContext(
     sourceType,
     recommendationId: recommendation.recommendationId || recommendation.id,
     findingId: recommendation.findingId,
+    findingType: recommendation.findingType || recommendation.type || "",
+    category: recommendation.category || "",
+    severity: recommendation.severity || recommendation.priority || "",
+    blocking: Boolean(recommendation.blocking),
     title: recommendation.title || "Selected issue",
     reason:
       recommendation.reason ||

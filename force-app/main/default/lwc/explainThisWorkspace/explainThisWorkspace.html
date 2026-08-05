@@ -95,6 +95,45 @@
         </div>
       </section>
 
+      <template if:true={hasResolutionGuidance}>
+        <section class="recommended-action" aria-labelledby="action-title">
+          <div class="action-heading">
+            <p class="eyebrow">DETERMINISTIC GUIDANCE</p>
+            <h2 id="action-title">Recommended Action</h2>
+            <p>
+              Review this rules-based resolution path before changing metadata.
+            </p>
+          </div>
+
+          <div class="action-grid">
+            <article>
+              <h3>Recommended Approach</h3>
+              <p>{recommendedApproach}</p>
+            </article>
+            <article>
+              <h3>What to Review First</h3>
+              <p>{reviewFirst}</p>
+            </article>
+            <article>
+              <h3>Avoid This</h3>
+              <p>{doNotDo}</p>
+            </article>
+            <article>
+              <h3>Dependencies to Check</h3>
+              <p>{dependenciesToCheck}</p>
+            </article>
+            <article>
+              <h3>Test Plan</h3>
+              <p>{resolutionTestPlan}</p>
+            </article>
+            <article>
+              <h3>Deployment Considerations</h3>
+              <p>{resolutionDeploymentConsiderations}</p>
+            </article>
+          </div>
+        </section>
+      </template>
+
       <!-- Workspace Grid -->
 
       <section class="workspace-grid">

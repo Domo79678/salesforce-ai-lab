@@ -19,6 +19,7 @@ import { api, LightningElement } from "lwc";
 import { getMetadataSnapshot } from "c/copilotCore";
 
 import { explainEntity, analyzeDependencies } from "c/copilotIntelligence";
+import { buildResolutionGuidance } from "c/resolutionGuidanceService";
 
 export default class ExplainThisWorkspace extends LightningElement {
   _launchContext = null;
@@ -31,6 +32,7 @@ export default class ExplainThisWorkspace extends LightningElement {
 
   explanation = null;
   dependencyAnalysis = null;
+  resolutionGuidance = null;
   metadataSnapshot = null;
 
   @api
@@ -341,6 +343,40 @@ export default class ExplainThisWorkspace extends LightningElement {
     return Boolean(this.explanationWarnings);
   }
 
+  get hasResolutionGuidance() {
+    return Boolean(this.resolutionGuidance);
+  }
+
+  get recommendedApproach() {
+    return this.formatGuidanceItems(
+      this.resolutionGuidance?.recommendedApproach
+    );
+  }
+
+  get reviewFirst() {
+    return this.formatGuidanceItems(this.resolutionGuidance?.reviewFirst);
+  }
+
+  get doNotDo() {
+    return this.formatGuidanceItems(this.resolutionGuidance?.doNotDo);
+  }
+
+  get dependenciesToCheck() {
+    return this.formatGuidanceItems(
+      this.resolutionGuidance?.dependenciesToCheck
+    );
+  }
+
+  get resolutionTestPlan() {
+    return this.formatGuidanceItems(this.resolutionGuidance?.testPlan);
+  }
+
+  get resolutionDeploymentConsiderations() {
+    return this.formatGuidanceItems(
+      this.resolutionGuidance?.deploymentConsiderations
+    );
+  }
+
   handleSearchChange(event) {
     this.searchValue = event.target.value || "";
 
@@ -364,6 +400,7 @@ export default class ExplainThisWorkspace extends LightningElement {
     this.errorMessage = "";
     this.explanation = null;
     this.dependencyAnalysis = null;
+    this.resolutionGuidance = null;
 
     try {
       const request = this.buildRequest(normalizedSearchValue);
@@ -407,9 +444,22 @@ export default class ExplainThisWorkspace extends LightningElement {
             `Salesforce Copilot could not explain ${normalizedSearchValue}.`
         );
       }
+
+      this.resolutionGuidance = buildResolutionGuidance({
+        findingType: this._launchContext?.findingType,
+        severity: this._launchContext?.severity,
+        blocking: this._launchContext?.blocking,
+        entityType: request.entityType,
+        launchContext: this._launchContext,
+        explanation: this.explanation,
+        metadataCoverage: this.metadataSnapshot?.coverage || {
+          coverageStatus: this.metadataSnapshot?.coverageStatus
+        }
+      });
     } catch (error) {
       this.explanation = null;
       this.dependencyAnalysis = null;
+      this.resolutionGuidance = null;
 
       this.errorMessage = this.extractErrorMessage(error);
     } finally {
@@ -461,6 +511,7 @@ export default class ExplainThisWorkspace extends LightningElement {
     this.errorMessage = "";
     this.explanation = null;
     this.dependencyAnalysis = null;
+    this.resolutionGuidance = null;
     this.metadataSnapshot = null;
   }
 
@@ -491,6 +542,13 @@ export default class ExplainThisWorkspace extends LightningElement {
     this.errorMessage = "";
     this.explanation = null;
     this.dependencyAnalysis = null;
+    this.resolutionGuidance = null;
+  }
+
+  formatGuidanceItems(items = []) {
+    return items.length
+      ? items.map((item) => `• ${item}`).join("\n")
+      : "No additional deterministic guidance was generated.";
   }
 
   getContextSearchValue(context = {}) {

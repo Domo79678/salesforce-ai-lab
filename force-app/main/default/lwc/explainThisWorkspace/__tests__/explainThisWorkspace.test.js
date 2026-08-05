@@ -106,6 +106,40 @@ describe("c-explain-this-workspace contextual launch", () => {
     expect(getMetadataSnapshot).not.toHaveBeenCalled();
   });
 
+  it("shows deterministic recommended action guidance for a finding", async () => {
+    explainEntity.mockResolvedValue({
+      success: true,
+      entity: { type: "object", apiName: "User" },
+      dependencies: [{ label: "User Access Report" }],
+      testCases: [{ title: "Validate user updates" }],
+      deployment: { prerequisites: ["Confirm business ownership."] }
+    });
+    const element = createElement("c-explain-this-workspace", {
+      is: ExplainThisWorkspace
+    });
+    element.launchContext = {
+      ...OBJECT_CONTEXT,
+      findingType: "fieldSprawl",
+      severity: "High"
+    };
+    document.body.appendChild(element);
+    await flushPromises();
+
+    const action = element.shadowRoot.querySelector(".recommended-action");
+    expect(action).not.toBeNull();
+    expect(action.textContent).toContain("Recommended Action");
+    expect(action.textContent).toContain("Recommended Approach");
+    expect(action.textContent).toContain("What to Review First");
+    expect(action.textContent).toContain("Avoid This");
+    expect(action.textContent).toContain("Dependencies to Check");
+    expect(action.textContent).toContain("Test Plan");
+    expect(action.textContent).toContain("Deployment Considerations");
+    expect(action.textContent).toContain("User Access Report");
+    expect(action.textContent).toContain(
+      "Do not delete fields simply because the field count is high."
+    );
+  });
+
   it("prefills and automatically explains valid shared field context", async () => {
     explainEntity.mockResolvedValue({
       success: true,

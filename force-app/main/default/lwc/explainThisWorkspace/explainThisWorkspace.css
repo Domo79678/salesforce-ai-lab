@@ -163,6 +163,56 @@
    Explanation results
 --------------------------------------------- */
 
+.recommended-action {
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  background: #ffffff;
+  border: 1px solid #c9e6d4;
+  border-left: 0.3rem solid #2e844a;
+  border-radius: 0.75rem;
+  box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.05);
+}
+
+.action-heading h2 {
+  margin: 0;
+  color: #032d60;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.action-heading > p:last-child {
+  margin: 0.375rem 0 0;
+  color: #5f6a72;
+  font-size: 0.8125rem;
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.action-grid article {
+  min-width: 0;
+}
+
+.action-grid h3 {
+  margin: 0 0 0.5rem;
+  color: #032d60;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.action-grid p {
+  margin: 0;
+  color: #2e3c4f;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .workspace-grid {
   display: grid;
 
@@ -227,10 +277,18 @@
   .summary-bar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 56.25rem) {
   .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-grid {
     grid-template-columns: 1fr;
   }
 }

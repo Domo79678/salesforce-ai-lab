@@ -63,6 +63,10 @@ describe("recommendation workspace service", () => {
         id: "rec-1",
         title: "Resolve missing help text",
         action: "Add concise help text.",
+        findingType: "missingDocumentation",
+        category: "Documentation",
+        severity: "High",
+        blocking: true,
         entityType: "field",
         entityApiName: "Account",
         fieldApiName: "Active__c"
@@ -81,7 +85,11 @@ describe("recommendation workspace service", () => {
         recommendationId: "rec-1",
         entityType: "field",
         entityApiName: "Account",
-        fieldApiName: "Active__c"
+        fieldApiName: "Active__c",
+        findingType: "missingDocumentation",
+        category: "Documentation",
+        severity: "High",
+        blocking: true
       })
     });
   });
