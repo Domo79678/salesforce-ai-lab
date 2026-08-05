@@ -1,10 +1,13 @@
 <template>
-  <section class="morning-brief" aria-labelledby="morning-brief-title">
-    <header>
+  <section class="daily-brief" aria-labelledby="daily-brief-title">
+    <header class="brief-header">
       <div>
-        <p class="eyebrow">Morning briefing</p>
-        <h1 id="morning-brief-title">{greeting}, {userName}</h1>
-        <p>{formattedDate}</p>
+        <p class="eyebrow">Daily Admin Brief</p>
+        <h1 id="daily-brief-title">{greeting}, {presentationName}</h1>
+        <p class="brief-intro">
+          Here’s what needs your attention in Salesforce today.
+        </p>
+        <p class="brief-date">{formattedDate}</p>
       </div>
       <div class="source">
         <strong>{dataSourceLabel}</strong>
@@ -17,7 +20,7 @@
     <template if:true={isLoading}>
       <div class="state" role="status">
         <lightning-spinner
-          alternative-text="Preparing your morning briefing"
+          alternative-text="Preparing your Daily Admin Brief"
           size="small"
         ></lightning-spinner>
         <span>Reviewing the shared metadata snapshot…</span>
@@ -35,105 +38,172 @@
     </template>
 
     <template if:true={hasAnalysis}>
-      <section class="executive-summary" aria-labelledby="executive-title">
-        <p class="eyebrow">Executive Summary</p>
-        <h2 id="executive-title">{executiveSummary}</h2>
-        <p>
-          Start with the prioritized work below, then use the suggested
-          workspace for deeper review.
-        </p>
+      <section class="today-status" aria-labelledby="status-title">
+        <div class="section-heading compact-heading">
+          <p class="eyebrow">Current state</p>
+          <h2 id="status-title">Today’s Status</h2>
+        </div>
+        <dl class="status-grid">
+          <div>
+            <dt>Org Health</dt>
+            <dd>{orgHealthScoreLabel}</dd>
+            <dd class="status-context">{orgHealthStatus}</dd>
+          </div>
+          <div>
+            <dt>Findings</dt>
+            <dd>{findingCountLabel}</dd>
+            <dd class="status-context">Available for review</dd>
+          </div>
+          <div>
+            <dt>Metadata Coverage</dt>
+            <dd>{metadataCoverageLabel}</dd>
+            <dd class="status-context">{dataSourceLabel}</dd>
+          </div>
+          <div>
+            <dt>Deployment Readiness</dt>
+            <dd>{deploymentReadinessStatus}</dd>
+            <dd class="status-context">Current assessment</dd>
+          </div>
+        </dl>
       </section>
 
-      <div class="summary-grid">
-        <article class="healthy-summary">
-          <p class="eyebrow">Org Health</p>
-          <h2>{orgHealthStatus}</h2>
-          <p>{orgHealthMessage}</p>
-        </article>
-        <article>
-          <p class="eyebrow">Metadata Coverage</p>
-          <h2>{metadataCoverageLabel}</h2>
-          <p>{metadataCoverageDetail}</p>
-        </article>
-      </div>
-
-      <c-admin-task-center
-        analysis-result={analysisResult}
-        source-workspace="dailyBrief"
-        onworkspacenavigate={handleWorkspaceNavigate}
-      ></c-admin-task-center>
-
-      <div class="operations-grid">
-        <section aria-labelledby="documentation-title">
-          <h2 id="documentation-title">Documentation Gaps</h2>
-          <template if:true={hasDocumentationGaps}>
-            <ul>
-              <template for:each={documentationGaps} for:item="gap">
-                <li key={gap.id}>{gap.label}</li>
-              </template>
-            </ul>
-          </template>
-          <template if:false={hasDocumentationGaps}>
-            <p>No documentation gaps were identified in current coverage.</p>
-          </template>
-        </section>
-
-        <section aria-labelledby="readiness-title">
-          <h2 id="readiness-title">Deployment Readiness</h2>
-          <strong>{deploymentReadinessStatus}</strong>
-          <p>{deploymentReadinessNotice}</p>
-        </section>
-
-        <section aria-labelledby="findings-title">
-          <h2 id="findings-title">Recent Findings</h2>
-          <template if:true={hasTopFindings}>
-            <ul>
-              <template for:each={topFindings} for:item="finding">
-                <li key={finding.id}>
-                  <span>{finding.label}</span>
-                  <lightning-button
-                    label="Explain This"
-                    variant="base"
-                    data-id={finding.id}
-                    onclick={handleFindingExplain}
-                  ></lightning-button>
-                </li>
-              </template>
-            </ul>
-          </template>
-          <template if:false={hasTopFindings}>
-            <p>No findings require attention in the current coverage.</p>
-          </template>
-        </section>
-
-        <section class="suggested-workspace" aria-labelledby="suggested-title">
-          <h2 id="suggested-title">Suggested Workspace</h2>
-          <strong>{recommendedActionTitle}</strong>
-          <p>{recommendedActionDescription}</p>
+      <section class="top-priority" aria-labelledby="priority-title">
+        <div class="section-heading">
+          <p class="eyebrow">Start Here</p>
+          <h2 id="priority-title">Top Priority</h2>
+        </div>
+        <template if:true={hasTopPriority}>
+          <span class={topPriority.indicatorClass}></span>
+          <div>
+            <h3>{topPriority.title}</h3>
+            <p>{topPriority.description}</p>
+          </div>
           <lightning-button
-            label="Open Recommended Workspace"
+            label={recommendedActionLabel}
             variant="brand"
             onclick={handleRecommendedAction}
           ></lightning-button>
-        </section>
+        </template>
+        <template if:false={hasTopPriority}>
+          <p>No priority was generated from current metadata.</p>
+        </template>
+      </section>
 
-        <section class="end-of-day" aria-labelledby="end-of-day-title">
-          <h2 id="end-of-day-title">End-of-Day Checklist</h2>
-          <template if:true={hasEndOfDayChecklist}>
-            <ul>
-              <template for:each={endOfDayChecklist} for:item="item">
-                <li key={item.id}>{item.label}</li>
-              </template>
-            </ul>
-          </template>
-          <template if:false={hasEndOfDayChecklist}>
-            <p>
-              No verified checklist items are available from the current
-              analysis.
-            </p>
-          </template>
-        </section>
-      </div>
+      <section class="recommended-actions" aria-labelledby="actions-title">
+        <div class="section-heading">
+          <p class="eyebrow">What to do next</p>
+          <h2 id="actions-title">Recommended Actions</h2>
+        </div>
+        <template if:true={hasRecommendedActions}>
+          <div class="action-grid">
+            <template for:each={recommendedActions} for:item="action">
+              <article key={action.id} class="action-card">
+                <h3>{action.title}</h3>
+                <p>{action.description}</p>
+                <lightning-button
+                  label={action.actionLabel}
+                  variant="base"
+                  data-id={action.id}
+                  onclick={handleRecommendationNavigate}
+                ></lightning-button>
+              </article>
+            </template>
+          </div>
+        </template>
+        <template if:false={hasRecommendedActions}>
+          <p>No additional actions were generated.</p>
+        </template>
+      </section>
+
+      <section class="operational-readiness" aria-labelledby="readiness-title">
+        <div class="section-heading">
+          <p class="eyebrow">Operational Readiness</p>
+          <h2 id="readiness-title">Is the org ready for change?</h2>
+        </div>
+        <div class="readiness-grid">
+          <article>
+            <h3>Org Health</h3>
+            <strong>{orgHealthScoreLabel} · {orgHealthStatus}</strong>
+            <p>{findingCountLabel} findings available for review.</p>
+          </article>
+          <article>
+            <h3>Metadata Coverage</h3>
+            <strong>{dataSourceLabel}</strong>
+            <p>{metadataCoverageDetail}</p>
+          </article>
+          <article>
+            <h3>Deployment</h3>
+            <strong>{deploymentReadinessStatus}</strong>
+            <p>{deploymentReadinessNotice}</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="more-context" aria-labelledby="context-title">
+        <div class="section-heading compact-heading">
+          <p class="eyebrow">Supporting detail</p>
+          <h2 id="context-title">More Context</h2>
+        </div>
+
+        <details>
+          <summary>Documentation Gaps ({documentationGaps.length})</summary>
+          <div class="context-content">
+            <template if:true={hasDocumentationGaps}>
+              <ul>
+                <template for:each={documentationGaps} for:item="gap">
+                  <li key={gap.id}>{gap.label}</li>
+                </template>
+              </ul>
+            </template>
+            <template if:false={hasDocumentationGaps}>
+              <p>No documentation gaps were identified in current coverage.</p>
+            </template>
+          </div>
+        </details>
+
+        <details>
+          <summary>Recent Findings ({topFindings.length})</summary>
+          <div class="context-content">
+            <template if:true={hasTopFindings}>
+              <ul class="finding-list">
+                <template for:each={topFindings} for:item="finding">
+                  <li key={finding.id}>
+                    <span>{finding.label}</span>
+                    <lightning-button
+                      label="Explain This →"
+                      variant="base"
+                      data-id={finding.id}
+                      onclick={handleFindingExplain}
+                    ></lightning-button>
+                  </li>
+                </template>
+              </ul>
+            </template>
+            <template if:false={hasTopFindings}>
+              <p>No findings require attention in the current coverage.</p>
+            </template>
+          </div>
+        </details>
+
+        <details>
+          <summary>End-of-Day Checklist ({endOfDayChecklist.length})</summary>
+          <div class="context-content">
+            <template if:true={hasEndOfDayChecklist}>
+              <ul>
+                <template for:each={endOfDayChecklist} for:item="item">
+                  <li key={item.id}>{item.label}</li>
+                </template>
+              </ul>
+            </template>
+            <template if:false={hasEndOfDayChecklist}>
+              <p>
+                No verified checklist items are available from the current
+                analysis.
+              </p>
+            </template>
+          </div>
+        </details>
+      </section>
     </template>
   </section>
 </template>

@@ -2,18 +2,13 @@ import { LightningElement } from "lwc";
 import { findModuleByName } from "c/copilotModuleRegistry";
 
 const DASHBOARD = "dashboard";
-const PRIMARY_ACTIONS = Object.freeze([
+const UTILITY_ACTIONS = Object.freeze([
   { moduleName: "orgExplorer", label: "Explore Org" },
   {
     moduleName: "troubleshootingAssistant",
-    label: "Troubleshoot an Issue"
-  }
-]);
-const EXPLORE_MORE_MODULES = Object.freeze([
-  "knowledgeCenter",
-  "explainThis",
-  "automationAdvisor",
-  "flowIntelligence"
+    label: "Troubleshoot"
+  },
+  { moduleName: "allTools", label: "View All Tools" }
 ]);
 
 export default class SalesforceCopilotDashboard extends LightningElement {
@@ -35,6 +30,22 @@ export default class SalesforceCopilotDashboard extends LightningElement {
     return `${this.recommendedActionCount}`;
   }
 
+  get healthContextLabel() {
+    return this.healthStatus || "Not evaluated";
+  }
+
+  get highPriorityContextLabel() {
+    return this.highPriorityCount > 0 ? "Requires Review" : "No Urgent Items";
+  }
+
+  get recommendedActionsContextLabel() {
+    return this.recommendedActionCount > 0 ? "Open Items" : "No Open Items";
+  }
+
+  get lastAnalysisContextLabel() {
+    return this.analysisTimestamp ? "Current Snapshot" : "Awaiting Analysis";
+  }
+
   get lastAnalysisLabel() {
     if (!this.analysisTimestamp) {
       return "Not available";
@@ -48,14 +59,13 @@ export default class SalesforceCopilotDashboard extends LightningElement {
     }).format(new Date(this.analysisTimestamp));
   }
 
-  get primaryActions() {
-    return PRIMARY_ACTIONS.map(({ moduleName, label }, index) => {
+  get utilityActions() {
+    return UTILITY_ACTIONS.map(({ moduleName, label }, index) => {
       const moduleDefinition = findModuleByName(moduleName);
       return {
         ...moduleDefinition,
         label,
         moduleName,
-        description: this.getPrimaryActionDescription(moduleName),
         variant: index === 0 ? "brand" : "neutral"
       };
     }).filter((action) => action.status === "Available" && !action.disabled);
@@ -69,13 +79,6 @@ export default class SalesforceCopilotDashboard extends LightningElement {
     return Number.isFinite(Number(this.healthScore))
       ? `${this.healthScore}/100`
       : "Not available";
-  }
-
-  get workspacePreview() {
-    return EXPLORE_MORE_MODULES.map(findModuleByName).filter(
-      (moduleDefinition) =>
-        moduleDefinition?.status === "Available" && !moduleDefinition.disabled
-    );
   }
 
   get showDashboard() {
@@ -96,14 +99,6 @@ export default class SalesforceCopilotDashboard extends LightningElement {
 
   handleWorkspaceLaunch(event) {
     this.navigate(event.currentTarget.dataset.module);
-  }
-
-  handleViewAllTools() {
-    this.navigate("allTools");
-  }
-
-  handleDeveloperTools() {
-    this.navigate("developerTools");
   }
 
   handleBriefStatus(event) {
@@ -142,16 +137,5 @@ export default class SalesforceCopilotDashboard extends LightningElement {
   backToDashboard() {
     this.workspaceContext = null;
     this.currentView = DASHBOARD;
-  }
-
-  getPrimaryActionDescription(moduleName) {
-    const descriptions = {
-      askBeforeYouBuild:
-        "Frame the problem and testing plan before configuring.",
-      orgExplorer: "Inspect objects, fields, relationships, and access.",
-      troubleshootingAssistant:
-        "Follow deterministic investigation steps for a Salesforce issue."
-    };
-    return descriptions[moduleName];
   }
 }

@@ -5,6 +5,7 @@ import {
   getSupportedChangeTypes
 } from "c/preBuildGuidanceService";
 import { createWorkspaceNavigationEvent } from "c/recommendationWorkspaceService";
+import { buildConsultantDiscovery } from "c/consultantDiscoveryService";
 
 const USER_OPTIONS = Object.freeze([
   { label: "Sales users", value: "Sales users" },
@@ -20,6 +21,16 @@ export default class AskBeforeYouBuild extends LightningElement {
   changeType = "";
   businessProblem = "";
   affectedUsers = [];
+  desiredOutcome = "";
+  stakeholders = "";
+  currentProcess = "";
+  painPoints = "";
+  businessRules = "";
+  constraints = "";
+  successMetrics = "";
+  risks = "";
+  openQuestions = "";
+  discovery = null;
   guidance = null;
   errorMessage = "";
 
@@ -36,6 +47,80 @@ export default class AskBeforeYouBuild extends LightningElement {
 
   get hasGuidance() {
     return Boolean(this.guidance);
+  }
+
+  get hasDiscovery() {
+    return Boolean(this.discovery);
+  }
+
+  get businessOutcome() {
+    return this.discovery?.desiredOutcome || "Not yet defined.";
+  }
+
+  get readinessStatus() {
+    return this.discovery?.readinessAssessment?.status || "Discovery Needed";
+  }
+
+  get readinessScore() {
+    return this.discovery?.readinessAssessment?.score || 0;
+  }
+
+  get readinessExplanation() {
+    return (this.discovery?.readinessAssessment?.reasons || []).join(" ");
+  }
+
+  get whatWeKnowRows() {
+    if (!this.discovery) {
+      return [];
+    }
+
+    return this.toRows(
+      [
+        ["Business problem", this.discovery.businessProblem],
+        ["Affected users", this.discovery.affectedUsers.join(", ")],
+        ["Stakeholders", this.discovery.stakeholders.join(", ")],
+        ["Current process", this.discovery.currentProcess],
+        ["Pain points", this.discovery.painPoints.join(", ")],
+        ["Business rules", this.discovery.businessRules.join(", ")],
+        ["Constraints", this.discovery.constraints.join(", ")]
+      ]
+        .filter(([, value]) => Boolean(value))
+        .map(([label, value]) => `${label}: ${value}`),
+      "known"
+    );
+  }
+
+  get missingDiscoveryRows() {
+    const assessment = this.discovery?.readinessAssessment;
+    return this.toRows(
+      [
+        ...(assessment?.missingCritical || []).map(
+          (label) => `Required: ${label}`
+        ),
+        ...(assessment?.missingSupporting || []).map(
+          (label) => `Helpful: ${label}`
+        )
+      ],
+      "missing"
+    );
+  }
+
+  get discoveryQuestionRows() {
+    return this.toRows(this.discovery?.discoveryQuestions, "question");
+  }
+
+  get discoveryRiskRows() {
+    return this.toRows(this.discovery?.risks, "risk");
+  }
+
+  get successMeasureRows() {
+    const measures = this.discovery?.successMetrics || [];
+    return this.toRows(
+      measures.length
+        ? measures
+        : ["Define a measurable outcome before selecting a solution."],
+      "measure"
+    );
   }
 
   get hasError() {
@@ -85,6 +170,15 @@ export default class AskBeforeYouBuild extends LightningElement {
     this.resetResult();
   }
 
+  handleDiscoveryField(event) {
+    const fieldName = event.target.dataset.field;
+
+    if (fieldName) {
+      this[fieldName] = event.target.value || "";
+      this.resetResult();
+    }
+  }
+
   buildGuidance() {
     if (!this.changeType || !this.businessProblem.trim()) {
       this.guidance = null;
@@ -100,11 +194,27 @@ export default class AskBeforeYouBuild extends LightningElement {
     }
 
     this.errorMessage = "";
-    this.guidance = buildPreBuildGuidance({
-      changeType: this.changeType,
+    this.discovery = buildConsultantDiscovery({
       businessProblem: this.businessProblem,
-      affectedUsers: this.affectedUsers
+      desiredOutcome: this.desiredOutcome,
+      affectedUsers: this.affectedUsers,
+      stakeholders: this.stakeholders,
+      currentProcess: this.currentProcess,
+      painPoints: this.painPoints,
+      businessRules: this.businessRules,
+      constraints: this.constraints,
+      successMetrics: this.successMetrics,
+      risks: this.risks,
+      openQuestions: this.openQuestions
     });
+
+    this.guidance = this.discovery.readinessAssessment.readyToDesign
+      ? buildPreBuildGuidance({
+          changeType: this.changeType,
+          businessProblem: this.businessProblem,
+          affectedUsers: this.affectedUsers
+        })
+      : null;
   }
 
   handleWorkspaceNavigate(event) {
@@ -118,7 +228,15 @@ export default class AskBeforeYouBuild extends LightningElement {
   }
 
   resetResult() {
+    this.discovery = null;
     this.guidance = null;
     this.errorMessage = "";
+  }
+
+  toRows(values = [], prefix) {
+    return (values || []).map((label, index) => ({
+      id: `${prefix}-${index + 1}`,
+      label
+    }));
   }
 }

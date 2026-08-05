@@ -31,8 +31,16 @@ export default class DailyBrief extends LightningElement {
     return Boolean(this.errorMessage);
   }
 
-  get userName() {
-    return this.metadataSnapshot?.organization?.userName || UNKNOWN_USER;
+  get presentationName() {
+    const displayName = String(
+      this.metadataSnapshot?.organization?.userName || ""
+    ).trim();
+
+    if (!displayName || displayName.includes("@")) {
+      return UNKNOWN_USER;
+    }
+
+    return displayName.split(/\s+/)[0];
   }
 
   get orgHealthStatus() {
@@ -41,6 +49,21 @@ export default class DailyBrief extends LightningElement {
 
   get orgHealthMessage() {
     return this.brief.headline || "Org Health analysis is unavailable.";
+  }
+
+  get orgHealthScoreLabel() {
+    const score =
+      this.brief.orgHealth?.score ??
+      this.analysisResult?.dashboardMetrics?.orgHealthScore;
+    return Number.isFinite(Number(score)) ? `${score}/100` : "Not available";
+  }
+
+  get findingCountLabel() {
+    const count =
+      this.brief.findings?.total ??
+      this.analysisResult?.dashboardMetrics?.totalFindings ??
+      this.analysisResult?.findings?.length;
+    return Number.isFinite(Number(count)) ? `${count}` : "Not available";
   }
 
   get metadataCoverageLabel() {
@@ -126,6 +149,47 @@ export default class DailyBrief extends LightningElement {
     return this.dailyPriorities.length > 0;
   }
 
+  get adminRecommendations() {
+    return (this.analysisResult?.recommendations || []).map(
+      (recommendation, index) => {
+        const enriched = enrichRecommendationWithWorkspace(recommendation);
+        return {
+          ...enriched,
+          id: enriched.id || `daily-action-${index + 1}`,
+          title: enriched.title || "Review recommendation",
+          description:
+            enriched.action ||
+            enriched.description ||
+            "Review this deterministic recommendation.",
+          indicatorClass: this.getPriorityIndicatorClass(enriched.priority)
+        };
+      }
+    );
+  }
+
+  get topPriority() {
+    return this.adminRecommendations[0] || this.dailyPriorities[0] || null;
+  }
+
+  get hasTopPriority() {
+    return Boolean(this.topPriority);
+  }
+
+  get recommendedActions() {
+    const actions = this.adminRecommendations.length
+      ? this.adminRecommendations.slice(1, 4)
+      : this.dailyPriorities.slice(1);
+
+    return actions.map((action) => ({
+      ...action,
+      actionLabel: `${action.workspaceLabel} →`
+    }));
+  }
+
+  get hasRecommendedActions() {
+    return this.recommendedActions.length > 0;
+  }
+
   get topFindings() {
     return (this.brief.findings?.top || [])
       .slice(0, 3)
@@ -190,18 +254,22 @@ export default class DailyBrief extends LightningElement {
   }
 
   get recommendedActionTitle() {
-    return this.dailyPriorities[0]?.title || "Review Org Health";
+    return this.topPriority?.title || "Review Org Health";
   }
 
   get recommendedActionDescription() {
     return (
-      this.dailyPriorities[0]?.description ||
+      this.topPriority?.description ||
       "Open Org Health to review the current analysis and metadata coverage."
     );
   }
 
   get recommendedModuleName() {
-    return this.dailyPriorities[0]?.moduleName || "orgHealthDashboard";
+    return this.topPriority?.moduleName || "orgHealthDashboard";
+  }
+
+  get recommendedActionLabel() {
+    return `${this.topPriority?.workspaceLabel || "Review Org Health"} →`;
   }
 
   async loadBrief() {
@@ -237,9 +305,28 @@ export default class DailyBrief extends LightningElement {
   handleRecommendedAction() {
     this.dispatchNavigationEvent(
       this.recommendedModuleName,
-      createRecommendationContext(this.dailyPriorities[0], {
+      createRecommendationContext(this.topPriority, {
         sourceWorkspace: "dailyBrief",
         sourceType: "priority",
+        metadataSnapshot: this.metadataSnapshot
+      })
+    );
+  }
+
+  handleRecommendationNavigate(event) {
+    const recommendation = this.recommendedActions.find(
+      (item) => item.id === event.currentTarget.dataset.id
+    );
+
+    if (!recommendation) {
+      return;
+    }
+
+    this.dispatchNavigationEvent(
+      recommendation.moduleName,
+      createRecommendationContext(recommendation, {
+        sourceWorkspace: "dailyBrief",
+        sourceType: "recommendation",
         metadataSnapshot: this.metadataSnapshot
       })
     );

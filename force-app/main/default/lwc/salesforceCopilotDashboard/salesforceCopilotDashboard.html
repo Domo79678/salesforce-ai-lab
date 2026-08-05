@@ -2,7 +2,7 @@
   <div class="app-shell">
     <template if:true={showDashboard}>
       <header class="hero" aria-labelledby="workspace-title">
-        <div>
+        <div class="hero-copy">
           <p class="eyebrow">Salesforce Administration Workspace</p>
           <h1 id="workspace-title">Plan, understand, and manage Salesforce</h1>
           <p class="hero-purpose">
@@ -10,158 +10,97 @@
             system understanding.
           </p>
         </div>
-        <dl class="hero-status" aria-label="Workspace status">
-          <div>
+        <dl class="hero-status" aria-label="Admin Operations Snapshot">
+          <div class="kpi-card kpi-card-attention">
             <dt>Org Health</dt>
-            <dd>{healthScoreLabel}</dd>
+            <dd class="kpi-value">{healthScoreLabel}</dd>
+            <dd class="kpi-context">{healthContextLabel}</dd>
+            <dd class="kpi-action">
+              <lightning-button
+                label="Review Org Health →"
+                variant="base"
+                data-module="orgHealthDashboard"
+                onclick={handleWorkspaceLaunch}
+              ></lightning-button>
+            </dd>
           </div>
-          <div>
+          <div class="kpi-card kpi-card-attention">
             <dt>High Priority</dt>
-            <dd>{highPriorityLabel}</dd>
+            <dd class="kpi-value">{highPriorityLabel}</dd>
+            <dd class="kpi-context">{highPriorityContextLabel}</dd>
           </div>
-          <div>
+          <div class="kpi-card">
             <dt>Recommended Actions</dt>
-            <dd>{recommendedActionsLabel}</dd>
+            <dd class="kpi-value">{recommendedActionsLabel}</dd>
+            <dd class="kpi-context">{recommendedActionsContextLabel}</dd>
           </div>
-          <div>
+          <div class="kpi-card kpi-card-timestamp">
             <dt>Last Analysis</dt>
-            <dd>{lastAnalysisLabel}</dd>
+            <dd class="kpi-value">{lastAnalysisLabel}</dd>
+            <dd class="kpi-context">{lastAnalysisContextLabel}</dd>
           </div>
         </dl>
       </header>
 
-      <section class="dashboard-section">
+      <section class="dashboard-section brief-section">
         <c-daily-brief-summary
           onworkspacenavigate={handleWorkspaceNavigate}
           onbriefstatus={handleBriefStatus}
         ></c-daily-brief-summary>
       </section>
 
-      <section class="dashboard-section">
-        <article
-          class="health-snapshot"
-          aria-labelledby="health-snapshot-title"
-        >
+      <section class="status-strip" aria-labelledby="health-snapshot-title">
+        <div class="status-strip-heading">
           <p class="eyebrow">Organization state</p>
-          <h2 id="health-snapshot-title">Org Health Snapshot</h2>
-          <div class="health-value">
-            <strong>{healthScoreLabel}</strong>
-            <span>{healthStatus}</span>
-          </div>
-          <p>{riskNotice}</p>
-          <lightning-button
-            label="Review Org Health"
-            data-module="orgHealthDashboard"
-            onclick={handleWorkspaceLaunch}
-          ></lightning-button>
-        </article>
+          <h2 id="health-snapshot-title">Org Health</h2>
+        </div>
+        <div class="health-value">
+          <strong>{healthScoreLabel}</strong>
+          <span>{healthStatus}</span>
+        </div>
+        <p class="status-summary">{riskNotice}</p>
+        <lightning-button
+          label="Review Org Health →"
+          variant="base"
+          data-module="orgHealthDashboard"
+          onclick={handleWorkspaceLaunch}
+        ></lightning-button>
       </section>
 
-      <section class="featured-planning" aria-labelledby="featured-ask-title">
-        <div class="featured-icon">
-          <lightning-icon
-            icon-name="utility:choice"
-            size="medium"
-            alternative-text="Planning"
-          ></lightning-icon>
-        </div>
+      <section class="planning-strip" aria-labelledby="featured-ask-title">
         <div>
-          <p class="eyebrow">Featured planning workspace</p>
+          <p class="eyebrow">Plan a change</p>
           <h2 id="featured-ask-title">{featuredAskBeforeYouBuild.title}</h2>
           <p>
-            Think through the business problem, affected users, design choices,
-            and testing plan before configuring Salesforce.
+            Define the business problem, affected users, success measures, and
+            design considerations before configuring Salesforce.
           </p>
         </div>
         <lightning-button
-          label="Start Planning"
+          label="Start Planning →"
           variant="brand"
           onclick={handleFeaturedAsk}
         ></lightning-button>
       </section>
 
-      <section
-        class="dashboard-section"
-        aria-labelledby="primary-actions-title"
-      >
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Start here</p>
-            <h2 id="primary-actions-title">Primary Actions</h2>
-          </div>
+      <nav class="utility-actions" aria-label="Mission Control utilities">
+        <div>
+          <p class="eyebrow">Deeper tools</p>
+          <h2>Utility Actions</h2>
         </div>
-        <div class="primary-grid">
-          <template for:each={primaryActions} for:item="action">
-            <article key={action.moduleName} class="action-card">
-              <lightning-icon
-                icon-name={action.iconName}
-                size="small"
-                alternative-text={action.label}
-              ></lightning-icon>
-              <div>
-                <h3>{action.label}</h3>
-                <p>{action.description}</p>
-              </div>
-              <lightning-button
-                label={action.label}
-                variant={action.variant}
-                data-module={action.moduleName}
-                onclick={handlePrimaryAction}
-              ></lightning-button>
-            </article>
-          </template>
-        </div>
-      </section>
-
-      <section class="dashboard-section" aria-labelledby="workspaces-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Where to go</p>
-            <h2 id="workspaces-title">Explore More</h2>
-          </div>
-          <lightning-button
-            label="View All Tools"
-            icon-name="utility:apps"
-            onclick={handleViewAllTools}
-          ></lightning-button>
-        </div>
-
-        <div class="workspace-grid">
-          <template for:each={workspacePreview} for:item="workspace">
-            <article key={workspace.name} class="workspace-link">
-              <lightning-icon
-                icon-name={workspace.iconName}
-                size="x-small"
-                alternative-text=""
-              ></lightning-icon>
-              <h3>{workspace.title}</h3>
-              <lightning-button
-                label="Open"
-                variant="base"
-                data-module={workspace.name}
-                onclick={handleWorkspaceLaunch}
-              ></lightning-button>
-            </article>
-          </template>
-        </div>
-      </section>
-
-      <footer class="developer-link">
-        <details>
-          <summary>Developer Tools</summary>
-          <div>
-            <p>
-              Technical diagnostics are kept outside administrator workflows.
-            </p>
+        <div class="utility-buttons">
+          <template for:each={utilityActions} for:item="action">
             <lightning-button
-              label="Open Developer Tools"
-              icon-name="utility:setup"
-              variant="base"
-              onclick={handleDeveloperTools}
+              key={action.moduleName}
+              label={action.label}
+              variant={action.variant}
+              icon-name={action.iconName}
+              data-module={action.moduleName}
+              onclick={handlePrimaryAction}
             ></lightning-button>
-          </div>
-        </details>
-      </footer>
+          </template>
+        </div>
+      </nav>
     </template>
 
     <template if:true={showWorkspaceRouter}>

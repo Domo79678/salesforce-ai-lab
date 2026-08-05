@@ -46,6 +46,73 @@
       </article>
     </div>
 
+    <section class="discovery-inputs" aria-labelledby="discovery-input-title">
+      <div class="discovery-input-heading">
+        <p class="eyebrow">Optional discovery details</p>
+        <h2 id="discovery-input-title">Teach the coach what you know</h2>
+        <p>
+          Add details as they become known. The Consultant Lens will identify
+          remaining discovery gaps before recommending a design direction.
+        </p>
+      </div>
+      <div class="discovery-input-grid">
+        <lightning-textarea
+          label="Desired business outcome"
+          data-field="desiredOutcome"
+          value={desiredOutcome}
+          onchange={handleDiscoveryField}
+        ></lightning-textarea>
+        <lightning-textarea
+          label="Current process"
+          data-field="currentProcess"
+          value={currentProcess}
+          onchange={handleDiscoveryField}
+        ></lightning-textarea>
+        <lightning-textarea
+          label="Stakeholders / decision owners"
+          data-field="stakeholders"
+          value={stakeholders}
+          onchange={handleDiscoveryField}
+        ></lightning-textarea>
+        <lightning-textarea
+          label="Pain points"
+          data-field="painPoints"
+          value={painPoints}
+          onchange={handleDiscoveryField}
+        ></lightning-textarea>
+        <lightning-textarea
+          label="Business rules and exceptions"
+          data-field="businessRules"
+          value={businessRules}
+          onchange={handleDiscoveryField}
+        ></lightning-textarea>
+        <lightning-textarea
+          label="Constraints"
+          data-field="constraints"
+          value={constraints}
+          onchange={handleDiscoveryField}
+        ></lightning-textarea>
+        <lightning-textarea
+          label="Success measures"
+          data-field="successMetrics"
+          value={successMetrics}
+          onchange={handleDiscoveryField}
+        ></lightning-textarea>
+        <lightning-textarea
+          label="Known risks / assumptions"
+          data-field="risks"
+          value={risks}
+          onchange={handleDiscoveryField}
+        ></lightning-textarea>
+        <lightning-textarea
+          label="Open questions"
+          data-field="openQuestions"
+          value={openQuestions}
+          onchange={handleDiscoveryField}
+        ></lightning-textarea>
+      </div>
+    </section>
+
     <lightning-button
       label="Review Before Building"
       variant="brand"
@@ -55,6 +122,68 @@
 
     <template if:true={hasError}>
       <div class="error" role="alert">{errorMessage}</div>
+    </template>
+
+    <template if:true={hasDiscovery}>
+      <section class="consultant-lens" aria-live="polite">
+        <div class="lens-heading">
+          <p class="eyebrow">Consultant Lens</p>
+          <h2>Understand the problem before choosing a solution</h2>
+        </div>
+
+        <div class="lens-grid">
+          <article class="lens-card outcome-card">
+            <h3>Business Outcome</h3>
+            <p>{businessOutcome}</p>
+          </article>
+          <article class="lens-card">
+            <h3>What We Know</h3>
+            <ul>
+              <template for:each={whatWeKnowRows} for:item="item">
+                <li key={item.id}>{item.label}</li>
+              </template>
+            </ul>
+          </article>
+          <article class="lens-card gap-card">
+            <h3>What We Still Need to Learn</h3>
+            <ul>
+              <template for:each={missingDiscoveryRows} for:item="item">
+                <li key={item.id}>{item.label}</li>
+              </template>
+            </ul>
+          </article>
+          <article class="lens-card">
+            <h3>Discovery Questions</h3>
+            <ul>
+              <template for:each={discoveryQuestionRows} for:item="item">
+                <li key={item.id}>{item.label}</li>
+              </template>
+            </ul>
+          </article>
+          <article class="lens-card">
+            <h3>Risks / Assumptions</h3>
+            <ul>
+              <template for:each={discoveryRiskRows} for:item="item">
+                <li key={item.id}>{item.label}</li>
+              </template>
+            </ul>
+          </article>
+          <article class="lens-card">
+            <h3>Success Measures</h3>
+            <ul>
+              <template for:each={successMeasureRows} for:item="item">
+                <li key={item.id}>{item.label}</li>
+              </template>
+            </ul>
+          </article>
+          <article class="lens-card readiness-card">
+            <h3>Ready to Design?</h3>
+            <p class="readiness-status">{readinessStatus}</p>
+            <p>{readinessScore}% of critical discovery defined.</p>
+            <p>{readinessExplanation}</p>
+          </article>
+        </div>
+      </section>
     </template>
 
     <template if:true={hasGuidance}>

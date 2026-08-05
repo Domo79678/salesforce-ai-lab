@@ -10,27 +10,27 @@ describe("c-salesforce-copilot-dashboard", () => {
     }
   });
 
-  it("renders the Mission Control hierarchy and nonduplicated primary actions", () => {
+  it("renders the compact Mission Control hierarchy and utility actions", () => {
     const element = createElement("c-salesforce-copilot-dashboard", {
       is: SalesforceCopilotDashboard
     });
     document.body.appendChild(element);
 
     const labels = [
-      ...element.shadowRoot.querySelectorAll(".action-card lightning-button")
+      ...element.shadowRoot.querySelectorAll(
+        ".utility-actions lightning-button"
+      )
     ].map((button) => button.label);
 
-    expect(labels).toEqual(["Explore Org", "Troubleshoot an Issue"]);
+    expect(labels).toEqual(["Explore Org", "Troubleshoot", "View All Tools"]);
     expect(
       element.shadowRoot.querySelector("c-daily-brief-summary")
     ).toBeTruthy();
     expect(element.shadowRoot.querySelector("c-admin-task-center")).toBeNull();
-    expect(element.shadowRoot.textContent).toContain(
-      "Featured planning workspace"
-    );
+    expect(element.shadowRoot.textContent).toContain("Plan a change");
     expect(
       [...element.shadowRoot.querySelectorAll("lightning-button")].find(
-        (button) => button.label === "Start Planning"
+        (button) => button.label === "Start Planning →"
       )
     ).toBeTruthy();
     expect(
@@ -38,14 +38,10 @@ describe("c-salesforce-copilot-dashboard", () => {
     ).toBeNull();
     expect(element.shadowRoot.textContent).not.toContain("Explain Metadata");
 
-    const sections = [
-      ...element.shadowRoot.querySelectorAll(
-        ".dashboard-section, .featured-planning"
-      )
-    ];
-    expect(sections[0].querySelector("c-daily-brief-summary")).toBeTruthy();
-    expect(sections[1].textContent).toContain("Org Health Snapshot");
-    expect(sections[2].textContent).toContain("Featured planning workspace");
+    expect(element.shadowRoot.querySelector(".brief-section")).toBeTruthy();
+    expect(element.shadowRoot.querySelector(".status-strip")).toBeTruthy();
+    expect(element.shadowRoot.querySelector(".planning-strip")).toBeTruthy();
+    expect(element.shadowRoot.querySelector(".utility-actions")).toBeTruthy();
   });
 
   it("launches Ask Before You Build and preserves Back navigation", async () => {
@@ -55,7 +51,7 @@ describe("c-salesforce-copilot-dashboard", () => {
     document.body.appendChild(element);
 
     [...element.shadowRoot.querySelectorAll("lightning-button")]
-      .find((button) => button.label === "Start Planning")
+      .find((button) => button.label === "Start Planning →")
       .click();
     await flushPromises();
 
@@ -72,6 +68,25 @@ describe("c-salesforce-copilot-dashboard", () => {
     expect(
       element.shadowRoot.querySelector("c-copilot-workspace-router")
     ).toBeNull();
+  });
+
+  it("routes both compact Org Health actions to the existing workspace", async () => {
+    const element = createElement("c-salesforce-copilot-dashboard", {
+      is: SalesforceCopilotDashboard
+    });
+    document.body.appendChild(element);
+
+    const healthActions = [
+      ...element.shadowRoot.querySelectorAll("lightning-button")
+    ].filter((button) => button.label === "Review Org Health →");
+    expect(healthActions).toHaveLength(2);
+
+    healthActions[0].click();
+    await flushPromises();
+
+    expect(
+      element.shadowRoot.querySelector("c-copilot-workspace-router").currentView
+    ).toBe("orgHealthDashboard");
   });
 
   it("shows organization state in the header and removes history from Home", async () => {
@@ -97,65 +112,71 @@ describe("c-salesforce-copilot-dashboard", () => {
     const header = element.shadowRoot.querySelector(".hero");
     expect(header.textContent).toContain("Org Health");
     expect(header.textContent).toContain("84/100");
+    expect(header.textContent).toContain("Review");
     expect(header.textContent).toContain("High Priority");
     expect(header.textContent).toContain("2");
+    expect(header.textContent).toContain("Requires Review");
     expect(header.textContent).toContain("Recommended Actions");
     expect(header.textContent).toContain("3");
+    expect(header.textContent).toContain("Open Items");
     expect(header.textContent).toContain("Last Analysis");
+    expect(header.textContent).toContain("Current Snapshot");
+    expect(header.querySelectorAll(".kpi-card")).toHaveLength(4);
     expect(header.textContent).not.toContain("Modules");
     expect(header.textContent).not.toContain("Metadata");
     expect(element.shadowRoot.textContent).not.toContain("Recent Activity");
     expect(element.shadowRoot.textContent).not.toContain("Verified History");
   });
 
-  it("renders the required compact registry destinations without duplicates", () => {
+  it("renders safe KPI fallback values and context before analysis", () => {
     const element = createElement("c-salesforce-copilot-dashboard", {
       is: SalesforceCopilotDashboard
     });
     document.body.appendChild(element);
 
-    const workspaceLinks = [
-      ...element.shadowRoot.querySelectorAll(".workspace-link")
-    ];
-    const labels = workspaceLinks.map((link) =>
-      link.querySelector("h3").textContent.trim()
-    );
-    expect(labels).toEqual([
-      "Knowledge Center",
-      "Explain This",
-      "Automation Advisor",
-      "Flow Intelligence"
-    ]);
-    expect(labels).not.toContain("Daily Brief");
-    expect(labels).not.toContain("Ask Before You Build");
+    const header = element.shadowRoot.querySelector(".hero");
+    expect(header.textContent).toContain("Not available");
+    expect(header.textContent).toContain("Checking");
+    expect(header.textContent).toContain("No Urgent Items");
+    expect(header.textContent).toContain("No Open Items");
+    expect(header.textContent).toContain("Awaiting Analysis");
   });
 
-  it("moves the catalog and diagnostics behind dedicated actions", async () => {
+  it("removes duplicate catalog and developer links from Mission Control", () => {
     const element = createElement("c-salesforce-copilot-dashboard", {
       is: SalesforceCopilotDashboard
     });
     document.body.appendChild(element);
 
-    const buttons = [
-      ...element.shadowRoot.querySelectorAll("lightning-button")
-    ];
-    buttons.find((button) => button.label === "View All Tools").click();
-    await flushPromises();
-    expect(
-      element.shadowRoot.querySelector("c-copilot-workspace-router").currentView
-    ).toBe("allTools");
-
-    element.shadowRoot
-      .querySelector("c-copilot-workspace-router")
-      .dispatchEvent(new CustomEvent("backtodashboard"));
-    await flushPromises();
-
-    [...element.shadowRoot.querySelectorAll("lightning-button")]
-      .find((button) => button.label === "Open Developer Tools")
-      .click();
-    await flushPromises();
-    expect(
-      element.shadowRoot.querySelector("c-copilot-workspace-router").currentView
-    ).toBe("developerTools");
+    expect(element.shadowRoot.querySelector(".workspace-grid")).toBeNull();
+    expect(element.shadowRoot.querySelector(".developer-link")).toBeNull();
+    expect(element.shadowRoot.textContent).not.toContain("Knowledge Center");
+    expect(element.shadowRoot.textContent).not.toContain("Automation Advisor");
+    expect(element.shadowRoot.textContent).not.toContain("Flow Intelligence");
+    expect(element.shadowRoot.textContent).not.toContain("Developer Tools");
   });
+
+  it.each([
+    ["Explore Org", "orgExplorer"],
+    ["Troubleshoot", "troubleshootingAssistant"],
+    ["View All Tools", "allTools"]
+  ])(
+    "routes %s through the existing workspace router",
+    async (label, route) => {
+      const element = createElement("c-salesforce-copilot-dashboard", {
+        is: SalesforceCopilotDashboard
+      });
+      document.body.appendChild(element);
+
+      [...element.shadowRoot.querySelectorAll("lightning-button")]
+        .find((button) => button.label === label)
+        .click();
+      await flushPromises();
+
+      expect(
+        element.shadowRoot.querySelector("c-copilot-workspace-router")
+          .currentView
+      ).toBe(route);
+    }
+  );
 });
