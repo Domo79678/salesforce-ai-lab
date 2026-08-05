@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description
+  >Salesforce AI Lab administration and metadata analysis workspace.</description>
+    <formFactors>Large</formFactors>
+    <label>Salesforce AI Lab</label>
+    <navType>Standard</navType>
+    <tabs>Salesforce_AI_Lab</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>

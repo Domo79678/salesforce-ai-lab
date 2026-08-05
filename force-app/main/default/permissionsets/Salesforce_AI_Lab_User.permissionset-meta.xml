@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <classAccesses>
+        <apexClass>FlowMetadataController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>OrgContextController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>OrgExplorerController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <applicationVisibilities>
+        <application>Salesforce_AI_Lab</application>
+        <visible>true</visible>
+    </applicationVisibilities>
+    <description
+  >Administrator-facing runtime access for Salesforce AI Lab, including read-only setup visibility required for Flow and metadata diagnostics. Business-object and field access remains governed separately.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Salesforce AI Lab User</label>
+    <tabSettings>
+        <tab>Salesforce_AI_Lab</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <userPermissions>
+        <enabled>true</enabled>
+        <name>LightningExperienceUser</name>
+    </userPermissions>
+    <userPermissions>
+        <enabled>true</enabled>
+        <name>ViewSetup</name>
+    </userPermissions>
+    <userPermissions>
+        <enabled>true</enabled>
+        <name>ViewRoles</name>
+    </userPermissions>
+</PermissionSet>

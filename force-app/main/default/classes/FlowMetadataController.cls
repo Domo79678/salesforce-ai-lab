@@ -12,427 +12,314 @@
  * Version: 1.0
  */
 public with sharing class FlowMetadataController {
+  private static final Integer DEFAULT_FLOW_LIMIT = 500;
+  private static final Integer MAXIMUM_FLOW_LIMIT = 1000;
+  private static final Integer MAXIMUM_VERSION_LIMIT = 2000;
 
-    private static final Integer DEFAULT_FLOW_LIMIT = 500;
-    private static final Integer MAXIMUM_FLOW_LIMIT = 1000;
-    private static final Integer MAXIMUM_VERSION_LIMIT = 2000;
+  /**
+   * Returns live Flow definitions with active and latest
+   * version details.
+   */
+  @AuraEnabled(cacheable=true)
+  public static List<FlowContext> getFlows() {
+    return getFlowsByLimit(DEFAULT_FLOW_LIMIT);
+  }
 
-    /**
-     * Returns live Flow definitions with active and latest
-     * version details.
-     */
-    @AuraEnabled(cacheable=true)
-    public static List<FlowContext> getFlows() {
-        return getFlowsByLimit(
-            DEFAULT_FLOW_LIMIT
+  /**
+   * Returns live Flow definitions using a controlled limit.
+   */
+  @AuraEnabled(cacheable=true)
+  public static List<FlowContext> getFlowsByLimit(Integer maxResults) {
+    Integer resultLimit = normalizeResultLimit(maxResults);
+
+    List<FlowDefinitionView> definitions = [
+      SELECT Id, ApiName, Label, ActiveVersionId, LatestVersionId
+      FROM FlowDefinitionView
+      ORDER BY Label
+      LIMIT :resultLimit
+    ];
+
+    if (definitions.isEmpty()) {
+      return new List<FlowContext>();
+    }
+
+    Set<Id> definitionIds = new Set<Id>();
+
+    for (FlowDefinitionView definition : definitions) {
+      definitionIds.add(definition.Id);
+    }
+
+    List<FlowVersionView> versions = [
+      SELECT
+        Id,
+        DurableId,
+        FlowDefinitionViewId,
+        Label,
+        Description,
+        Status,
+        VersionNumber,
+        ProcessType,
+        IsTemplate,
+        RunInMode,
+        LastModifiedDate,
+        ApiVersion,
+        ApiVersionRuntime
+      FROM FlowVersionView
+      WHERE FlowDefinitionViewId IN :definitionIds
+      ORDER BY FlowDefinitionViewId, VersionNumber DESC
+      LIMIT :MAXIMUM_VERSION_LIMIT
+    ];
+
+    Map<String, FlowVersionContext> versionsById = new Map<String, FlowVersionContext>();
+
+    Map<Id, List<FlowVersionContext>> versionsByDefinitionId = new Map<Id, List<FlowVersionContext>>();
+
+    for (FlowVersionView versionRecord : versions) {
+      FlowVersionContext versionContext = buildVersionContext(versionRecord);
+
+      versionsById.put(String.valueOf(versionRecord.Id), versionContext);
+
+      if (
+        !versionsByDefinitionId.containsKey(versionRecord.FlowDefinitionViewId)
+      ) {
+        versionsByDefinitionId.put(
+          versionRecord.FlowDefinitionViewId,
+          new List<FlowVersionContext>()
         );
+      }
+
+      versionsByDefinitionId
+        .get(versionRecord.FlowDefinitionViewId)
+        .add(versionContext);
     }
 
-    /**
-     * Returns live Flow definitions using a controlled limit.
-     */
-    @AuraEnabled(cacheable=true)
-    public static List<FlowContext> getFlowsByLimit(
-        Integer maxResults
-    ) {
-        Integer resultLimit =
-            normalizeResultLimit(
-                maxResults
-            );
+    List<FlowContext> results = new List<FlowContext>();
 
-        List<FlowDefinitionView> definitions = [
-            SELECT
-                Id,
-                ApiName,
-                Label,
-                ActiveVersionId,
-                LatestVersionId
-            FROM FlowDefinitionView
-            ORDER BY Label
-            LIMIT :resultLimit
-        ];
+    for (FlowDefinitionView definition : definitions) {
+      FlowContext context = new FlowContext();
 
-        if (definitions.isEmpty()) {
-            return new List<FlowContext>();
-        }
+      context.id = String.valueOf(definition.Id);
 
-        Set<Id> definitionIds =
-            new Set<Id>();
+      context.apiName = definition.ApiName;
 
-        for (
-            FlowDefinitionView definition :
-            definitions
-        ) {
-            definitionIds.add(
-                definition.Id
-            );
-        }
+      context.label = definition.Label;
 
-        List<FlowVersionView> versions = [
-            SELECT
-                Id,
-                DurableId,
-                FlowDefinitionViewId,
-                Label,
-                Description,
-                Status,
-                VersionNumber,
-                ProcessType,
-                IsTemplate,
-                RunInMode,
-                LastModifiedDate,
-                ApiVersion,
-                ApiVersionRuntime
-            FROM FlowVersionView
-            WHERE FlowDefinitionViewId IN :definitionIds
-            ORDER BY
-                FlowDefinitionViewId,
-                VersionNumber DESC
-            LIMIT :MAXIMUM_VERSION_LIMIT
-        ];
+      context.activeVersionId = definition.ActiveVersionId;
 
-        Map<String, FlowVersionContext>
-            versionsById =
-                new Map<String, FlowVersionContext>();
+      context.latestVersionId = definition.LatestVersionId;
 
-        Map<Id, List<FlowVersionContext>>
-            versionsByDefinitionId =
-                new Map<Id, List<FlowVersionContext>>();
+      context.active = !String.isBlank(definition.ActiveVersionId);
 
-        for (
-            FlowVersionView versionRecord :
-            versions
-        ) {
-            FlowVersionContext versionContext =
-                buildVersionContext(
-                    versionRecord
-                );
+      context.versions = versionsByDefinitionId.containsKey(definition.Id)
+        ? versionsByDefinitionId.get(definition.Id)
+        : new List<FlowVersionContext>();
 
-            versionsById.put(
-                String.valueOf(
-                    versionRecord.Id
-                ),
-                versionContext
-            );
+      context.versionCount = context.versions.size();
 
-            if (
-                !versionsByDefinitionId.containsKey(
-                    versionRecord.FlowDefinitionViewId
-                )
-            ) {
-                versionsByDefinitionId.put(
-                    versionRecord.FlowDefinitionViewId,
-                    new List<FlowVersionContext>()
-                );
-            }
+      context.activeVersion = findVersion(
+        versionsById,
+        definition.ActiveVersionId
+      );
 
-            versionsByDefinitionId
-                .get(
-                    versionRecord.FlowDefinitionViewId
-                )
-                .add(
-                    versionContext
-                );
-        }
+      context.latestVersion = findVersion(
+        versionsById,
+        definition.LatestVersionId
+      );
 
-        List<FlowContext> results =
-            new List<FlowContext>();
+      FlowVersionContext preferredVersion = context.activeVersion != null
+        ? context.activeVersion
+        : context.latestVersion;
 
-        for (
-            FlowDefinitionView definition :
-            definitions
-        ) {
-            FlowContext context =
-                new FlowContext();
+      if (preferredVersion != null) {
+        context.status = preferredVersion.status;
 
-            context.id =
-                String.valueOf(
-                    definition.Id
-                );
+        context.versionNumber = preferredVersion.versionNumber;
 
-            context.apiName =
-                definition.ApiName;
+        context.processType = preferredVersion.processType;
 
-            context.label =
-                definition.Label;
+        context.description = preferredVersion.description;
 
-            context.activeVersionId =
-                definition.ActiveVersionId;
+        context.runInMode = preferredVersion.runInMode;
 
-            context.latestVersionId =
-                definition.LatestVersionId;
+        context.apiVersion = preferredVersion.apiVersion;
 
-            context.active =
-                !String.isBlank(
-                    definition.ActiveVersionId
-                );
+        context.apiVersionRuntime = preferredVersion.apiVersionRuntime;
 
-            context.versions =
-                versionsByDefinitionId.containsKey(
-                    definition.Id
-                )
-                    ? versionsByDefinitionId.get(
-                          definition.Id
-                      )
-                    : new List<FlowVersionContext>();
+        context.lastModifiedDate = preferredVersion.lastModifiedDate;
 
-            context.versionCount =
-                context.versions.size();
+        context.isTemplate = preferredVersion.isTemplate;
+      } else {
+        context.status = context.active ? 'Active' : 'Inactive';
 
-            context.activeVersion =
-                findVersion(
-                    versionsById,
-                    definition.ActiveVersionId
-                );
+        context.versionNumber = 0;
+        context.processType = '';
+        context.description = '';
+        context.runInMode = '';
+        context.apiVersion = null;
+        context.apiVersionRuntime = null;
+        context.lastModifiedDate = null;
+        context.isTemplate = false;
+      }
 
-            context.latestVersion =
-                findVersion(
-                    versionsById,
-                    definition.LatestVersionId
-                );
-
-            FlowVersionContext preferredVersion =
-                context.activeVersion != null
-                    ? context.activeVersion
-                    : context.latestVersion;
-
-            if (preferredVersion != null) {
-                context.status =
-                    preferredVersion.status;
-
-                context.versionNumber =
-                    preferredVersion.versionNumber;
-
-                context.processType =
-                    preferredVersion.processType;
-
-                context.description =
-                    preferredVersion.description;
-
-                context.runInMode =
-                    preferredVersion.runInMode;
-
-                context.apiVersion =
-                    preferredVersion.apiVersion;
-
-                context.apiVersionRuntime =
-                    preferredVersion.apiVersionRuntime;
-
-                context.lastModifiedDate =
-                    preferredVersion.lastModifiedDate;
-
-                context.isTemplate =
-                    preferredVersion.isTemplate;
-            } else {
-                context.status =
-                    context.active
-                        ? 'Active'
-                        : 'Inactive';
-
-                context.versionNumber = 0;
-                context.processType = '';
-                context.description = '';
-                context.runInMode = '';
-                context.apiVersion = null;
-                context.apiVersionRuntime = null;
-                context.lastModifiedDate = null;
-                context.isTemplate = false;
-            }
-
-            results.add(
-                context
-            );
-        }
-
-        return results;
+      results.add(context);
     }
 
-    private static FlowVersionContext
-        buildVersionContext(
-            FlowVersionView versionRecord
-        ) {
-        FlowVersionContext context =
-            new FlowVersionContext();
+    return results;
+  }
 
-        context.id =
-            String.valueOf(
-                versionRecord.Id
-            );
+  @TestVisible
+  private static FlowVersionContext buildVersionContext(
+    FlowVersionView versionRecord
+  ) {
+    FlowVersionContext context = new FlowVersionContext();
 
-        context.durableId =
-            versionRecord.DurableId;
+    context.id = String.valueOf(versionRecord.Id);
 
-        context.flowDefinitionId =
-            String.valueOf(
-                versionRecord.FlowDefinitionViewId
-            );
+    context.durableId = versionRecord.DurableId;
 
-        context.label =
-            versionRecord.Label;
+    context.flowDefinitionId = String.valueOf(
+      versionRecord.FlowDefinitionViewId
+    );
 
-        context.description =
-            versionRecord.Description;
+    context.label = versionRecord.Label;
 
-        context.status =
-            versionRecord.Status;
+    context.description = versionRecord.Description;
 
-        context.versionNumber =
-            versionRecord.VersionNumber;
+    context.status = versionRecord.Status;
 
-        context.processType =
-            versionRecord.ProcessType;
+    context.versionNumber = versionRecord.VersionNumber;
 
-        context.isTemplate =
-            versionRecord.IsTemplate;
+    context.processType = versionRecord.ProcessType;
 
-        context.runInMode =
-            versionRecord.RunInMode;
+    context.isTemplate = versionRecord.IsTemplate;
 
-        context.lastModifiedDate =
-            versionRecord.LastModifiedDate;
+    context.runInMode = versionRecord.RunInMode;
 
-        context.apiVersion =
-            versionRecord.ApiVersion;
+    context.lastModifiedDate = versionRecord.LastModifiedDate;
 
-        context.apiVersionRuntime =
-            versionRecord.ApiVersionRuntime;
+    context.apiVersion = versionRecord.ApiVersion;
 
-        return context;
+    context.apiVersionRuntime = versionRecord.ApiVersionRuntime;
+
+    return context;
+  }
+
+  private static FlowVersionContext findVersion(
+    Map<String, FlowVersionContext> versionsById,
+    String requestedVersionId
+  ) {
+    if (String.isBlank(requestedVersionId)) {
+      return null;
     }
 
-    private static FlowVersionContext findVersion(
-        Map<String, FlowVersionContext> versionsById,
-        String requestedVersionId
-    ) {
-        if (
-            String.isBlank(
-                requestedVersionId
-            )
-        ) {
-            return null;
-        }
+    return versionsById.get(requestedVersionId);
+  }
 
-        return versionsById.get(
-            requestedVersionId
-        );
+  private static Integer normalizeResultLimit(Integer requestedLimit) {
+    if (requestedLimit == null || requestedLimit <= 0) {
+      return DEFAULT_FLOW_LIMIT;
     }
 
-    private static Integer normalizeResultLimit(
-        Integer requestedLimit
-    ) {
-        if (
-            requestedLimit == null ||
-            requestedLimit <= 0
-        ) {
-            return DEFAULT_FLOW_LIMIT;
-        }
+    return Math.min(requestedLimit, MAXIMUM_FLOW_LIMIT);
+  }
 
-        return Math.min(
-            requestedLimit,
-            MAXIMUM_FLOW_LIMIT
-        );
-    }
+  public class FlowContext {
+    @AuraEnabled
+    public String id { get; set; }
 
-    public class FlowContext {
-        @AuraEnabled
-        public String id { get; set; }
+    @AuraEnabled
+    public String apiName { get; set; }
 
-        @AuraEnabled
-        public String apiName { get; set; }
+    @AuraEnabled
+    public String label { get; set; }
 
-        @AuraEnabled
-        public String label { get; set; }
+    @AuraEnabled
+    public String activeVersionId { get; set; }
 
-        @AuraEnabled
-        public String activeVersionId { get; set; }
+    @AuraEnabled
+    public String latestVersionId { get; set; }
 
-        @AuraEnabled
-        public String latestVersionId { get; set; }
+    @AuraEnabled
+    public Boolean active { get; set; }
 
-        @AuraEnabled
-        public Boolean active { get; set; }
+    @AuraEnabled
+    public String status { get; set; }
 
-        @AuraEnabled
-        public String status { get; set; }
+    @AuraEnabled
+    public Integer versionNumber { get; set; }
 
-        @AuraEnabled
-        public Integer versionNumber { get; set; }
+    @AuraEnabled
+    public Integer versionCount { get; set; }
 
-        @AuraEnabled
-        public Integer versionCount { get; set; }
+    @AuraEnabled
+    public String processType { get; set; }
 
-        @AuraEnabled
-        public String processType { get; set; }
+    @AuraEnabled
+    public String description { get; set; }
 
-        @AuraEnabled
-        public String description { get; set; }
+    @AuraEnabled
+    public String runInMode { get; set; }
 
-        @AuraEnabled
-        public String runInMode { get; set; }
+    @AuraEnabled
+    public Decimal apiVersion { get; set; }
 
-        @AuraEnabled
-        public Decimal apiVersion { get; set; }
+    @AuraEnabled
+    public Decimal apiVersionRuntime { get; set; }
 
-        @AuraEnabled
-        public Decimal apiVersionRuntime { get; set; }
+    @AuraEnabled
+    public Datetime lastModifiedDate { get; set; }
 
-        @AuraEnabled
-        public Datetime lastModifiedDate { get; set; }
+    @AuraEnabled
+    public Boolean isTemplate { get; set; }
 
-        @AuraEnabled
-        public Boolean isTemplate { get; set; }
+    @AuraEnabled
+    public FlowVersionContext activeVersion { get; set; }
 
-        @AuraEnabled
-        public FlowVersionContext
-            activeVersion { get; set; }
+    @AuraEnabled
+    public FlowVersionContext latestVersion { get; set; }
 
-        @AuraEnabled
-        public FlowVersionContext
-            latestVersion { get; set; }
+    @AuraEnabled
+    public List<FlowVersionContext> versions { get; set; }
+  }
 
-        @AuraEnabled
-        public List<FlowVersionContext>
-            versions { get; set; }
-    }
+  public class FlowVersionContext {
+    @AuraEnabled
+    public String id { get; set; }
 
-    public class FlowVersionContext {
-        @AuraEnabled
-        public String id { get; set; }
+    @AuraEnabled
+    public String durableId { get; set; }
 
-        @AuraEnabled
-        public String durableId { get; set; }
+    @AuraEnabled
+    public String flowDefinitionId { get; set; }
 
-        @AuraEnabled
-        public String flowDefinitionId { get; set; }
+    @AuraEnabled
+    public String label { get; set; }
 
-        @AuraEnabled
-        public String label { get; set; }
+    @AuraEnabled
+    public String description { get; set; }
 
-        @AuraEnabled
-        public String description { get; set; }
+    @AuraEnabled
+    public String status { get; set; }
 
-        @AuraEnabled
-        public String status { get; set; }
+    @AuraEnabled
+    public Integer versionNumber { get; set; }
 
-        @AuraEnabled
-        public Integer versionNumber { get; set; }
+    @AuraEnabled
+    public String processType { get; set; }
 
-        @AuraEnabled
-        public String processType { get; set; }
+    @AuraEnabled
+    public Boolean isTemplate { get; set; }
 
-        @AuraEnabled
-        public Boolean isTemplate { get; set; }
+    @AuraEnabled
+    public String runInMode { get; set; }
 
-        @AuraEnabled
-        public String runInMode { get; set; }
+    @AuraEnabled
+    public Datetime lastModifiedDate { get; set; }
 
-        @AuraEnabled
-        public Datetime lastModifiedDate { get; set; }
+    @AuraEnabled
+    public Decimal apiVersion { get; set; }
 
-        @AuraEnabled
-        public Decimal apiVersion { get; set; }
-
-        @AuraEnabled
-        public Decimal apiVersionRuntime { get; set; }
-    }
+    @AuraEnabled
+    public Decimal apiVersionRuntime { get; set; }
+  }
 }

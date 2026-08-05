@@ -22,7 +22,12 @@ describe("c-salesforce-copilot-dashboard", () => {
       )
     ].map((button) => button.label);
 
-    expect(labels).toEqual(["Explore Org", "Troubleshoot", "View All Tools"]);
+    expect(labels).toEqual([
+      "Explore Org",
+      "Troubleshoot",
+      "View All Tools",
+      "View Actions"
+    ]);
     expect(
       element.shadowRoot.querySelector("c-daily-brief-summary")
     ).toBeTruthy();

@@ -1,7 +1,8 @@
 # Salesforce Copilot Project Status
 
-**Status date:** July 26, 2026  
-**Current milestone:** Post-v0.9 foundation — live metadata coverage, Org Knowledge validation, and dashboard integration
+**Status date:** August 5, 2026
+
+**Current milestone:** P0 portability and productization baseline complete
 
 This status is based on the repository contents and recent commit history. “Complete” means implemented in the current codebase, not necessarily production-hardened or package-ready.
 
@@ -17,12 +18,18 @@ This status is based on the repository contents and recent commit history. “Co
 | Org Knowledge Viewer           | Diagnostic analysis workspace implemented and under validation                                  |
 | Copilot Intelligence           | Explanation, dependency, risk, test-plan, and interview engines implemented                     |
 | Explain This Workspace         | Uses shared Intelligence Layer for structured explanations                                      |
+| Admin Action Center            | Prototype-local action tracking integrated with Explain This recommendations                    |
 | Flow Intelligence              | Live Flow metadata collection and analysis workspace implemented                                |
 | Org Explorer                   | Live object, field, relationship, record-type, and access exploration implemented               |
 | Automation Advisor             | Deterministic requirement parsing, recommendations, confidence, and templates implemented       |
 | Troubleshooting Assistant      | Deterministic issue classification and investigation guidance implemented                       |
 | Org Health Dashboard           | Metadata-backed health UI and analysis flow implemented                                         |
 | Metadata Coverage Panel        | Reusable presentation of collection completeness implemented                                    |
+| Product deployment boundary    | Product and practice metadata separated; explicit product manifest validated                    |
+| Apex deployment gate           | All three product controllers have meaningful tests and production-style validation passes      |
+| Administrator permission model | `Salesforce_AI_Lab_User` provides minimum product access without business-data authority        |
+| Packaged Lightning entry point | Lightning App, tab, FlexiPage, and Mission Control shell deploy and launch cleanly              |
+| Clean-org installation         | Product-only scratch-org deployment and reduced Technical Admin browser validation completed    |
 
 ## Under Development or Validation
 
@@ -43,7 +50,7 @@ This status is based on the repository contents and recent commit history. “Co
 - Expanded AI Learning Coach.
 - Broader metadata retrieval: validation rules, duplicate and matching rules, permissions, Apex, reports, dashboards, sharing, and change history.
 - Optional provider-neutral AI Gateway.
-- Multi-org configuration, clean-org installation, and unlocked packaging.
+- Unlocked packaging, namespace validation, and install/upgrade automation.
 - CRM-neutral contracts and adapters for additional CRM platforms.
 
 ## Recent Accomplishments
@@ -54,27 +61,31 @@ This status is based on the repository contents and recent commit history. “Co
 - Built Explain This on the reusable Copilot Intelligence Layer.
 - Established shared core services.
 - Added and polished metadata-backed Org Health experiences.
+- Separated practice Account metadata from the product deployment boundary.
+- Added Apex tests, an explicit product manifest, and production-style deployment validation.
+- Added the packaged Salesforce AI Lab Lightning entry point and administrator-facing permission set.
+- Completed clean-org installation and reduced Technical Admin browser validation.
+- Corrected Explain This Flow context routing and made unsupported/no-match results visible.
 
 ## Next Sprint
 
-**Goal:** Make the deterministic metadata-to-insight path reliable, testable, and portable before expanding AI features.
+**Goal:** Build on the completed P0 portability baseline without weakening deterministic behavior or the permission boundary.
 
 1. Replace generated placeholder Jest tests in priority modules with behavioral assertions.
 2. Validate metadata coverage, health scores, and findings against known org configurations.
 3. Complete dashboard navigation and consistent loading/empty/error states for current workspaces.
-4. Define stable snapshot and adapter contracts for second-org testing.
-5. Run lint, formatting verification, Jest coverage, and a clean Salesforce deployment validation.
+4. Define stable snapshot and adapter contracts for broader metadata providers.
+5. Add repeatable browser regression and package install/upgrade validation.
 6. Update the feature registry and session log with evidence from validation.
 
 ## Technical Debt
 
 - Several LWC Jest files still contain generated placeholder tests.
-- No Apex test classes are visible for the three metadata controllers.
 - Older documentation under `projects/salesforce-copilot` no longer fully reflects the current implementation.
 - Some UI labels use “AI” for deterministic recommendations, which can confuse core mode with AI-enhanced mode.
 - Metadata support is uneven; coverage must remain explicit wherever categories are unavailable or partial.
 - The adapter boundary is Salesforce-oriented and needs a documented CRM-neutral contract before adding another platform.
-- Packaging, permission-set design, clean-org installation, accessibility review, and performance baselines need formal validation.
+- Unlocked packaging, namespace/install-upgrade testing, accessibility review, and performance baselines remain pending.
 - Root `CHANGELOG.md` and `LICENSE` are empty.
 
 ## Long-Term Roadmap
@@ -83,7 +94,7 @@ This status is based on the repository contents and recent commit history. “Co
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | Foundation           | Stabilize shared services, collectors, knowledge models, deterministic intelligence, tests, and documentation              |
 | Salesforce MVP       | Complete the principal admin workspaces and deliver a portfolio-ready, explainable core experience                         |
-| Multi-org readiness  | Remove org assumptions, add configuration and permissions, validate clean installs, and produce an unlocked package        |
+| Multi-org readiness  | P0 source, permissions, entry point, and clean installation complete; produce and validate an unlocked package next        |
 | AI-enhanced mode     | Add a governed provider-neutral gateway for grounded summaries, follow-up assistance, and document drafting                |
 | CRM platform         | Establish CRM-neutral contracts and support additional CRM systems through source adapters                                 |
 | Operational maturity | Add telemetry, release governance, security review, accessibility, performance targets, and enterprise deployment guidance |

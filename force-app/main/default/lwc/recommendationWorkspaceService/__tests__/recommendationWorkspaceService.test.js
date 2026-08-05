@@ -93,4 +93,26 @@ describe("recommendation workspace service", () => {
       })
     });
   });
+
+  it("preserves Flow identity for Mission Control explanation handoff", () => {
+    const context = createRecommendationContext(
+      {
+        id: "flow-description-AddAttnd",
+        title:
+          "Resolve Add or Modify Service Appointment Attendees is missing a description",
+        entityType: "flow",
+        entityApiName: "AddAttnd"
+      },
+      { sourceWorkspace: "dashboard", sourceType: "finding" }
+    );
+
+    expect(context).toEqual(
+      expect.objectContaining({
+        sourceWorkspace: "dashboard",
+        sourceType: "finding",
+        entityType: "flow",
+        entityApiName: "AddAttnd"
+      })
+    );
+  });
 });

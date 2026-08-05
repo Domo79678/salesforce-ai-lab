@@ -23,6 +23,12 @@ jest.mock(
 const SNAPSHOT = {
   success: true,
   sourceLabel: "Shared metadata",
+  flows: [
+    {
+      apiName: "AddAttnd",
+      label: "Add or Modify Service Appointment Attendees"
+    }
+  ],
   objects: [
     {
       apiName: "User",
@@ -131,13 +137,128 @@ describe("c-explain-this-workspace contextual launch", () => {
     expect(action.textContent).toContain("Recommended Approach");
     expect(action.textContent).toContain("What to Review First");
     expect(action.textContent).toContain("Avoid This");
-    expect(action.textContent).toContain("Dependencies to Check");
-    expect(action.textContent).toContain("Test Plan");
-    expect(action.textContent).toContain("Deployment Considerations");
-    expect(action.textContent).toContain("User Access Report");
     expect(action.textContent).toContain(
       "Do not delete fields simply because the field count is high."
     );
+    const supportingAnalysis = element.shadowRoot.querySelector(".more-detail");
+    expect(supportingAnalysis.textContent).toContain("Dependencies to Check");
+    expect(supportingAnalysis.textContent).toContain("Resolution Test Plan");
+    expect(supportingAnalysis.textContent).toContain(
+      "Deployment Considerations"
+    );
+    expect(supportingAnalysis.textContent).toContain("User Access Report");
+  });
+
+  it("launches action tracking with available explanation context", async () => {
+    explainEntity.mockResolvedValue({
+      success: true,
+      entity: { type: "object", apiName: "User" },
+      executiveSummary: "Review field usage."
+    });
+    const element = createElement("c-explain-this-workspace", {
+      is: ExplainThisWorkspace
+    });
+    element.launchContext = { ...OBJECT_CONTEXT, severity: "High" };
+    const handler = jest.fn();
+    element.addEventListener("workspacenavigate", handler);
+    document.body.appendChild(element);
+    await flushPromises();
+
+    [...element.shadowRoot.querySelectorAll("lightning-button")]
+      .find((button) => button.label === "Track This Action")
+      .click();
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detail: expect.objectContaining({
+          destination: "adminActionCenter",
+          context: expect.objectContaining({
+            createAction: true,
+            actionContext: expect.objectContaining({
+              title: "Resolve User field count",
+              severity: "High",
+              objectApiName: "User"
+            })
+          })
+        })
+      })
+    );
+  });
+
+  it("presents summary-first results with supporting analysis collapsed", async () => {
+    explainEntity.mockResolvedValue({
+      success: true,
+      source: "Shared metadata",
+      entity: { type: "object", apiName: "User" },
+      businessPurpose: "Controls access to Salesforce.",
+      technicalExplanation: "Represents an authenticated Salesforce user.",
+      dependencies: [{ type: "Report", label: "User Access Report" }],
+      risks: [{ severity: "High", title: "Access review required" }],
+      improvements: [{ priority: "Review", title: "Document ownership" }],
+      testCases: [{ type: "Access", title: "Validate assigned access" }],
+      deployment: {
+        readinessStatus: "Review",
+        riskLevel: "High",
+        recommendation: "Validate in a sandbox."
+      },
+      interviewExplanation: "Explain access governance."
+    });
+    const element = createElement("c-explain-this-workspace", {
+      is: ExplainThisWorkspace
+    });
+    element.launchContext = OBJECT_CONTEXT;
+    document.body.appendChild(element);
+    await flushPromises();
+
+    const snapshot = element.shadowRoot.querySelector(".summary-bar");
+    expect(snapshot.textContent).toContain("Shared metadata");
+    expect(snapshot.textContent).toContain("80%");
+    expect(snapshot.textContent).toContain("1");
+    expect(snapshot.textContent).toContain("Low");
+
+    const core = element.shadowRoot.querySelector(".core-explanation");
+    expect(core.textContent).toContain("Controls access to Salesforce.");
+    expect(core.textContent).toContain(
+      "Represents an authenticated Salesforce user."
+    );
+
+    const details = [
+      ...element.shadowRoot.querySelectorAll(".more-detail details")
+    ];
+    expect(details).toHaveLength(6);
+    expect(details.every((detail) => detail.open === false)).toBe(true);
+    expect(
+      element.shadowRoot.querySelector(".more-detail").textContent
+    ).toContain("User Access Report");
+    expect(
+      element.shadowRoot.querySelector(".more-detail").textContent
+    ).toContain("Access review required");
+    expect(
+      element.shadowRoot.querySelector(".more-detail").textContent
+    ).toContain("Validate assigned access");
+    expect(
+      element.shadowRoot.querySelector(".more-detail").textContent
+    ).toContain("Validate in a sandbox.");
+
+    expect(
+      [...element.shadowRoot.querySelectorAll("h2")].filter(
+        (heading) => heading.textContent.trim() === "Recommended Action"
+      )
+    ).toHaveLength(1);
+  });
+
+  it("keeps optional supporting content safe when metadata is missing", async () => {
+    const element = createElement("c-explain-this-workspace", {
+      is: ExplainThisWorkspace
+    });
+    element.launchContext = OBJECT_CONTEXT;
+    document.body.appendChild(element);
+    await flushPromises();
+
+    expect(
+      element.shadowRoot.querySelector(".core-explanation").textContent
+    ).toContain("A formal business purpose was not found");
+    expect(element.shadowRoot.querySelector(".more-detail")).not.toBeNull();
   });
 
   it("prefills and automatically explains valid shared field context", async () => {
@@ -170,6 +291,72 @@ describe("c-explain-this-workspace contextual launch", () => {
       { metadataSnapshot: SNAPSHOT }
     );
     expect(getMetadataSnapshot).not.toHaveBeenCalled();
+  });
+
+  it("preserves Mission Control flow context when Explain is clicked", async () => {
+    explainEntity.mockResolvedValue({
+      success: true,
+      entity: { type: "flow", apiName: "AddAttnd" }
+    });
+    const element = createElement("c-explain-this-workspace", {
+      is: ExplainThisWorkspace
+    });
+    element.launchContext = {
+      sourceWorkspace: "dashboard",
+      sourceType: "finding",
+      title:
+        "Resolve Add or Modify Service Appointment Attendees is missing a description",
+      entityType: "flow",
+      entityApiName: "AddAttnd",
+      metadataSnapshot: SNAPSHOT
+    };
+    document.body.appendChild(element);
+
+    [...element.shadowRoot.querySelectorAll("lightning-button")]
+      .find((button) => button.label === "Explain")
+      .click();
+    await flushPromises();
+
+    expect(explainEntity).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entityType: "flow",
+        entityApiName: "AddAttnd"
+      }),
+      { metadataSnapshot: SNAPSHOT }
+    );
+    expect(element.shadowRoot.querySelector(".summary-bar")).not.toBeNull();
+  });
+
+  it("renders a deterministic message when metadata does not match", async () => {
+    getMetadataSnapshot.mockResolvedValue(SNAPSHOT);
+    explainEntity.mockResolvedValue({
+      success: false,
+      warnings: [
+        {
+          message:
+            "Salesforce Object MissingMetadata is not available in the current metadata snapshot."
+        }
+      ]
+    });
+    const element = createElement("c-explain-this-workspace", {
+      is: ExplainThisWorkspace
+    });
+    document.body.appendChild(element);
+
+    const input = element.shadowRoot.querySelector("lightning-input");
+    input.value = "MissingMetadata";
+    input.dispatchEvent(new CustomEvent("change"));
+    [...element.shadowRoot.querySelectorAll("lightning-button")]
+      .find((button) => button.label === "Explain")
+      .click();
+    await flushPromises();
+
+    const error = element.shadowRoot.querySelector(".error-panel");
+    expect(error).not.toBeNull();
+    expect(error.textContent).toContain(
+      "Salesforce Object MissingMetadata is not available"
+    );
+    expect(element.shadowRoot.querySelector(".summary-bar")).toBeNull();
   });
 
   it("does not invent or run incomplete contextual metadata", async () => {

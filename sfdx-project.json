@@ -3,6 +3,10 @@
     {
       "path": "force-app",
       "default": true
+    },
+    {
+      "path": "practice-app",
+      "default": false
     }
   ],
   "name": ".",

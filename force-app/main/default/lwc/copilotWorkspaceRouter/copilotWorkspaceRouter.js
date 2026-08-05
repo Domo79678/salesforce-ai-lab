@@ -14,7 +14,8 @@ const COMPONENT_LOADERS = Object.freeze({
   troubleshootingAssistant: () => import("c/troubleshootingAssistant"),
   metadataDiagnostic: () => import("c/orgContextViewer"),
   allTools: () => import("c/allToolsWorkspace"),
-  developerTools: () => import("c/developerToolsWorkspace")
+  developerTools: () => import("c/developerToolsWorkspace"),
+  adminActionCenter: () => import("c/adminActionCenter")
 });
 
 export default class CopilotWorkspaceRouter extends LightningElement {
@@ -42,7 +43,7 @@ export default class CopilotWorkspaceRouter extends LightningElement {
   }
 
   get workspaceProperties() {
-    return this._currentView === "explainThis"
+    return ["explainThis", "adminActionCenter"].includes(this._currentView)
       ? { launchContext: this.workspaceContext }
       : {};
   }

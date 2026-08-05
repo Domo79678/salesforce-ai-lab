@@ -377,6 +377,36 @@ export default class ExplainThisWorkspace extends LightningElement {
     );
   }
 
+  handleTrackAction() {
+    const entity = this.explanation?.entity || {};
+    this.dispatchEvent(
+      new CustomEvent("workspacenavigate", {
+        detail: {
+          destination: "adminActionCenter",
+          context: {
+            createAction: true,
+            sourceWorkspace: "explainThis",
+            actionContext: {
+              title: this._launchContext?.title || `Review ${this.entityLabel}`,
+              sourceWorkspace: "Explain This",
+              sourceFinding:
+                this._launchContext?.reason || this.executiveSummary,
+              sourceRecommendation: this.recommendedApproach,
+              selectedAction:
+                this.resolutionGuidance?.recommendedApproach?.[0] || "",
+              objectApiName:
+                this._launchContext?.entityApiName || entity.apiName || "",
+              severity: this._launchContext?.severity || this.riskLevel,
+              testPlan: (this.resolutionGuidance?.testPlan || []).join("\n")
+            }
+          }
+        },
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
+
   handleSearchChange(event) {
     this.searchValue = event.target.value || "";
 
@@ -470,9 +500,12 @@ export default class ExplainThisWorkspace extends LightningElement {
   buildRequest(searchValue) {
     const normalizedValue = searchValue.trim();
 
+    const contextualEntityType = String(
+      this._launchContext?.entityType || ""
+    ).trim();
+
     const isField =
-      this._launchContext?.entityType === "field" ||
-      normalizedValue.includes(".");
+      contextualEntityType === "field" || normalizedValue.includes(".");
 
     const contextualApiName = isField
       ? this._launchContext?.qualifiedApiName ||
@@ -482,7 +515,7 @@ export default class ExplainThisWorkspace extends LightningElement {
       : this._launchContext?.entityApiName;
 
     return {
-      entityType: isField ? "field" : "object",
+      entityType: contextualEntityType || (isField ? "field" : "object"),
 
       entityApiName: contextualApiName || normalizedValue,
 

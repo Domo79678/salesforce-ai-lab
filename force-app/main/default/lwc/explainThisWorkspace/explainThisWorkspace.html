@@ -1,17 +1,12 @@
 <template>
   <div class="workspace">
-    <!-- Hero Header -->
-
-    <section class="hero">
+    <section class="hero" aria-labelledby="explain-this-title">
       <div class="hero-left">
         <p class="eyebrow">SALESFORCE COPILOT</p>
-
-        <h1>Explain This</h1>
-
+        <h1 id="explain-this-title">Explain This</h1>
         <p class="subtitle">
-          Search any Salesforce metadata and instantly receive business context,
-          technical explanations, dependencies, deployment guidance, testing
-          recommendations, and interview coaching.
+          Investigate Salesforce metadata, understand its purpose and risk, and
+          decide what to do next.
         </p>
       </div>
     </section>
@@ -32,9 +27,7 @@
       </section>
     </template>
 
-    <!-- Search -->
-
-    <section class="search-panel">
+    <section class="search-panel" aria-label="Metadata investigation search">
       <lightning-input
         type="search"
         label="Search Salesforce Metadata"
@@ -55,7 +48,12 @@
       </div>
     </section>
 
-    <!-- Spinner -->
+    <template if:true={hasError}>
+      <section class="error-panel" role="alert" aria-live="polite">
+        <h2>Explanation unavailable</h2>
+        <p>{errorMessage}</p>
+      </section>
+    </template>
 
     <template if:true={isLoading}>
       <div class="loading-panel">
@@ -64,12 +62,8 @@
       </div>
     </template>
 
-    <!-- Results -->
-
     <template if:true={hasExplanation}>
-      <!-- Summary -->
-
-      <section class="summary-bar">
+      <section class="summary-bar" aria-label="Analysis snapshot">
         <div class="summary-card">
           <span class="summary-title"> Metadata Source </span>
 
@@ -88,7 +82,7 @@
           <span class="summary-value"> {dependencyCount} </span>
         </div>
 
-        <div class="summary-card">
+        <div class="summary-card summary-card-risk">
           <span class="summary-title"> Risk </span>
 
           <span class="summary-value"> {riskLevel} </span>
@@ -98,11 +92,19 @@
       <template if:true={hasResolutionGuidance}>
         <section class="recommended-action" aria-labelledby="action-title">
           <div class="action-heading">
-            <p class="eyebrow">DETERMINISTIC GUIDANCE</p>
-            <h2 id="action-title">Recommended Action</h2>
-            <p>
-              Review this rules-based resolution path before changing metadata.
-            </p>
+            <div>
+              <p class="eyebrow">DETERMINISTIC GUIDANCE</p>
+              <h2 id="action-title">Recommended Action</h2>
+              <p>
+                Review this rules-based resolution path before changing
+                metadata.
+              </p>
+            </div>
+            <lightning-button
+              variant="brand"
+              label="Track This Action"
+              onclick={handleTrackAction}
+            ></lightning-button>
           </div>
 
           <div class="action-grid">
@@ -118,72 +120,77 @@
               <h3>Avoid This</h3>
               <p>{doNotDo}</p>
             </article>
-            <article>
-              <h3>Dependencies to Check</h3>
-              <p>{dependenciesToCheck}</p>
-            </article>
-            <article>
-              <h3>Test Plan</h3>
-              <p>{resolutionTestPlan}</p>
-            </article>
-            <article>
-              <h3>Deployment Considerations</h3>
-              <p>{resolutionDeploymentConsiderations}</p>
-            </article>
           </div>
         </section>
       </template>
 
-      <!-- Workspace Grid -->
+      <section
+        class="core-explanation"
+        aria-labelledby="core-explanation-title"
+      >
+        <div class="section-heading">
+          <p class="eyebrow">CORE EXPLANATION</p>
+          <h2 id="core-explanation-title">What this means</h2>
+        </div>
+        <div class="core-grid">
+          <article class="explanation-panel">
+            <h2>Business Purpose</h2>
+            <p>{businessPurpose}</p>
+          </article>
+          <article class="explanation-panel">
+            <h2>Technical Explanation</h2>
+            <p>{technicalExplanation}</p>
+          </article>
+        </div>
+      </section>
 
-      <section class="workspace-grid">
-        <article class="panel">
-          <h2>Business Purpose</h2>
-
-          <p>{businessPurpose}</p>
-        </article>
-
-        <article class="panel">
-          <h2>Technical Explanation</h2>
-
-          <p>{technicalExplanation}</p>
-        </article>
-
-        <article class="panel">
-          <h2>Dependencies</h2>
-
-          <p>{dependencySummary}</p>
-        </article>
-
-        <article class="panel">
-          <h2>Risk Analysis</h2>
-
-          <p>{riskSummary}</p>
-        </article>
-
-        <article class="panel">
-          <h2>Suggested Improvements</h2>
-
-          <p>{recommendations}</p>
-        </article>
-
-        <article class="panel">
-          <h2>Testing Guidance</h2>
-
-          <p>{testingGuidance}</p>
-        </article>
-
-        <article class="panel">
-          <h2>Deployment Considerations</h2>
-
-          <p>{deploymentNotes}</p>
-        </article>
-
-        <article class="panel">
-          <h2>Interview Explanation</h2>
-
-          <p>{interviewGuidance}</p>
-        </article>
+      <section class="more-detail" aria-labelledby="more-detail-title">
+        <div class="section-heading">
+          <p class="eyebrow">SUPPORTING ANALYSIS</p>
+          <h2 id="more-detail-title">More Detail</h2>
+          <p>Open only the evidence needed for your investigation.</p>
+        </div>
+        <div class="disclosure-list">
+          <details>
+            <summary>Dependencies</summary>
+            <div class="detail-content">
+              <h3>Dependencies to Check</h3>
+              <p>{dependenciesToCheck}</p>
+              <h3>Observed Metadata Dependencies</h3>
+              <p>{dependencySummary}</p>
+            </div>
+          </details>
+          <details>
+            <summary>Risk Analysis</summary>
+            <div class="detail-content"><p>{riskSummary}</p></div>
+          </details>
+          <details>
+            <summary>Testing Guidance</summary>
+            <div class="detail-content">
+              <h3>Resolution Test Plan</h3>
+              <p>{resolutionTestPlan}</p>
+              <h3>Metadata Test Evidence</h3>
+              <p>{testingGuidance}</p>
+            </div>
+          </details>
+          <details>
+            <summary>Deployment Considerations</summary>
+            <div class="detail-content">
+              <h3>Resolution Guidance</h3>
+              <p>{resolutionDeploymentConsiderations}</p>
+              <h3>Deployment Evidence</h3>
+              <p>{deploymentNotes}</p>
+            </div>
+          </details>
+          <details>
+            <summary>Suggested Improvements</summary>
+            <div class="detail-content"><p>{recommendations}</p></div>
+          </details>
+          <details>
+            <summary>Interview Explanation</summary>
+            <div class="detail-content"><p>{interviewGuidance}</p></div>
+          </details>
+        </div>
       </section>
     </template>
   </div>

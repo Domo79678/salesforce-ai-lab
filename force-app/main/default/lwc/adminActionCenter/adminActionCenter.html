@@ -1,0 +1,80 @@
+<template>
+  <section class="center" aria-labelledby="action-center-title">
+    <header>
+      <p class="eyebrow">PROTOTYPE-LOCAL PERSISTENCE</p>
+      <h1 id="action-center-title">Admin Action Center</h1>
+      <p>
+        Track follow-through on deterministic findings in this browser only.
+      </p>
+    </header>
+    <template if:true={message}
+      ><div class="notice" role="status">{message}</div></template
+    >
+    <div class="layout">
+      <section aria-labelledby="open-actions-title">
+        <h2 id="open-actions-title">Actions</h2>
+        <template if:false={hasActions}
+          ><p>No tracked actions yet.</p></template
+        >
+        <template for:each={actions} for:item="action">
+          <article key={action.id} class="action-row">
+            <div>
+              <h3>{action.title}</h3>
+              <p>{action.status} · {action.priority}</p>
+              <p>{action.sourceLabel}</p>
+              <p>{action.selectedAction}</p>
+            </div>
+            <lightning-button
+              label="Open / Update"
+              variant={action.buttonVariant}
+              data-id={action.id}
+              onclick={handleOpen}
+            ></lightning-button>
+          </article>
+        </template>
+      </section>
+      <template if:true={hasSelection}>
+        <section class="editor" aria-labelledby="update-action-title">
+          <h2 id="update-action-title">Update Action</h2>
+          <lightning-combobox
+            name="status"
+            label="Status"
+            value={draft.status}
+            options={statusOptions}
+            onchange={handleChange}
+          ></lightning-combobox>
+          <lightning-input
+            name="selectedAction"
+            label="Next step"
+            value={draft.selectedAction}
+            onchange={handleChange}
+          ></lightning-input>
+          <lightning-textarea
+            name="testPlan"
+            label="Testing completed or required"
+            value={draft.testPlan}
+            onchange={handleChange}
+          ></lightning-textarea>
+          <lightning-textarea
+            name="resolutionNotes"
+            label="Resolution notes"
+            value={draft.resolutionNotes}
+            onchange={handleChange}
+          ></lightning-textarea>
+          <lightning-combobox
+            name="riskDisposition"
+            label="Risk disposition"
+            value={draft.riskDisposition}
+            options={riskOptions}
+            onchange={handleChange}
+          ></lightning-combobox>
+          <lightning-button
+            variant="brand"
+            label="Save Action"
+            onclick={handleSave}
+          ></lightning-button>
+        </section>
+      </template>
+    </div>
+  </section>
+</template>

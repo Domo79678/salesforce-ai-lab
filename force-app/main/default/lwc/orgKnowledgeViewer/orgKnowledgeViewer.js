@@ -103,6 +103,10 @@ export default class OrgKnowledgeViewer extends LightningElement {
     percentage: 0
   };
 
+  activeTabValue = "overview";
+  findingsSearchValue = "";
+  selectedFindingCategory = "all";
+
   connectedCallback() {
     this._normalizedScanMode = normalizeScanMode(this.scanMode);
 
@@ -218,8 +222,105 @@ export default class OrgKnowledgeViewer extends LightningElement {
     }
   }
 
+  handleFindingNavigate(event) {
+    const finding = this.findings.find(
+      (item) => item.id === event.currentTarget.dataset.id
+    );
+    if (!finding) return;
+
+    const navigationEvent = createWorkspaceNavigationEvent(
+      "explainThis",
+      createRecommendationContext(
+        {
+          ...finding,
+          findingId: finding.id,
+          description: finding.summary,
+          entityType: finding.entityType || finding.metadataType || "object"
+        },
+        {
+          sourceWorkspace: "knowledgeCenter",
+          sourceType: "finding",
+          metadataSnapshot:
+            this.runnerResult?.snapshot ||
+            this.runnerResult?.salesforceSnapshot ||
+            null
+        }
+      )
+    );
+
+    if (navigationEvent) this.dispatchEvent(navigationEvent);
+  }
+
+  handleFindingSearch(event) {
+    this.findingsSearchValue = event.target.value || "";
+  }
+
+  handleFindingCategoryChange(event) {
+    this.selectedFindingCategory = event.detail.value || "all";
+  }
+
+  handleStartHere() {
+    this.selectedFindingCategory = this.startHereGroup?.category || "all";
+  }
+
   get groupedFindings() {
     return getGroupedFindings(this.analysisResult);
+  }
+
+  get highCriticalFindings() {
+    return this.highFindings + this.criticalFindings;
+  }
+
+  get findingCategoryCount() {
+    return this.groupedFindings.length;
+  }
+
+  get findingCategoryOptions() {
+    return [
+      { label: "All categories", value: "all" },
+      ...this.groupedFindings.map((group) => ({
+        label: `${group.category} (${group.findingCount})`,
+        value: group.category
+      }))
+    ];
+  }
+
+  get startHereGroup() {
+    return this.groupedFindings[0] || null;
+  }
+
+  get hasStartHereGroup() {
+    return Boolean(this.startHereGroup);
+  }
+
+  get visibleFindingGroups() {
+    const query = this.findingsSearchValue.trim().toLowerCase();
+    return this.groupedFindings
+      .filter(
+        (group) =>
+          this.selectedFindingCategory === "all" ||
+          group.category === this.selectedFindingCategory
+      )
+      .map((group) => {
+        const findings = group.findings.filter((finding) => {
+          if (!query) return true;
+          return [
+            finding.title,
+            finding.summary,
+            finding.entityApiName,
+            finding.severity,
+            finding.category
+          ]
+            .filter(Boolean)
+            .some((value) => String(value).toLowerCase().includes(query));
+        });
+        return { ...group, findings, visibleCount: findings.length };
+      })
+      .filter((group) => group.findings.length > 0);
+  }
+
+  get hasVisibleFindingGroups() {
+    return this.visibleFindingGroups.length > 0;
   }
 
   get deploymentBlockers() {
@@ -395,6 +496,34 @@ export default class OrgKnowledgeViewer extends LightningElement {
       failedCount > 0 ? `; ${failedCount} object metadata requests failed` : "";
 
     return `${detailedCount} detailed objects analyzed from ${inventoryCount} inventory objects${failureText}`;
+  }
+
+  get knowledgeCoveragePercentage() {
+    const inventoryCount = Number(
+      this.objectCoverage.inventoryObjectCount || this.objectInventory.length
+    );
+    const detailedCount = Number(
+      this.objectCoverage.detailedObjectCount || this.detailedObjectCount
+    );
+
+    if (!Number.isFinite(inventoryCount) || inventoryCount <= 0) {
+      return 0;
+    }
+
+    return Math.min(100, Math.round((detailedCount / inventoryCount) * 100));
+  }
+
+  get knowledgeCoverageDisplay() {
+    return `${this.detailedObjectCount} / ${this.totalObjects}`;
+  }
+
+  get knowledgeCoverageStatus() {
+    const percentage = this.knowledgeCoveragePercentage;
+
+    if (percentage >= 100) return "Complete coverage";
+    if (percentage >= 70) return "Strong coverage";
+    if (percentage >= 40) return "Moderate coverage";
+    return "Partial coverage";
   }
 
   /*
@@ -860,7 +989,7 @@ export default class OrgKnowledgeViewer extends LightningElement {
           ? ` ${warningCount} object metadata warnings were recorded.`
           : "";
 
-      this.successMessage = `Knowledge Center analysis completed for ${this.organizationName} using the ${this.scanModeLabel}.${warningText}`;
+      this.successMessage = `Org Knowledge analysis completed for ${this.organizationName} using the ${this.scanModeLabel}.${warningText}`;
     } catch (error) {
       /*
        * Restore the last successful analysis and
@@ -888,6 +1017,14 @@ export default class OrgKnowledgeViewer extends LightningElement {
 
   async handleRunAgain() {
     await this.runAnalysis();
+  }
+
+  handleTabChange(event) {
+    this.activeTabValue = event.target.value || "overview";
+  }
+
+  handleSelectTab(event) {
+    this.activeTabValue = event.currentTarget.dataset.tab || "overview";
   }
 
   handleClear() {
@@ -924,7 +1061,7 @@ export default class OrgKnowledgeViewer extends LightningElement {
 
   getErrorMessage(error) {
     if (!error) {
-      return "An unknown Knowledge Center error occurred.";
+      return "An unknown Org Knowledge error occurred.";
     }
 
     if (typeof error === "string") {
@@ -943,6 +1080,6 @@ export default class OrgKnowledgeViewer extends LightningElement {
       return error.detail;
     }
 
-    return "The Knowledge Center could not complete the analysis.";
+    return "Org Knowledge could not complete the analysis.";
   }
 }

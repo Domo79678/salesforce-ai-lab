@@ -15,7 +15,7 @@ describe("c-all-tools-workspace", () => {
     document.body.appendChild(element);
 
     expect(element.shadowRoot.textContent).toContain("Available Workspaces");
-    expect(element.shadowRoot.textContent).toContain("Knowledge Center");
+    expect(element.shadowRoot.textContent).toContain("Org Knowledge");
     expect(
       element.shadowRoot.querySelector("lightning-accordion-section").label
     ).toBe("Coming Soon");

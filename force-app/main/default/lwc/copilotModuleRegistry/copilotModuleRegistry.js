@@ -51,6 +51,21 @@ export const COPILOT_MODULES = Object.freeze([
     entityTypes: ["Object", "Field"]
   }),
   Object.freeze({
+    name: "adminActionCenter",
+    title: "Admin Action Center",
+    iconName: "utility:task",
+    description:
+      "Track administrator follow-through, testing, resolution, and explicit risk decisions.",
+    status: "Available",
+    statusClass: "status-badge status-available",
+    progress: 70,
+    progressLabel: "70% complete",
+    phase: "Operational Follow-through MVP",
+    disabled: false,
+    featured: true,
+    recommendationCategories: []
+  }),
+  Object.freeze({
     name: "flowIntelligence",
     title: "Flow Intelligence",
     iconName: "utility:flow",
@@ -116,7 +131,7 @@ export const COPILOT_MODULES = Object.freeze([
   }),
   Object.freeze({
     name: "knowledgeCenter",
-    title: "Knowledge Center",
+    title: "Org Knowledge",
     iconName: "utility:knowledge_base",
     description:
       "Understand organization metadata, findings, coverage, and explainable health analysis.",

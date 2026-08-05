@@ -8,7 +8,8 @@ const UTILITY_ACTIONS = Object.freeze([
     moduleName: "troubleshootingAssistant",
     label: "Troubleshoot"
   },
-  { moduleName: "allTools", label: "View All Tools" }
+  { moduleName: "allTools", label: "View All Tools" },
+  { moduleName: "adminActionCenter", label: "View Actions" }
 ]);
 
 export default class SalesforceCopilotDashboard extends LightningElement {
